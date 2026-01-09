@@ -1,0 +1,15 @@
+apiVersion: v2
+name: appChart
+description: App chart that uses libChart helpers
+type: application
+version: 0.0.1
+appVersion: "0.0.1"
+keywords:
+  - app
+  - deployment
+  - common
+  - library
+dependencies:
+  - name: libChart
+    version: 0.0.1
+    repository: file://../

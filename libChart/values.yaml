@@ -1,0 +1,492 @@
+# Default values for application-v2
+# This is a YAML-formatted file.
+# This chart is a unified library chart that consolidates application, networking, and monitoring functionality.
+
+# ----------------------------------------------------------------------------
+# Global Configuration
+# ----------------------------------------------------------------------------
+global:
+  name: ""  # REQUIRED - application name (e.g., "radarr", "sonarr")
+  namespace: default  # Namespace for all resources
+  nfsServer: ""  # Optional - NFS server hostname/IP for NFS volumes (can be referenced in volumes as {{ .Values.global.nfsServer }})
+
+# ----------------------------------------------------------------------------
+# Service Configuration
+# ----------------------------------------------------------------------------
+service:
+  # Explicit port definitions - map of port name to port configuration
+  # Key is the port name (e.g., http, https, metrics)
+  # Each port must specify: port (Service port), targetPort (Container port name or number), protocol (optional, defaults to TCP)
+  ports: {}
+    # Example:
+    # http:
+    #   port: 80           # Service port
+    #   targetPort: 8080   # Container port (number or name)
+    #   protocol: TCP      # Optional, defaults to TCP
+    # metrics:
+    #   port: 9100
+    #   targetPort: 9100
+    #   protocol: TCP
+  annotations: {}  # Optional service annotations
+
+# ----------------------------------------------------------------------------
+# Deployment Configuration
+# ----------------------------------------------------------------------------
+deployment:
+  replicas: 1
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 3
+  
+  # Image Pull Secrets
+  imagePullSecrets: []
+  
+  # Termination grace period (seconds)
+  terminationGracePeriodSeconds: 30
+
+  # Pod labels
+  podLabels: {}
+
+  # Pod security context - secure defaults
+  podSecurityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+
+  # Default securityContext (applied to all containers unless overridden)
+  defaultContainerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false  # Most containers need write access
+    runAsNonRoot: true
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+    appArmorProfile:
+      type: RuntimeDefault
+
+  # Map of containers - NO DEFAULT, must be explicitly defined by service chart
+  # Services must define their containers explicitly, e.g.:
+  # containers:
+  #   radarr:
+  #     image:
+  #       repository: ghcr.io/runlix/radarr
+  #       tag: "latest"
+  #       pullPolicy: IfNotPresent
+  #     ports:
+  #       - name: http
+  #         containerPort: 8080
+  #         protocol: TCP
+  containers: {}
+
+  # Map of init containers
+  initContainers: {}
+    # example-init:
+    #   image:
+    #     repository: busybox
+    #     tag: latest
+    #   command: ['sh', '-c', 'echo init']
+
+# ----------------------------------------------------------------------------
+# Feature: Persistence
+# ----------------------------------------------------------------------------
+persistence:
+  enabled: false  # Feature flag - enable persistence (PVC + volumes)
+  
+  # Persistent Volume Claims - Dictionary of PVC definitions
+  # Each key is the claim name suffix (full name: {global.name}-{key})
+  # Chart will generate PVC resources for each entry
+  claims: {}
+    # Example:
+    # config:
+    #   size: 1Gi
+    #   storageClass: "local-path"  # REQUIRED - storage class name
+    #   accessMode: ReadWriteOnce
+    #   retain: true  # Retain PVC on release deletion (adds helm.sh/resource-policy: keep)
+  
+  # Deployment Volumes - List of volume definitions
+  # Define standard Kubernetes volume specs (nfs, hostPath, emptyDir, secret, configMap, etc.)
+  # These volumes will be added to the Deployment's spec.template.spec.volumes
+  # For PVC volumes, reference the claim name: {global.name}-{claimKey}
+  volumes: []
+    # Example:
+    # - name: config
+    #   persistentVolumeClaim:
+    #     claimName: "{global.name}-config"
+    # - name: media
+    #   nfs:
+    #     server: snorlax.orhayoun.com
+    #     path: /mnt/vol1/media-center/media
+    # - name: downloads
+    #   nfs:
+    #     server: snorlax.orhayoun.com
+    #     path: /mnt/vol1/media-center/downloads
+    # - name: secrets
+    #   secret:
+    #     secretName: my-secret
+
+# ----------------------------------------------------------------------------
+# Feature: Networking (Gateway API & Security)
+# ----------------------------------------------------------------------------
+httpRoute:
+  enabled: false  # Feature flag - enable HTTPRoute (Gateway API + security policies)
+  host: ""  # REQUIRED when enabled - hostname (e.g., "radarr-k8s.orhayoun.com")
+  port: 80  # Service port to route to (defaults to first container port if not specified)
+  gateway:
+    name: shared-platform-gateway
+    namespace: istio-system
+  # HTTPRoute configuration - define routes for different listeners
+  # Each route can bind to a listener by sectionName, port, or both
+  # Rules support template strings that will be evaluated at render time
+  routes:
+    # Main Application Route (HTTPS)
+    - name: route
+      listener:
+        sectionName: https
+        # port: 443  # Can be used instead of or in addition to sectionName
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          backendRefs:
+            - name: "{{ .Values.global.name }}"
+              port: "{{ .Values.httpRoute.port }}"
+              weight: 100
+              group: ""
+              kind: Service
+
+    # HTTP Redirect Route
+    - name: http-redirect
+      listener:
+        sectionName: http
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          filters:
+            - type: RequestRedirect
+              requestRedirect:
+                scheme: https
+                statusCode: 301
+  # Auto-generates:
+  # 1. HTTPRoute (Gateway API)
+  # 2. AuthorizationPolicy (ingress source)
+  # 3. NetworkPolicy (ingress rule)
+
+# ----------------------------------------------------------------------------
+# Feature: Observability
+# ----------------------------------------------------------------------------
+metrics:
+  enabled: false  # Feature flag - enable metrics (ServiceMonitor + PrometheusRule)
+  port: 9100  # Metrics port
+  component: ""  # Component label for metrics (e.g., "media-center") - used in metricRelabelings
+  interval: "10s"  # ServiceMonitor scrape interval
+  scrapeTimeout: "5s"  # ServiceMonitor scrape timeout
+  
+  # Custom Alert Rules
+  # Define service-specific alerts here as an array of PrometheusRule alert definitions
+  rules: []
+    # Example:
+    # - alert: ServiceDown
+    #   expr: service_system_status == 0
+    #   for: 5m
+    #   labels:
+    #     severity: critical
+    #   annotations:
+    #     summary: "Service is down"
+    #     description: "Service system status is 0 (unhealthy) for more than 5 minutes."
+
+# ----------------------------------------------------------------------------
+# Service Account
+# ----------------------------------------------------------------------------
+serviceAccount:
+  create: true
+  automount: false  # SECURITY: Disabled by default. Enable only if service needs K8s API access
+  annotations: {}
+  name: ""
+
+# ----------------------------------------------------------------------------
+# Pod disruption budget configuration
+# ----------------------------------------------------------------------------
+podDisruptionBudget:
+  enabled: false  # Disabled by default - opt-in per service
+  minAvailable: null  # Mutually exclusive with maxUnavailable
+  maxUnavailable: null  # Mutually exclusive with minAvailable
+
+# ----------------------------------------------------------------------------
+# Security Configuration (Custom Policies)
+# ----------------------------------------------------------------------------
+security:
+  # Authorization Policies - Map of AuthorizationPolicy specs
+  # Key: Name suffix (e.g., "ingress", "prometheus") - full name: {global.name}-{key}
+  # Value: Full AuthorizationPolicy spec (excluding selector, which is auto-injected)
+  # The template handles: apiVersion, kind, metadata, selector
+  # You provide: action, rules (with from/to/ports), etc.
+  #
+  # Template variables can be used in the spec YAML:
+  # {global.name}, {service.port}, {metrics.port}, {httpRoute.gateway.namespace}, {httpRoute.gateway.name}
+  #
+  # authorizationPolicies:
+  #   ingress:
+  #     action: ALLOW
+  #     rules:
+  #       - from:
+  #           - source:
+  #               principals:
+  #                 - "cluster.local/ns/{httpRoute.gateway.namespace}/sa/{httpRoute.gateway.name}-istio"
+  #         to:
+  #           - operation:
+  #               ports: ["{service.port}"]
+  #   prometheus:
+  #     action: ALLOW
+  #     rules:
+  #       - from:
+  #           - source:
+  #               principals:
+  #                 - "cluster.local/ns/monitoring/sa/prometheus-kube-prometheus-prometheus"
+  #         to:
+  #           - operation:
+  #               ports: ["{metrics.port}"]
+  authorizationPolicies: {}
+  
+  # NetworkPolicy - Full NetworkPolicy spec (excluding podSelector, which is auto-injected)
+  # The template handles: apiVersion, kind, metadata, podSelector
+  # You provide: policyTypes, ingress, egress
+  #
+  # IMPORTANT:
+  # - The template does NOT inject any default ingress/egress rules.
+  # - If you enable NetworkPolicy for a service, you MUST explicitly include:
+  #   - DNS egress (UDP/TCP 53) if the workload needs DNS
+  #   - Kube API egress (typically 10.43.0.1:6443) if the workload needs it
+  #   - Any Istio ambient mesh ports (e.g. HBONE 15008) you require
+  # - `ports` MUST be valid NetworkPolicyPort objects (no bare ints).
+  #
+  # Template variables can be used in the spec YAML:
+  # {global.name}, {service.port}, {metrics.port}, {httpRoute.gateway.namespace}, {httpRoute.gateway.name}
+  #
+  # networkPolicy:
+  #   policyTypes:
+  #     - Ingress
+  #     - Egress
+  #   ingress:
+  #     - from:
+  #         - namespaceSelector:
+  #             matchLabels:
+  #               kubernetes.io/metadata.name: "{httpRoute.gateway.namespace}"
+  #           podSelector:
+  #             matchLabels:
+  #               app.kubernetes.io/name: "{httpRoute.gateway.name}"
+  #       ports:
+  #         - protocol: TCP
+  #           port: "{service.port}"
+  #         - protocol: TCP
+  #           port: 15008
+  #   egress:
+  #     - to:
+  #         - namespaceSelector:
+  #             matchLabels:
+  #               kubernetes.io/metadata.name: kube-system
+  #       ports:
+  #         - protocol: UDP
+  #           port: 53
+  #         - protocol: TCP
+  #           port: 53
+  #     - to:
+  #         - ipBlock:
+  #             cidr: 0.0.0.0/0
+  #             except:
+  #               - 10.42.0.0/16
+  #               - 10.43.0.0/16
+  #       ports:
+  #         - protocol: TCP
+  #           port: 80
+  #         - protocol: TCP
+  #           port: 443
+
+# ----------------------------------------------------------------------------
+# Circuit Breaker Configuration (Istio DestinationRule)
+# ----------------------------------------------------------------------------
+# Provides connection pooling and outlier detection to prevent cascading failures
+circuitBreaker:
+  enabled: false  # Opt-in feature - disabled by default
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100  # Maximum number of TCP connections
+      http:
+        http1MaxPendingRequests: 10  # Max pending HTTP/1.1 requests
+        http2MaxRequests: 100  # Max concurrent HTTP/2 requests
+        maxRequestsPerConnection: 2  # Max requests per HTTP/2 connection
+    outlierDetection:
+      consecutive5xxErrors: 5  # Eject after N consecutive 5xx errors
+      interval: 30s  # Time between ejection scans
+      baseEjectionTime: 30s  # Base time a host is ejected
+      maxEjectionPercent: 50  # Maximum percentage of hosts ejected
+
+
+network:
+  enabled: true
+  services:
+    enabled: true
+    items:
+      radarr: # name
+        enabled: true
+        type: ClusterIP
+        ports:
+          - name: http
+            port: 8080
+            targetPort: http
+            protocol: TCP
+          - name: metrics
+            port: 9100
+            targetPort: metrics
+            protocol: TCP
+  networkpolicies:
+    enabled: true
+    policies:
+      allow_dns: # name
+        enabled: tfrue
+        podSelector: test
+        policyTypes: [Ingress, Egress]
+        ingress:
+          - from:
+              - ipBlock:
+                  cidr: 169.254.7.127/32
+          - from:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: istio-system
+        egress:
+          - to:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: kube-system
+      allow_api: # name
+        enabled: true
+        podSelector: test
+        policyTypes: [Ingress, Egress]
+        ingress:
+          # Health probes (link-local IP) - required for Istio ambient mesh
+          # Ambient mesh uses SNAT to rewrite kubelet health probe packets with link-local IP
+          - from:
+              - ipBlock:
+                  cidr: 169.254.7.127/32
+
+          # Gateway traffic (HTTP + HBONE for ambient mesh)
+          - from:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: istio-system
+                podSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: shared-platform-gateway
+            ports:
+              - protocol: TCP
+                port: 8080
+              - protocol: TCP
+                port: 15008
+
+          # Prometheus metrics scraping (metrics port + HBONE for ambient mesh)
+          - from:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: monitoring
+                podSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: prometheus
+            ports:
+              - protocol: TCP
+                port: 9100
+              - protocol: TCP
+                port: 15008
+
+          - from:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: homeassistant
+                podSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: home-assistant
+            ports:
+              - protocol: TCP
+                port: 8080
+              - protocol: TCP
+                port: 15008
+        egress:
+          # DNS access (required for service discovery and external lookups)
+          - to:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: kube-system
+            ports:
+              - protocol: UDP
+                port: 53
+              - protocol: TCP
+                port: 53
+
+          # Kubernetes API access (if needed for service discovery)
+          - to:
+              - ipBlock:
+                  cidr: 10.43.0.1/32
+            ports:
+              - protocol: TCP
+                port: 6443
+
+          - to:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: download-clients
+            ports:
+              - protocol: TCP
+                port: 8080
+              - protocol: TCP
+                port: 15008
+          - to:
+              - ipBlock:
+                  cidr: "192.168.30.0/24"
+            ports:
+              - protocol: TCP
+                port: 80
+              - protocol: TCP
+                port: 443
+              - protocol: TCP
+                port: 8080
+          - to:
+              - ipBlock:
+                  cidr: "0.0.0.0/0"
+                  except:
+                    - "10.42.0.0/16"
+                    - "10.43.0.0/16"
+                    - "192.168.0.0/16"
+            ports:
+              - protocol: TCP
+                port: 80
+              - protocol: TCP
+                port: 443
+              - protocol: TCP
+                port: 8080
+          - to:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: istio-system
+            ports:
+              - protocol: TCP
+                port: 15008
+  istio:
+    enabled: true
+    authorizationPolicies:
+      enabled: true
+      policies:
+        ingress: # name
+          enabled: true
+          rules:
+            - from:
+                - source:
+                    principals:
+                      - "cluster.local/ns/istio-system/sa/shared-platform-gateway-istio"
+            - to:
+              - operation:
+                  ports: ["8080"]
