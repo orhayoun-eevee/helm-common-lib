@@ -1,0 +1,454 @@
+---
+# Source: app-template/templates/networkpolicy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-app
+  labels:
+    helm.sh/chart: test-chart-1.0.0
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: "network-policy"
+
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: test-app
+      app.kubernetes.io/instance: test-release
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: istio-system
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: shared-platform-gateway
+      ports:
+      - port: 80
+        protocol: TCP
+      - port: 15008
+        protocol: TCP
+  egress:
+    - ports:
+      - port: 53
+        protocol: UDP
+      - port: 53
+        protocol: TCP
+      to:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kube-system
+    - ports:
+      - port: 80
+        protocol: TCP
+      - port: 443
+        protocol: TCP
+      to:
+      - ipBlock:
+          cidr: 0.0.0.0/0
+          except:
+          - 10.42.0.0/16
+          - 10.43.0.0/16
+---
+# Source: app-template/templates/poddisruptionbudget.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: test-app
+  labels:
+    helm.sh/chart: test-chart-1.0.0
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: "pod-disruption-budget"
+
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: test-app
+      app.kubernetes.io/instance: test-release
+  minAvailable: 1
+---
+# Source: app-template/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: test-service-account
+  labels:
+    helm.sh/chart: test-chart-1.0.0
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: "serviceaccount"
+  annotations:
+    test.serviceaccount.annotation: test-value
+automountServiceAccountToken: true
+---
+# Source: app-template/templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test-app-config
+  labels:
+    helm.sh/chart: test-chart-1.0.0
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: "pvc"
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Source: app-template/templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test-app-data
+  labels:
+    helm.sh/chart: test-chart-1.0.0
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: "pvc"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+---
+# Source: app-template/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-app
+  labels:
+    helm.sh/chart: test-chart-1.0.0
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: "service"
+  annotations:
+    test.annotation: test-value
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+    - name: metrics
+      port: 9100
+      targetPort: 9100
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/instance: test-release
+---
+# Source: app-template/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-app
+  labels:
+    helm.sh/chart: test-chart-1.0.0
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: "deployment"
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: test-app
+      app.kubernetes.io/instance: test-release
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: deployment
+        app.kubernetes.io/instance: test-release
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: test-app
+        app.kubernetes.io/version: 1.0.0
+        helm.sh/chart: test-chart-1.0.0
+        test.pod.label: test-value
+    spec:
+      imagePullSecrets:
+        - name: test-registry-secret
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        fsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: test-service-account
+      initContainers:
+        - name: init
+          image: busybox:latest
+          command:
+            - sh
+            - -c
+            - echo "Initializing..."
+          securityContext:
+            allowPrivilegeEscalation: false
+            appArmorProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+      containers:
+        - name: app
+          image: nginx:1.25
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: metrics
+              containerPort: 9100
+              protocol: TCP
+          env:
+            - name: ENV_VAR
+              value: test-value
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            appArmorProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+      volumes:
+        -
+          name: config
+          persistentVolumeClaim:
+            claimName: test-app-config
+        -
+          name: data
+          persistentVolumeClaim:
+            claimName: test-app-data
+        -
+          name: nfs-share
+          nfs:
+            path: /mnt/shared
+            server: nfs.example.com
+---
+# Source: app-template/templates/authorizationpolicy.yaml
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: test-app-ingress
+  labels:
+    helm.sh/chart: test-chart-1.0.0
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: "authorization-policy"
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: test-app
+      app.kubernetes.io/instance: test-release
+  action: ALLOW
+  rules:
+    - from:
+      - source:
+          principals:
+          - cluster.local/ns/istio-system/sa/shared-platform-gateway-istio
+      to:
+      - operation:
+          ports:
+          - "80"
+---
+# Source: app-template/templates/authorizationpolicy.yaml
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: test-app-prometheus
+  labels:
+    helm.sh/chart: test-chart-1.0.0
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: "authorization-policy"
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: test-app
+      app.kubernetes.io/instance: test-release
+  action: ALLOW
+  rules:
+    - from:
+      - source:
+          principals:
+          - cluster.local/ns/monitoring/sa/prometheus-kube-prometheus-prometheus
+      to:
+      - operation:
+          ports:
+          - "9100"
+---
+# Source: app-template/templates/destinationrule.yaml
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: test-app
+  labels:
+    helm.sh/chart: test-chart-1.0.0
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: "destination-rule"
+
+spec:
+  host: test-app
+  trafficPolicy:
+    connectionPool:
+      http:
+        http1MaxPendingRequests: 20
+        http2MaxRequests: 200
+        maxRequestsPerConnection: 4
+      tcp:
+        maxConnections: 200
+    outlierDetection:
+      baseEjectionTime: 60s
+      consecutive5xxErrors: 10
+      interval: 60s
+      maxEjectionPercent: 75
+---
+# Source: app-template/templates/httproute.yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: test-app
+  labels:
+    helm.sh/chart: test-chart-1.0.0
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: "httproute"
+
+spec:
+  parentRefs:
+    - name: shared-platform-gateway
+      namespace: istio-system
+  hostnames:
+    - test-app.example.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: test-app
+          port: 80
+          weight: 100
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+---
+# Source: app-template/templates/prometheusrule.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: test-app
+  labels:
+    app.kubernetes.io/component: prometheus-rule
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/version: 1.0.0
+    helm.sh/chart: test-chart-1.0.0
+
+spec:
+  groups:
+    - name: test-app.rules
+      rules:
+        - alert: TestAlert
+          annotations:
+            description: Test service has been down for more than 5 minutes
+            summary: Test service is down
+          expr: up == 0
+          for: 5m
+          labels:
+            severity: critical
+---
+# Source: app-template/templates/servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: test-app
+  labels:
+    app.kubernetes.io/component: servicemonitor
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/version: 1.0.0
+    helm.sh/chart: test-chart-1.0.0
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: test-app
+      app.kubernetes.io/instance: test-release
+  endpoints:
+    - port: metrics
+      interval: 15s
+      scrapeTimeout: 10s
+      metricRelabelings:
+        - targetLabel: component
+          replacement: test-component

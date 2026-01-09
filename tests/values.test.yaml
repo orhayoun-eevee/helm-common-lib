@@ -1,0 +1,260 @@
+# Comprehensive test values file for validation
+# This enables ALL features to ensure complete template coverage
+
+global:
+  name: test-app
+  namespace: test-namespace
+  nfsServer: nfs.example.com
+  chart:
+    name: test-chart
+    version: "1.0.0"
+    appVersion: "1.0.0"
+
+service:
+  type: ClusterIP
+  ports:
+    http:
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+    metrics:
+      port: 9100
+      targetPort: 9100
+      protocol: TCP
+  annotations:
+    test.annotation: "test-value"
+
+deployment:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+  revisionHistoryLimit: 5
+  imagePullSecrets:
+    - name: test-registry-secret
+  terminationGracePeriodSeconds: 60
+  podLabels:
+    test.pod.label: "test-value"
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  defaultContainerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    runAsNonRoot: true
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+    appArmorProfile:
+      type: RuntimeDefault
+  containers:
+    app:
+      image:
+        repository: nginx
+        tag: "1.25"
+        pullPolicy: IfNotPresent
+      ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: metrics
+          containerPort: 9100
+          protocol: TCP
+      env:
+        - name: ENV_VAR
+          value: "test-value"
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "100m"
+        limits:
+          memory: "256Mi"
+          cpu: "200m"
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 8080
+        initialDelaySeconds: 30
+        periodSeconds: 10
+      readinessProbe:
+        httpGet:
+          path: /ready
+          port: 8080
+        initialDelaySeconds: 5
+        periodSeconds: 5
+  initContainers:
+    init:
+      image:
+        repository: busybox
+        tag: latest
+      command: ['sh', '-c', 'echo "Initializing..."']
+
+persistence:
+  enabled: true
+  claims:
+    config:
+      size: 1Gi
+      storageClass: "local-path"
+      accessMode: ReadWriteOnce
+      retain: true
+    data:
+      size: 10Gi
+      storageClass: "local-path"
+      accessMode: ReadWriteOnce
+      retain: false
+  volumes:
+    - name: config
+      persistentVolumeClaim:
+        claimName: "test-app-config"
+    - name: data
+      persistentVolumeClaim:
+        claimName: "test-app-data"
+    - name: nfs-share
+      nfs:
+        server: nfs.example.com
+        path: /mnt/shared
+
+httpRoute:
+  enabled: true
+  host: test-app.example.com
+  port: 80
+  gateway:
+    name: shared-platform-gateway
+    namespace: istio-system
+  routes:
+    - name: route
+      listener:
+        sectionName: https
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          backendRefs:
+            - name: "test-app"
+              port: 80
+              weight: 100
+              group: ""
+              kind: Service
+    - name: http-redirect
+      listener:
+        sectionName: http
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          filters:
+            - type: RequestRedirect
+              requestRedirect:
+                scheme: https
+                statusCode: 301
+
+metrics:
+  enabled: true
+  port: 9100
+  component: "test-component"
+  interval: "15s"
+  scrapeTimeout: "10s"
+  rules:
+    - alert: TestAlert
+      expr: up == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Test service is down"
+        description: "Test service has been down for more than 5 minutes"
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations:
+    test.serviceaccount.annotation: "test-value"
+  name: "test-service-account"
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+security:
+  authorizationPolicies:
+    ingress:
+      action: ALLOW
+      rules:
+        - from:
+            - source:
+                principals:
+                  - "cluster.local/ns/istio-system/sa/shared-platform-gateway-istio"
+          to:
+            - operation:
+                ports: ["80"]
+    prometheus:
+      action: ALLOW
+      rules:
+        - from:
+            - source:
+                principals:
+                  - "cluster.local/ns/monitoring/sa/prometheus-kube-prometheus-prometheus"
+          to:
+            - operation:
+                ports: ["9100"]
+  networkPolicy:
+    policyTypes:
+      - Ingress
+      - Egress
+    ingress:
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: istio-system
+            podSelector:
+              matchLabels:
+                app.kubernetes.io/name: shared-platform-gateway
+        ports:
+          - protocol: TCP
+            port: 80
+          - protocol: TCP
+            port: 15008
+    egress:
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: kube-system
+        ports:
+          - protocol: UDP
+            port: 53
+          - protocol: TCP
+            port: 53
+      - to:
+          - ipBlock:
+              cidr: 0.0.0.0/0
+              except:
+                - 10.42.0.0/16
+                - 10.43.0.0/16
+        ports:
+          - protocol: TCP
+            port: 80
+          - protocol: TCP
+            port: 443
+
+circuitBreaker:
+  enabled: true
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 200
+      http:
+        http1MaxPendingRequests: 20
+        http2MaxRequests: 200
+        maxRequestsPerConnection: 4
+    outlierDetection:
+      consecutive5xxErrors: 10
+      interval: 60s
+      baseEjectionTime: 60s
+      maxEjectionPercent: 75
+

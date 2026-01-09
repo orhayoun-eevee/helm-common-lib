@@ -1,0 +1,4 @@
+{{- if and .Values.metrics .Values.metrics.enabled -}}
+{{- include "libChart.classes.servicemonitor" . -}}
+{{- end -}}
+

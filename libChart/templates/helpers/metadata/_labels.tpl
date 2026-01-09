@@ -1,10 +1,13 @@
 {{- define "common.helpers.metadata.labels" -}}
-helm.sh/chart: {{ include "common.helpers.chart.names.chart" . }}
-app.kubernetes.io/name: {{ include "common.helpers.chart.names.name" . }}
+{{- $chartName := include "common.helpers.chart.names.chart" . -}}
+{{- $appName := include "common.helpers.chart.names.name" . -}}
+{{- $appVersion := .Chart.AppVersion -}}
+{{- if and .Values.global .Values.global.chart .Values.global.chart.appVersion -}}
+  {{- $appVersion = .Values.global.chart.appVersion -}}
+{{- end -}}
+helm.sh/chart: {{ $chartName }}
+app.kubernetes.io/name: {{ $appName }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/version: {{ $appVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-app.kubernetes.io/component: service
-app.kubernetes.io/name: radarr
-app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}

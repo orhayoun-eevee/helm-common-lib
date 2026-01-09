@@ -1,0 +1,4 @@
+{{- if and .Values.security .Values.security.networkPolicy -}}
+{{- include "libChart.classes.networkpolicy" . -}}
+{{- end -}}
+
