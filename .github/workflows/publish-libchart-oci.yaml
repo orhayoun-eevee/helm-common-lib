@@ -70,7 +70,7 @@ jobs:
           echo "${KUBECONFORM_SHA256}  kubeconform-linux-amd64.tar.gz" | sha256sum -c -
           tar -xzf kubeconform-linux-amd64.tar.gz
           sudo mv kubeconform /usr/local/bin/
-          kubeconform -version
+          kubeconform -v
 
       - name: Validate manifests with kubeconform
         run: |
