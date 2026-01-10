@@ -9,6 +9,9 @@ global:
   name: ""  # REQUIRED - application name (e.g., "radarr", "sonarr")
   namespace: default  # Namespace for all resources
   nfsServer: ""  # Optional - NFS server hostname/IP for NFS volumes (can be referenced in volumes as {{ .Values.global.nfsServer }})
+  labels:
+    partOf: ""  # Optional - name of higher level application (e.g., "media-center")
+    overrides: {}  # Optional - map to override any standard label (e.g., "app.kubernetes.io/name": "custom-name")
 
 # ----------------------------------------------------------------------------
 # Service Configuration

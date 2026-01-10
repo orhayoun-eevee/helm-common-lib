@@ -8,7 +8,8 @@ metadata:
   labels:
     {{- include "common.helpers.metadata.labels" . | nindent 4 }}
     app.kubernetes.io/component: "network-policy"
-
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   podSelector:
     matchLabels:

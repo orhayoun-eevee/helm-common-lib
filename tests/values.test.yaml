@@ -9,6 +9,10 @@ global:
     name: test-chart
     version: "1.0.0"
     appVersion: "1.0.0"
+  labels:
+    partOf: "test-stack"
+    overrides:
+      app.kubernetes.io/version: "custom-version-override"
 
 service:
   type: ClusterIP

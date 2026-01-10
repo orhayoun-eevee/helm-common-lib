@@ -14,6 +14,9 @@ global:
     name: ""  # Parent chart name (e.g., "radarr")
     version: ""  # Parent chart version (e.g., "0.1.0")
     appVersion: ""  # Parent chart appVersion
+  labels:
+    partOf: ""  # Optional - name of higher level application (e.g., "media-center")
+    overrides: {}  # Optional - map to override any standard label (e.g., "app.kubernetes.io/name": "custom-name")
 
 # ----------------------------------------------------------------------------
 # Service Configuration
