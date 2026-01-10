@@ -20,10 +20,12 @@ spec:
     metadata:
       labels:
         {{- include "common.helpers.metadata.labels" . | nindent 8 }}
-        app.kubernetes.io/component: deployment
+        {{- $defaultLabels := dict "app.kubernetes.io/component" "deployment" }}
+        {{- $podLabels := $defaultLabels }}
         {{- if .Values.deployment.podLabels }}
-        {{- toYaml .Values.deployment.podLabels | nindent 8 }}
+          {{- $podLabels = merge (deepCopy .Values.deployment.podLabels) $defaultLabels }}
         {{- end }}
+        {{- toYaml $podLabels | nindent 8 }}
     spec:
       {{- if .Values.deployment.imagePullSecrets }}
       imagePullSecrets:
