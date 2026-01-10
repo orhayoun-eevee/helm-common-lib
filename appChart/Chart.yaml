@@ -8,4 +8,6 @@ dependencies:
   - name: libChart
     version: 0.0.1
     repository: file://../libChart
+    # To use the published OCI chart:
+    # repository: oci://ghcr.io/orhayoun-eevee/helm-charts
 

@@ -1,0 +1,104 @@
+name: Publish libChart to GHCR OCI
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: helm/helm-action@v1.0.0
+        with:
+          version: 'v3.14.0'
+
+      - name: Extract tag version
+        id: tag_version
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/}
+          # Remove 'v' prefix if present
+          TAG_VERSION=${TAG_VERSION#v}
+          echo "tag_version=$TAG_VERSION" >> $GITHUB_OUTPUT
+          echo "Tag version: $TAG_VERSION"
+
+      - name: Extract chart version
+        id: chart_version
+        run: |
+          CHART_VERSION=$(grep '^version:' libChart/Chart.yaml | awk '{print $2}')
+          echo "chart_version=$CHART_VERSION" >> $GITHUB_OUTPUT
+          echo "Chart version: $CHART_VERSION"
+
+      - name: Verify version match
+        run: |
+          if [ "${{ steps.tag_version.outputs.tag_version }}" != "${{ steps.chart_version.outputs.chart_version }}" ]; then
+            echo "Error: Tag version (${{ steps.tag_version.outputs.tag_version }}) does not match chart version (${{ steps.chart_version.outputs.chart_version }})"
+            echo "Please ensure the git tag matches the version in libChart/Chart.yaml"
+            exit 1
+          fi
+          echo "Version match verified: ${{ steps.chart_version.outputs.chart_version }}"
+
+      - name: Lint libChart
+        run: |
+          helm lint ./libChart
+
+      - name: Update appChart dependencies
+        run: |
+          cd appChart
+          # This uses the local file:// dependency to test the current source code
+          helm dependency update
+
+      - name: Lint appChart
+        run: |
+          helm lint ./appChart
+
+      - name: Install kubeconform
+        env:
+          KUBECONFORM_VERSION: v0.6.4
+          # SHA256 for v0.6.4 linux-amd64
+          KUBECONFORM_SHA256: "e0388d77d70eb06b6b77227d8985532588147dedc15a774780f2d4806a695d53"
+        run: |
+          wget -q https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz
+          echo "${KUBECONFORM_SHA256}  kubeconform-linux-amd64.tar.gz" | sha256sum -c -
+          tar -xzf kubeconform-linux-amd64.tar.gz
+          sudo mv kubeconform /usr/local/bin/
+          kubeconform -version
+
+      - name: Validate manifests with kubeconform
+        run: |
+          set -o pipefail
+          cd appChart
+          helm template test-release . -f ../tests/values.test.yaml | \
+            kubeconform -strict -skip ServiceMonitor,PrometheusRule,HTTPRoute,AuthorizationPolicy,DestinationRule || {
+              echo "kubeconform validation failed"
+              exit 1
+            }
+          echo "kubeconform validation passed"
+
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io \
+            -u ${{ github.actor }} \
+            --password-stdin
+
+      - name: Package chart
+        run: |
+          mkdir -p dist
+          helm package ./libChart --destination ./dist
+          echo "Chart packaged: $(ls -1 ./dist/)"
+
+      - name: Push to GHCR OCI
+        run: |
+          # GHCR requires lowercase repository owner names
+          OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          CHART_FILE=$(ls -1 ./dist/libChart-*.tgz)
+          helm push "$CHART_FILE" oci://ghcr.io/$OWNER_LOWER/helm-charts
+          echo "Published: oci://ghcr.io/$OWNER_LOWER/helm-charts/libChart:${{ steps.chart_version.outputs.chart_version }}"
