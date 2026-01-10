@@ -1,5 +1,5 @@
 apiVersion: v2
-name: app-template
+name: app-chart
 description: Standardized application deployment template using libChart library
 type: application
 version: 1.0.0

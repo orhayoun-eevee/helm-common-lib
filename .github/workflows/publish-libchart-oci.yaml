@@ -100,7 +100,8 @@ jobs:
           # Extract chart name from Chart.yaml (now lowercase for OCI compliance)
           CHART_NAME=$(grep '^name:' libChart/Chart.yaml | awk '{print $2}')
           OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          CHART_FILE=$(ls -1 ./dist/libChart-*.tgz)
+          # Use dynamic chart name to find the packaged file
+          CHART_FILE=$(ls -1 ./dist/$CHART_NAME-*.tgz)
           
           # OCI path format: oci://ghcr.io/<owner>/<chart-name>
           # Chart name is now lowercase, so it matches OCI requirements
