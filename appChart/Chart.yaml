@@ -5,7 +5,7 @@ type: application
 version: 1.0.0
 appVersion: "1.0.0"
 dependencies:
-  - name: libchart
+  - name: lib-chart
     version: 0.0.1
     repository: file://../libChart
     # To use the published OCI chart:
