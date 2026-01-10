@@ -35,7 +35,7 @@ The library chart is automatically published to GitHub Container Registry (GHCR)
    - Verify the tag matches the chart version
    - Lint the chart
    - Validate manifests with kubeconform
-   - Package and publish to `oci://ghcr.io/orhayoun-eevee/libChart`
+   - Package and publish to `oci://ghcr.io/orhayoun-eevee/libchart`
 
 ### Version Verification
 
@@ -54,7 +54,7 @@ version: 1.0.0
 dependencies:
   - name: libChart
     version: 0.0.2  # Use the published version
-    repository: oci://ghcr.io/orhayoun-eevee/libChart
+    repository: oci://ghcr.io/orhayoun-eevee/libchart
 ```
 
 ### In This Repository (Development)
