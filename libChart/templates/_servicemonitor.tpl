@@ -1,4 +1,4 @@
-{{- define "libChart.classes.servicemonitor" -}}
+{{- define "libchart.classes.servicemonitor" -}}
 {{- if and .Values.metrics .Values.metrics.enabled }}
 ---
 apiVersion: monitoring.coreos.com/v1

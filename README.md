@@ -45,14 +45,14 @@ The workflow enforces that the git tag version (e.g., `v0.0.2`) must exactly mat
 
 ### In Your Helm Chart (Consumers)
 
-Add `libChart` as a dependency in your chart's `Chart.yaml`:
+Add `libchart` as a dependency in your chart's `Chart.yaml`:
 
 ```yaml
 apiVersion: v2
 name: my-app
 version: 1.0.0
 dependencies:
-  - name: libChart
+  - name: libchart
     version: 0.0.2  # Use the published version
     repository: oci://ghcr.io/orhayoun-eevee/libchart
 ```
@@ -63,7 +63,7 @@ The `appChart` in this repository uses a local file dependency to ensure it alwa
 
 ```yaml
 dependencies:
-  - name: libChart
+  - name: libchart
     version: 0.0.1
     repository: file://../libChart
 ```

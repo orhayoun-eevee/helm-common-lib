@@ -1,4 +1,4 @@
 {{- if and .Values.httpRoute .Values.httpRoute.enabled -}}
-{{- include "libChart.classes.httproute" . -}}
+{{- include "libchart.classes.httproute" . -}}
 {{- end -}}
 

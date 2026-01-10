@@ -1,4 +1,4 @@
-{{- define "libChart.classes.httproute" -}}
+{{- define "libchart.classes.httproute" -}}
 {{- if and .Values.httpRoute .Values.httpRoute.enabled .Values.httpRoute.host }}
 ---
 apiVersion: gateway.networking.k8s.io/v1

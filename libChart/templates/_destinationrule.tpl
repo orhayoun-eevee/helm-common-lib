@@ -1,4 +1,4 @@
-{{- define "libChart.classes.destinationrule" -}}
+{{- define "libchart.classes.destinationrule" -}}
 {{- if and .Values.circuitBreaker .Values.circuitBreaker.enabled }}
 ---
 apiVersion: networking.istio.io/v1beta1

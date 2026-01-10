@@ -1,4 +1,4 @@
-{{- define "libChart.classes.authorizationpolicy" -}}
+{{- define "libchart.classes.authorizationpolicy" -}}
 {{- if and .Values.security .Values.security.authorizationPolicies }}
   {{- range $name, $policy := .Values.security.authorizationPolicies }}
     {{- if $policy }}

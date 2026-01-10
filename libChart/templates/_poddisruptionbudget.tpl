@@ -1,4 +1,4 @@
-{{- define "libChart.classes.poddisruptionbudget" -}}
+{{- define "libchart.classes.poddisruptionbudget" -}}
 {{- if and .Values.podDisruptionBudget .Values.podDisruptionBudget.enabled }}
 ---
 apiVersion: policy/v1

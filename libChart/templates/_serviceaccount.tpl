@@ -1,4 +1,4 @@
-{{- define "libChart.classes.serviceaccount" -}}
+{{- define "libchart.classes.serviceaccount" -}}
 {{- if and .Values.serviceAccount .Values.serviceAccount.create -}}
 ---
 apiVersion: v1

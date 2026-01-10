@@ -1,4 +1,4 @@
 {{- if and .Values.circuitBreaker .Values.circuitBreaker.enabled -}}
-{{- include "libChart.classes.destinationrule" . -}}
+{{- include "libchart.classes.destinationrule" . -}}
 {{- end -}}
 

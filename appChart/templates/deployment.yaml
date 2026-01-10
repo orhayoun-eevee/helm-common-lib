@@ -1,4 +1,4 @@
 {{- if and .Values.deployment .Values.deployment.containers -}}
-{{- include "libChart.classes.deployment" . -}}
+{{- include "libchart.classes.deployment" . -}}
 {{- end -}}
 

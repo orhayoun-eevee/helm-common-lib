@@ -1,4 +1,4 @@
 {{- if and .Values.security .Values.security.authorizationPolicies -}}
-{{- include "libChart.classes.authorizationpolicy" . -}}
+{{- include "libchart.classes.authorizationpolicy" . -}}
 {{- end -}}
 

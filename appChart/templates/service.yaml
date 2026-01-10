@@ -1,4 +1,4 @@
 {{- if and .Values.service .Values.service.ports -}}
-{{- include "libChart.classes.service" . -}}
+{{- include "libchart.classes.service" . -}}
 {{- end -}}
 

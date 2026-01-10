@@ -1,4 +1,4 @@
-{{- define "libChart.classes.service" -}}
+{{- define "libchart.classes.service" -}}
 {{- if and .Values.service .Values.service.ports -}}
 ---
 apiVersion: v1

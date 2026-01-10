@@ -1,4 +1,4 @@
-{{- define "libChart.classes.prometheusrule" -}}
+{{- define "libchart.classes.prometheusrule" -}}
 {{- if and .Values.metrics .Values.metrics.enabled .Values.metrics.rules }}
 ---
 apiVersion: monitoring.coreos.com/v1

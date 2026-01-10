@@ -1,4 +1,4 @@
-{{- define "libChart.classes.networkpolicy" -}}
+{{- define "libchart.classes.networkpolicy" -}}
 {{- if and .Values.security .Values.security.networkPolicy }}
 ---
 apiVersion: networking.k8s.io/v1

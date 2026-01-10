@@ -1,4 +1,4 @@
-{{- define "libChart.classes.pvc" -}}
+{{- define "libchart.classes.pvc" -}}
 {{- if and .Values.persistence .Values.persistence.enabled .Values.persistence.claims }}
   {{- range $name, $claim := .Values.persistence.claims }}
     {{- if $claim }}
