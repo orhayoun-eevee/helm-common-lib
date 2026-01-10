@@ -7,7 +7,6 @@ metadata:
   name: {{ include "common.helpers.chart.names.name" . }}
   labels:
     {{- include "common.helpers.metadata.labels" . | nindent 4 }}
-    app.kubernetes.io/component: network-policy
 spec:
   podSelector:
     matchLabels:

@@ -11,6 +11,7 @@ global:
   nfsServer: ""  # Optional - NFS server hostname/IP for NFS volumes (can be referenced in volumes as {{ .Values.global.nfsServer }})
   labels:
     partOf: ""  # Optional - name of higher level application (e.g., "media-center")
+    component: ""  # Optional - workload component type (e.g., "frontend", "api", "worker")
     overrides: {}  # Optional - map to override any standard label (e.g., "app.kubernetes.io/name": "custom-name")
 
 # ----------------------------------------------------------------------------

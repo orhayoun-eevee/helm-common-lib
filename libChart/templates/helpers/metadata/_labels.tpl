@@ -15,6 +15,9 @@
 {{- if and .Values.global .Values.global.labels .Values.global.labels.partOf -}}
   {{- $_ := set $labels "app.kubernetes.io/part-of" .Values.global.labels.partOf -}}
 {{- end -}}
+{{- if and .Values.global .Values.global.labels .Values.global.labels.component -}}
+  {{- $_ := set $labels "app.kubernetes.io/component" .Values.global.labels.component -}}
+{{- end -}}
 {{- if and .Values.global .Values.global.labels .Values.global.labels.overrides -}}
   {{- range $key, $value := .Values.global.labels.overrides -}}
     {{- $_ := set $labels $key $value -}}

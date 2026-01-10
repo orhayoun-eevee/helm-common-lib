@@ -7,7 +7,6 @@ metadata:
   name: {{ include "common.helpers.chart.names.name" . }}
   labels:
     {{- include "common.helpers.metadata.labels" . | nindent 4 }}
-    app.kubernetes.io/component: deployment
 spec:
   replicas: {{ .Values.deployment.replicas | default 1 }}
   revisionHistoryLimit: {{ .Values.deployment.revisionHistoryLimit | default 3 }}
@@ -20,12 +19,9 @@ spec:
     metadata:
       labels:
         {{- include "common.helpers.metadata.labels" . | nindent 8 }}
-        {{- $defaultLabels := dict "app.kubernetes.io/component" "deployment" }}
-        {{- $podLabels := $defaultLabels }}
         {{- if .Values.deployment.podLabels }}
-          {{- $podLabels = merge (deepCopy .Values.deployment.podLabels) $defaultLabels }}
+        {{- toYaml .Values.deployment.podLabels | nindent 8 }}
         {{- end }}
-        {{- toYaml $podLabels | nindent 8 }}
     spec:
       {{- if .Values.deployment.imagePullSecrets }}
       imagePullSecrets:

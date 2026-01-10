@@ -7,7 +7,6 @@ metadata:
   name: {{ .Values.serviceAccount.name | default (include "common.helpers.chart.names.name" .) }}
   labels:
     {{- include "common.helpers.metadata.labels" . | nindent 4 }}
-    app.kubernetes.io/component: serviceaccount
   {{- if .Values.serviceAccount.annotations }}
   annotations:
     {{- toYaml .Values.serviceAccount.annotations | nindent 4 }}

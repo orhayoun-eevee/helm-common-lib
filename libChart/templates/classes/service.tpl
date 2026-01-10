@@ -7,7 +7,6 @@ metadata:
   name: {{ include "common.helpers.chart.names.name" . }}
   labels:
     {{- include "common.helpers.metadata.labels" . | nindent 4 }}
-    app.kubernetes.io/component: service
   {{- if .Values.service.annotations }}
   annotations:
     {{- toYaml .Values.service.annotations | nindent 4 }}
