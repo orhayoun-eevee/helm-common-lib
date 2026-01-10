@@ -19,21 +19,8 @@ spec:
   template:
     metadata:
       labels:
-        {{- $chartName := include "common.helpers.chart.names.chart" . -}}
-        {{- $appName := include "common.helpers.chart.names.name" . -}}
-        {{- $appVersion := .Chart.AppVersion -}}
-        {{- if and .Values.global .Values.global.chart .Values.global.chart.appVersion -}}
-          {{- $appVersion = .Values.global.chart.appVersion -}}
-        {{- end -}}
-        {{- $labels := dict
-          "helm.sh/chart" $chartName
-          "app.kubernetes.io/name" $appName
-          "app.kubernetes.io/instance" .Release.Name
-          "app.kubernetes.io/version" $appVersion
-          "app.kubernetes.io/managed-by" .Release.Service
-          "app.kubernetes.io/component" "deployment"
-        -}}
-        {{- toYaml $labels | nindent 8 }}
+        {{- include "common.helpers.metadata.labels" . | nindent 8 }}
+        app.kubernetes.io/component: deployment
         {{- if .Values.deployment.podLabels }}
         {{- toYaml .Values.deployment.podLabels | nindent 8 }}
         {{- end }}
