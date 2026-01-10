@@ -9,7 +9,7 @@
     "helm.sh/chart" $chartName
     "app.kubernetes.io/name" $appName
     "app.kubernetes.io/instance" .Release.Name
-    "app.kubernetes.io/version" ($appVersion | quote)
+    "app.kubernetes.io/version" $appVersion
     "app.kubernetes.io/managed-by" .Release.Service
 -}}
 {{- if and .Values.global .Values.global.labels .Values.global.labels.partOf -}}
