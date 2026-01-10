@@ -102,5 +102,20 @@ jobs:
           OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           CHART_NAME_LOWER=$(echo "libChart" | tr '[:upper:]' '[:lower:]')
           CHART_FILE=$(ls -1 ./dist/libChart-*.tgz)
-          helm push "$CHART_FILE" oci://ghcr.io/$OWNER_LOWER/$CHART_NAME_LOWER
+          
+          # Debug: Print variables
+          echo "DEBUG: OWNER_LOWER=$OWNER_LOWER"
+          echo "DEBUG: CHART_NAME_LOWER=$CHART_NAME_LOWER"
+          echo "DEBUG: CHART_FILE=$CHART_FILE"
+          echo "DEBUG: OCI_PATH=oci://ghcr.io/$OWNER_LOWER/$CHART_NAME_LOWER"
+          
+          # Try with verbose output
+          helm push "$CHART_FILE" oci://ghcr.io/$OWNER_LOWER/$CHART_NAME_LOWER --debug 2>&1 || {
+            echo "Push failed, trying alternative format..."
+            # Alternative: try with repository name matching GitHub repo
+            helm push "$CHART_FILE" oci://ghcr.io/$OWNER_LOWER/helm-common-lib --debug 2>&1 || {
+              echo "All push attempts failed"
+              exit 1
+            }
+          }
           echo "Published: oci://ghcr.io/$OWNER_LOWER/$CHART_NAME_LOWER:${{ steps.chart_version.outputs.chart_version }}"
