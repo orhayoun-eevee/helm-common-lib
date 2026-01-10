@@ -98,7 +98,8 @@ jobs:
       - name: Push to GHCR OCI
         run: |
           # GHCR requires lowercase repository owner names
+          # OCI path format: oci://ghcr.io/<owner>/<chart-name>
           OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           CHART_FILE=$(ls -1 ./dist/libChart-*.tgz)
-          helm push "$CHART_FILE" oci://ghcr.io/$OWNER_LOWER/helm-charts
-          echo "Published: oci://ghcr.io/$OWNER_LOWER/helm-charts/libChart:${{ steps.chart_version.outputs.chart_version }}"
+          helm push "$CHART_FILE" oci://ghcr.io/$OWNER_LOWER/libChart
+          echo "Published: oci://ghcr.io/$OWNER_LOWER/libChart:${{ steps.chart_version.outputs.chart_version }}"
