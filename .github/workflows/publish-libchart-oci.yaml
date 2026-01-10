@@ -64,7 +64,7 @@ jobs:
         env:
           KUBECONFORM_VERSION: v0.6.4
           # SHA256 for v0.6.4 linux-amd64
-          KUBECONFORM_SHA256: "e0388d77d70eb06b6b77227d8985532588147dedc15a774780f2d4806a695d53"
+          KUBECONFORM_SHA256: "2b4ebeaa4d5ac4843cf8f7b7e66a8874252b6b71bc7cbfc4ef1cbf85acec7c07"
         run: |
           wget -q https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz
           echo "${KUBECONFORM_SHA256}  kubeconform-linux-amd64.tar.gz" | sha256sum -c -
