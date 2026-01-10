@@ -22,3 +22,20 @@
 {{- end -}}
 {{- toYaml $labels -}}
 {{- end -}}
+
+{{- define "common.helpers.metadata.selectorLabels" -}}
+{{- $appName := include "common.helpers.chart.names.name" . -}}
+{{- $selector := dict 
+    "app.kubernetes.io/name" $appName
+    "app.kubernetes.io/instance" .Release.Name
+-}}
+{{- if and .Values.global .Values.global.labels .Values.global.labels.overrides -}}
+  {{- if hasKey .Values.global.labels.overrides "app.kubernetes.io/name" -}}
+    {{- $_ := set $selector "app.kubernetes.io/name" (get .Values.global.labels.overrides "app.kubernetes.io/name") -}}
+  {{- end -}}
+  {{- if hasKey .Values.global.labels.overrides "app.kubernetes.io/instance" -}}
+    {{- $_ := set $selector "app.kubernetes.io/instance" (get .Values.global.labels.overrides "app.kubernetes.io/instance") -}}
+  {{- end -}}
+{{- end -}}
+{{- toYaml $selector -}}
+{{- end -}}

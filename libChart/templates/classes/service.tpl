@@ -22,8 +22,7 @@ spec:
       protocol: {{ $port.protocol | default "TCP" }}
     {{- end }}
   selector:
-    app.kubernetes.io/name: {{ include "common.helpers.chart.names.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- include "common.helpers.metadata.selectorLabels" . | nindent 4 }}
 {{- end }}
 {{- end -}}
 
