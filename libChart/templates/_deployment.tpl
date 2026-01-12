@@ -41,6 +41,15 @@ spec:
       {{- if and .Values.serviceAccount .Values.serviceAccount.create }}
       serviceAccountName: {{ .Values.serviceAccount.name | default (include "common.helpers.chart.names.name" .) }}
       {{- end }}
+      {{- if .Values.deployment.dnsPolicy }}
+      dnsPolicy: {{ .Values.deployment.dnsPolicy }}
+      {{- end }}
+      {{- if ne .Values.deployment.automountServiceAccountToken nil }}
+      automountServiceAccountToken: {{ .Values.deployment.automountServiceAccountToken }}
+      {{- end }}
+      {{- if ne .Values.deployment.enableServiceLinks nil }}
+      enableServiceLinks: {{ .Values.deployment.enableServiceLinks }}
+      {{- end }}
       {{- if .Values.deployment.initContainers }}
       initContainers:
         {{- range $name, $container := .Values.deployment.initContainers }}
@@ -126,6 +135,10 @@ spec:
           {{- if $container.readinessProbe }}
           readinessProbe:
             {{- toYaml $container.readinessProbe | nindent 12 }}
+          {{- end }}
+          {{- if $container.startupProbe }}
+          startupProbe:
+            {{- toYaml $container.startupProbe | nindent 12 }}
           {{- end }}
           {{- if $container.securityContext }}
           securityContext:
