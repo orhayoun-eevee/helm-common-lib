@@ -55,18 +55,6 @@ persistence:
   volumes: []  # List of volume definitions
 
 # ----------------------------------------------------------------------------
-# Feature: Networking (Gateway API & Security)
-# ----------------------------------------------------------------------------
-httpRoute:
-  enabled: false
-  host: ""
-  port: 80
-  gateway:
-    name: shared-platform-gateway
-    namespace: istio-system
-  routes: []
-
-# ----------------------------------------------------------------------------
 # Feature: Observability
 # ----------------------------------------------------------------------------
 metrics:
@@ -95,36 +83,46 @@ podDisruptionBudget:
   maxUnavailable: null
 
 # ----------------------------------------------------------------------------
-# Security Configuration (Custom Policies)
-# ----------------------------------------------------------------------------
-security:
-  authorizationPolicies: {}  # Map of AuthorizationPolicy specs
-  networkPolicy: null  # NetworkPolicy spec (object, not map)
-
-# ----------------------------------------------------------------------------
-# Circuit Breaker Configuration (Istio DestinationRule)
-# ----------------------------------------------------------------------------
-circuitBreaker:
-  enabled: false
-  trafficPolicy:
-    connectionPool:
-      tcp:
-        maxConnections: 100
-      http:
-        http1MaxPendingRequests: 10
-        http2MaxRequests: 100
-        maxRequestsPerConnection: 2
-    outlierDetection:
-      consecutive5xxErrors: 5
-      interval: 30s
-      baseEjectionTime: 30s
-      maxEjectionPercent: 50
-
-# ----------------------------------------------------------------------------
 # Network Configuration
 # ----------------------------------------------------------------------------
 network:
   enabled: true
+  httpRoute:
+    enabled: false
+    host: ""
+    port: 80
+    gateway:
+      name: shared-platform-gateway
+      namespace: istio-system
+    routes: []
+      # Example:
+      # - name: route
+      #   enabled: true
+      #   listener:
+      #     sectionName: https
+      #   rules:
+      #     - matches:
+      #         - path:
+      #             type: PathPrefix
+      #             value: /
+      #       backendRefs:
+      #         - name: "{{ .Values.global.name }}"
+      #           port: 80
+      #           weight: 100
+      #           group: ""
+      #           kind: Service
+  # NetworkPolicy Configuration - Multiple policies support
+  # Map of policy name suffix to NetworkPolicy configuration
+  networkPolicy:
+    items: {}
+      # Example:
+      # main:
+      #   enabled: true
+      #   policyTypes:
+      #     - Ingress
+      #     - Egress
+      #   ingress: []
+      #   egress: []
   # Service Configuration - Multiple services support
   # Map of service name suffix to service configuration
   services:
@@ -139,3 +137,36 @@ network:
       #       targetPort: 8080
       #       protocol: TCP
       #   annotations: {}
+  # Istio Configuration
+  istio:
+    enabled: true
+    authorizationPolicy:
+      enabled: false  # Feature flag - enable AuthorizationPolicy generation
+      items: {}
+        # Example:
+        # default:
+        #   enabled: true
+        #   action: ALLOW
+        #   rules:
+        #     - from:
+        #         - source:
+        #             principals:
+        #               - "cluster.local/ns/istio-system/sa/shared-platform-gateway-istio"
+        #       to:
+        #         - operation:
+        #             ports: ["80"]
+    destinationrule:
+      enabled: false  # Feature flag - enable DestinationRule (Circuit Breaker) generation
+      trafficPolicy:
+        connectionPool:
+          tcp:
+            maxConnections: 100
+          http:
+            http1MaxPendingRequests: 10
+            http2MaxRequests: 100
+            maxRequestsPerConnection: 2
+        outlierDetection:
+          consecutive5xxErrors: 5
+          interval: 30s
+          baseEjectionTime: 30s
+          maxEjectionPercent: 50
