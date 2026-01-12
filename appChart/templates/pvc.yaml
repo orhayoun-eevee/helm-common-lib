@@ -1,4 +1,4 @@
 {{- if and .Values.persistence .Values.persistence.enabled .Values.persistence.claims -}}
-{{- include "libchart.classes.pvc" . -}}
+{{- include "libChart.classes.pvc" . -}}
 {{- end -}}
 

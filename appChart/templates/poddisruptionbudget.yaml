@@ -1,4 +1,4 @@
 {{- if and .Values.podDisruptionBudget .Values.podDisruptionBudget.enabled -}}
-{{- include "libchart.classes.poddisruptionbudget" . -}}
+{{- include "libChart.classes.poddisruptionbudget" . -}}
 {{- end -}}
 

@@ -1,4 +1,4 @@
 {{- if and .Values.metrics .Values.metrics.enabled .Values.metrics.rules -}}
-{{- include "libchart.classes.prometheusrule" . -}}
+{{- include "libChart.classes.prometheusrule" . -}}
 {{- end -}}
 

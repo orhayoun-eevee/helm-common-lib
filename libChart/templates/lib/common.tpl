@@ -2,7 +2,7 @@
 {{- if and .Values.deployment .Values.deployment.containers -}}
   {{- include "libChart.classes.deployment" . -}}
 {{- end -}}
-{{- if and .Values.service .Values.service.ports -}}
+{{- if and .Values.network.services .Values.network.services.items -}}
   {{- include "libChart.classes.service" . -}}
 {{- end -}}
 {{- if and .Values.serviceAccount .Values.serviceAccount.create -}}

@@ -7,6 +7,8 @@ metadata:
   name: {{ include "common.helpers.chart.names.name" . }}
   labels:
     {{- include "common.helpers.metadata.labels" . | nindent 4 }}
+    app.kubernetes.io/component: "httproute"
+
 spec:
   parentRefs:
     - name: {{ .Values.httpRoute.gateway.name }}
@@ -42,4 +44,3 @@ spec:
     {{- end }}
 {{- end }}
 {{- end -}}
-

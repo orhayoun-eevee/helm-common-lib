@@ -8,30 +8,10 @@
 global:
   name: ""  # REQUIRED - application name (e.g., "radarr", "sonarr")
   namespace: default  # Namespace for all resources
-  nfsServer: ""  # Optional - NFS server hostname/IP for NFS volumes (can be referenced in volumes as {{ .Values.global.nfsServer }})
   labels:
     partOf: ""  # Optional - name of higher level application (e.g., "media-center")
     component: ""  # Optional - workload component type (e.g., "frontend", "api", "worker")
     overrides: {}  # Optional - map to override any standard label (e.g., "app.kubernetes.io/name": "custom-name")
-
-# ----------------------------------------------------------------------------
-# Service Configuration
-# ----------------------------------------------------------------------------
-service:
-  # Explicit port definitions - map of port name to port configuration
-  # Key is the port name (e.g., http, https, metrics)
-  # Each port must specify: port (Service port), targetPort (Container port name or number), protocol (optional, defaults to TCP)
-  ports: {}
-    # Example:
-    # http:
-    #   port: 80           # Service port
-    #   targetPort: 8080   # Container port (number or name)
-    #   protocol: TCP      # Optional, defaults to TCP
-    # metrics:
-    #   port: 9100
-    #   targetPort: 9100
-    #   protocol: TCP
-  annotations: {}  # Optional service annotations
 
 # ----------------------------------------------------------------------------
 # Deployment Configuration
@@ -186,9 +166,37 @@ httpRoute:
 metrics:
   enabled: false  # Feature flag - enable metrics (ServiceMonitor + PrometheusRule)
   port: 9100  # Metrics port
-  component: ""  # Component label for metrics (e.g., "media-center") - used in metricRelabelings
   interval: "10s"  # ServiceMonitor scrape interval
   scrapeTimeout: "5s"  # ServiceMonitor scrape timeout
+  path: ""  # Optional - Metrics endpoint path (e.g., "/metrics")
+  honorLabels: false  # Optional - Honor labels from target (boolean)
+  
+  # Namespace selector for ServiceMonitor spec
+  # Allows selecting namespaces to scrape from
+  namespaceSelector: {}
+    # Example:
+    #   matchNames:
+    #     - default
+    #     - monitoring
+  
+  # Relabelings - Prometheus relabel configs (applied before scraping)
+  # Full Prometheus relabeling configuration format
+  relabelings: []
+    # Example:
+    #   - action: replace
+    #     sourceLabels: [__meta_kubernetes_pod_name]
+    #     targetLabel: pod_name
+  
+  # Metric relabelings - Prometheus relabel configs (applied after scraping)
+  # Full Prometheus relabeling configuration format
+  metricRelabelings: []
+    # Example:
+    #   - action: replace
+    #     targetLabel: service
+    #     replacement: radarr
+    #   - action: replace
+    #     targetLabel: component
+    #     replacement: media-center
   
   # Custom Alert Rules
   # Define service-specific alerts here as an array of PrometheusRule alert definitions
@@ -333,21 +341,40 @@ circuitBreaker:
 
 network:
   enabled: true
+  # Service Configuration - Multiple services support
+  # Map of service name suffix to service configuration
+  # Each service will be named: {global.name}-{key}
+  # The key must be explicitly defined (no empty keys allowed)
   services:
-    enabled: true
-    items:
-      radarr: # name
-        enabled: true
-        type: ClusterIP
-        ports:
-          - name: http
-            port: 8080
-            targetPort: http
-            protocol: TCP
-          - name: metrics
-            port: 9100
-            targetPort: metrics
-            protocol: TCP
+    items: {}
+      # Example - Single service:
+      # main:
+      #   enabled: true
+      #   type: ClusterIP
+      #   ports:
+      #     http:
+      #       port: 80
+      #       targetPort: 8080
+      #       protocol: TCP
+      #   annotations: {}
+      #
+      # Example - Multiple services:
+      # main:
+      #   enabled: true
+      #   type: ClusterIP
+      #   ports:
+      #     http:
+      #       port: 80
+      #       targetPort: 8080
+      #       protocol: TCP
+      # metrics:
+      #   enabled: true
+      #   type: ClusterIP
+      #   ports:
+      #     metrics:
+      #       port: 9100
+      #       targetPort: 9100
+      #       protocol: TCP
   networkpolicies:
     enabled: true
     policies:

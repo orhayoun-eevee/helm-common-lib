@@ -7,6 +7,7 @@ metadata:
   name: {{ include "common.helpers.chart.names.name" . }}
   labels:
     {{- include "common.helpers.metadata.labels" . | nindent 4 }}
+    app.kubernetes.io/component: "pod-disruption-budget"
 spec:
   selector:
     matchLabels:
@@ -19,4 +20,3 @@ spec:
   {{- end }}
 {{- end }}
 {{- end -}}
-

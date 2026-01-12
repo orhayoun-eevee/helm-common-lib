@@ -1,4 +1,4 @@
-{{- define "libchart.classes.deployment" -}}
+{{- define "libChart.classes.deployment" -}}
 {{- if .Values.deployment.containers }}
 ---
 apiVersion: apps/v1
@@ -156,4 +156,3 @@ spec:
       {{- end }}
 {{- end }}
 {{- end -}}
-

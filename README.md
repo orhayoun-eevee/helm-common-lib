@@ -58,7 +58,7 @@ helm install my-service oci://ghcr.io/orhayoun-eevee/app-chart \
   --version 0.0.2 \
   --set global.name=my-service \
   --set deployment.containers.app.image=my-service:latest \
-  --set service.ports.http.port=8080
+  --set network.services.items.main.ports.http.port=8080
 ```
 
 #### With ArgoCD Application
@@ -89,11 +89,15 @@ spec:
               ports:
                 - name: http
                   containerPort: 8080
-        service:
-          ports:
-            http:
-              port: 80
-              targetPort: http
+        network:
+          services:
+            items:
+              main:
+                enabled: true
+                ports:
+                  http:
+                    port: 80
+                    targetPort: http
         httpRoute:
           enabled: true
           host: my-service.example.com
@@ -125,12 +129,16 @@ deployment:
               name: my-service-secrets
               key: database-url
 
-service:
-  type: ClusterIP
-  ports:
-    http:
-      port: 80
-      targetPort: http
+network:
+  services:
+    items:
+      main:
+        enabled: true
+        type: ClusterIP
+        ports:
+          http:
+            port: 80
+            targetPort: http
 
 persistence:
   enabled: true
@@ -162,7 +170,7 @@ dependencies:
 Then in your `templates/deployment.yaml`:
 
 ```yaml
-{{- include "libchart.classes.deployment" . -}}
+{{- include "libChart.classes.deployment" . -}}
 ```
 
 ### In This Repository (Development)

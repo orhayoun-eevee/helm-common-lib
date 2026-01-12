@@ -4,7 +4,6 @@
 global:
   name: test-app
   namespace: test-namespace
-  nfsServer: nfs.example.com
   chart:
     name: test-chart
     version: "1.0.0"
@@ -14,20 +13,6 @@ global:
     overrides:
       app.kubernetes.io/version: "custom-version-override"
 
-service:
-  type: ClusterIP
-  ports:
-    http:
-      port: 80
-      targetPort: 8080
-      protocol: TCP
-    metrics:
-      port: 9100
-      targetPort: 9100
-      protocol: TCP
-  annotations:
-    test.annotation: "test-value"
-
 deployment:
   replicas: 2
   strategy:
@@ -36,6 +21,9 @@ deployment:
   imagePullSecrets:
     - name: test-registry-secret
   terminationGracePeriodSeconds: 60
+  dnsPolicy: "ClusterFirst"
+  automountServiceAccountToken: false
+  enableServiceLinks: false
   podLabels:
     test.pod.label: "test-value"
   podSecurityContext:
@@ -90,6 +78,13 @@ deployment:
           port: 8080
         initialDelaySeconds: 5
         periodSeconds: 5
+      startupProbe:
+        httpGet:
+          path: /startup
+          port: 8080
+        initialDelaySeconds: 10
+        periodSeconds: 5
+        failureThreshold: 30
   initContainers:
     init:
       image:
@@ -161,9 +156,24 @@ httpRoute:
 metrics:
   enabled: true
   port: 9100
-  component: "test-component"
   interval: "15s"
   scrapeTimeout: "10s"
+  path: "/metrics"
+  honorLabels: true
+  namespaceSelector:
+    matchNames:
+      - default
+  relabelings:
+    - action: replace
+      sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod_name
+  metricRelabelings:
+    - action: replace
+      targetLabel: service
+      replacement: test-app
+    - action: replace
+      targetLabel: component
+      replacement: test-component
   rules:
     - alert: TestAlert
       expr: up == 0
@@ -262,3 +272,21 @@ circuitBreaker:
       baseEjectionTime: 60s
       maxEjectionPercent: 75
 
+network:
+  enabled: true
+  services:
+    items:
+      main:
+        enabled: true
+        type: ClusterIP
+        ports:
+          http:
+            port: 80
+            targetPort: 8080
+            protocol: TCP
+          metrics:
+            port: 9100
+            targetPort: 9100
+            protocol: TCP
+        annotations:
+          test.annotation: "test-value"
