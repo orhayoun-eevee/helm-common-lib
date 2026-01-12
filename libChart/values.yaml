@@ -121,6 +121,21 @@ metrics:
   path: ""  # Optional - Metrics endpoint path (e.g., "/metrics")
   honorLabels: false  # Optional - Honor labels from target (boolean)
   
+  # Selector for ServiceMonitor spec
+  # Allows customizing which services are selected for scraping
+  # Supports both matchLabels and matchExpressions
+  selector: {}
+    # Example with matchLabels:
+    #   matchLabels:
+    #     app.kubernetes.io/name: "my-app"
+    #     app.kubernetes.io/instance: "my-release"
+    # Example with matchExpressions:
+    #   matchExpressions:
+    #     - key: app.kubernetes.io/name
+    #       operator: In
+    #       values: ["app1", "app2"]
+    # If not provided, defaults to standard selectorLabels helper
+  
   # Namespace selector for ServiceMonitor spec
   # Allows selecting namespaces to scrape from
   namespaceSelector: {}
@@ -536,6 +551,7 @@ network:
     # Provides connection pooling and outlier detection to prevent cascading failures
     destinationrule:
       enabled: false  # Opt-in feature - disabled by default
+      host: ""  # REQUIRED when enabled - destination service hostname (e.g., "service-name.namespace.svc.cluster.local")
       trafficPolicy:
         connectionPool:
           tcp:

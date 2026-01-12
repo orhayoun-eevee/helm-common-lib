@@ -284,6 +284,7 @@ network:
                     ports: ["9100"]
     destinationrule:
       enabled: true
+      host: test-app.test-namespace.svc.cluster.local
       trafficPolicy:
         connectionPool:
           tcp:

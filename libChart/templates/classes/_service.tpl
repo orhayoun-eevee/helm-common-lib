@@ -9,7 +9,7 @@ metadata:
   name: {{ include "common.helpers.chart.names.name" $ }}-{{ $serviceKey }}
   labels:
     {{- include "common.helpers.metadata.labels" $ | nindent 4 }}
-    app.kubernetes.io/component: "service"
+    app.kubernetes.io/component: service-{{ $serviceKey }}
   {{- if $service.annotations }}
   annotations:
     {{- toYaml $service.annotations | nindent 4 }}

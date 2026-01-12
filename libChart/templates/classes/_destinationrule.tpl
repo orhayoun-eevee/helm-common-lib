@@ -1,5 +1,5 @@
 {{- define "libChart.classes.destinationrule" -}}
-{{- if and .Values.network .Values.network.istio .Values.network.istio.destinationrule .Values.network.istio.destinationrule.enabled }}
+{{- if and .Values.network .Values.network.istio .Values.network.istio.destinationrule .Values.network.istio.destinationrule.enabled .Values.network.istio.destinationrule.host (ne (.Values.network.istio.destinationrule.host | toString) "") }}
 ---
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
@@ -11,7 +11,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  host: {{ include "common.helpers.chart.names.name" . }}
+  host: {{ .Values.network.istio.destinationrule.host }}
   {{- if .Values.network.istio.destinationrule.trafficPolicy }}
   trafficPolicy:
     {{- toYaml .Values.network.istio.destinationrule.trafficPolicy | nindent 4 }}

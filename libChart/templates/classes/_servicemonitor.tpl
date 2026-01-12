@@ -11,9 +11,14 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
+  {{- if .Values.metrics.selector }}
+  selector:
+    {{- toYaml .Values.metrics.selector | nindent 4 }}
+  {{- else }}
   selector:
     matchLabels:
       {{- include "common.helpers.metadata.selectorLabels" . | nindent 6 }}
+  {{- end }}
   {{- if .Values.metrics.namespaceSelector }}
   namespaceSelector:
     {{- toYaml .Values.metrics.namespaceSelector | nindent 4 }}
