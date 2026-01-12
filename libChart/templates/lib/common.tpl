@@ -11,16 +11,16 @@
 {{- if and .Values.persistence .Values.persistence.enabled .Values.persistence.claims -}}
   {{- include "libChart.classes.pvc" . -}}
 {{- end -}}
-{{- if and .Values.security .Values.security.networkPolicy -}}
+{{- if and .Values.network .Values.network.networkPolicy .Values.network.networkPolicy.items -}}
   {{- include "libChart.classes.networkpolicy" . -}}
 {{- end -}}
-{{- if and .Values.security .Values.security.authorizationPolicies -}}
+{{- if and .Values.network .Values.network.istio .Values.network.istio.authorizationPolicy .Values.network.istio.authorizationPolicy.enabled .Values.network.istio.authorizationPolicy.items -}}
   {{- include "libChart.classes.authorizationpolicy" . -}}
 {{- end -}}
-{{- if and .Values.httpRoute .Values.httpRoute.enabled -}}
+{{- if and .Values.network.httpRoute .Values.network.httpRoute.enabled -}}
   {{- include "libChart.classes.httproute" . -}}
 {{- end -}}
-{{- if and .Values.circuitBreaker .Values.circuitBreaker.enabled -}}
+{{- if and .Values.network .Values.network.istio .Values.network.istio.destinationrule .Values.network.istio.destinationrule.enabled -}}
   {{- include "libChart.classes.destinationrule" . -}}
 {{- end -}}
 {{- if and .Values.podDisruptionBudget .Values.podDisruptionBudget.enabled -}}

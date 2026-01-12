@@ -1,15 +1,17 @@
 {{- define "libChart.classes.authorizationpolicy" -}}
-{{- if and .Values.security .Values.security.authorizationPolicies }}
-  {{- range $name, $policy := .Values.security.authorizationPolicies }}
-    {{- if $policy }}
+{{- if and .Values.network .Values.network.istio .Values.network.istio.authorizationPolicy .Values.network.istio.authorizationPolicy.enabled .Values.network.istio.authorizationPolicy.items }}
+{{- range $policyKey, $policy := .Values.network.istio.authorizationPolicy.items }}
+{{- if $policy.enabled }}
 ---
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
-  name: {{ printf "%s-%s" (include "common.helpers.chart.names.name" $) $name }}
+  name: {{ include "common.helpers.chart.names.name" $ }}-{{ $policyKey }}
   labels:
     {{- include "common.helpers.metadata.labels" $ | nindent 4 }}
     app.kubernetes.io/component: "authorization-policy"
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   selector:
     matchLabels:
@@ -23,7 +25,7 @@ spec:
   rules:
     {{- toYaml $policy.rules | nindent 4 }}
   {{- end }}
-    {{- end }}
-  {{- end }}
+{{- end }}
+{{- end }}
 {{- end }}
 {{- end -}}

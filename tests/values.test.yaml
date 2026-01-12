@@ -117,42 +117,6 @@ persistence:
         server: nfs.example.com
         path: /mnt/shared
 
-httpRoute:
-  enabled: true
-  host: test-app.example.com
-  port: 80
-  gateway:
-    name: shared-platform-gateway
-    namespace: istio-system
-  routes:
-    - name: route
-      listener:
-        sectionName: https
-      rules:
-        - matches:
-            - path:
-                type: PathPrefix
-                value: /
-          backendRefs:
-            - name: "test-app"
-              port: 80
-              weight: 100
-              group: ""
-              kind: Service
-    - name: http-redirect
-      listener:
-        sectionName: http
-      rules:
-        - matches:
-            - path:
-                type: PathPrefix
-                value: /
-          filters:
-            - type: RequestRedirect
-              requestRedirect:
-                scheme: https
-                statusCode: 301
-
 metrics:
   enabled: true
   port: 9100
@@ -195,85 +159,45 @@ podDisruptionBudget:
   enabled: true
   minAvailable: 1
 
-security:
-  authorizationPolicies:
-    ingress:
-      action: ALLOW
-      rules:
-        - from:
-            - source:
-                principals:
-                  - "cluster.local/ns/istio-system/sa/shared-platform-gateway-istio"
-          to:
-            - operation:
-                ports: ["80"]
-    prometheus:
-      action: ALLOW
-      rules:
-        - from:
-            - source:
-                principals:
-                  - "cluster.local/ns/monitoring/sa/prometheus-kube-prometheus-prometheus"
-          to:
-            - operation:
-                ports: ["9100"]
-  networkPolicy:
-    policyTypes:
-      - Ingress
-      - Egress
-    ingress:
-      - from:
-          - namespaceSelector:
-              matchLabels:
-                kubernetes.io/metadata.name: istio-system
-            podSelector:
-              matchLabels:
-                app.kubernetes.io/name: shared-platform-gateway
-        ports:
-          - protocol: TCP
-            port: 80
-          - protocol: TCP
-            port: 15008
-    egress:
-      - to:
-          - namespaceSelector:
-              matchLabels:
-                kubernetes.io/metadata.name: kube-system
-        ports:
-          - protocol: UDP
-            port: 53
-          - protocol: TCP
-            port: 53
-      - to:
-          - ipBlock:
-              cidr: 0.0.0.0/0
-              except:
-                - 10.42.0.0/16
-                - 10.43.0.0/16
-        ports:
-          - protocol: TCP
-            port: 80
-          - protocol: TCP
-            port: 443
-
-circuitBreaker:
-  enabled: true
-  trafficPolicy:
-    connectionPool:
-      tcp:
-        maxConnections: 200
-      http:
-        http1MaxPendingRequests: 20
-        http2MaxRequests: 200
-        maxRequestsPerConnection: 4
-    outlierDetection:
-      consecutive5xxErrors: 10
-      interval: 60s
-      baseEjectionTime: 60s
-      maxEjectionPercent: 75
-
 network:
   enabled: true
+  httpRoute:
+    enabled: true
+    host: test-app.example.com
+    port: 80
+    gateway:
+      name: shared-platform-gateway
+      namespace: istio-system
+    routes:
+      - name: route
+        enabled: true
+        listener:
+          sectionName: https
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - name: "test-app"
+                port: 80
+                weight: 100
+                group: ""
+                kind: Service
+      - name: http-redirect
+        enabled: true
+        listener:
+          sectionName: http
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            filters:
+              - type: RequestRedirect
+                requestRedirect:
+                  scheme: https
+                  statusCode: 301
   services:
     items:
       main:
@@ -290,3 +214,86 @@ network:
             protocol: TCP
         annotations:
           test.annotation: "test-value"
+  networkPolicy:
+    items:
+      main:
+        enabled: true
+        policyTypes:
+          - Ingress
+          - Egress
+        ingress:
+          - from:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: istio-system
+                podSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: shared-platform-gateway
+            ports:
+              - protocol: TCP
+                port: 80
+              - protocol: TCP
+                port: 15008
+        egress:
+          - to:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: kube-system
+            ports:
+              - protocol: UDP
+                port: 53
+              - protocol: TCP
+                port: 53
+          - to:
+              - ipBlock:
+                  cidr: 0.0.0.0/0
+                  except:
+                    - 10.42.0.0/16
+                    - 10.43.0.0/16
+            ports:
+              - protocol: TCP
+                port: 80
+              - protocol: TCP
+                port: 443
+  istio:
+    enabled: true
+    authorizationPolicy:
+      enabled: true
+      items:
+        ingress:
+          enabled: true
+          action: ALLOW
+          rules:
+            - from:
+                - source:
+                    principals:
+                      - "cluster.local/ns/istio-system/sa/shared-platform-gateway-istio"
+              to:
+                - operation:
+                    ports: ["80"]
+        prometheus:
+          enabled: true
+          action: ALLOW
+          rules:
+            - from:
+                - source:
+                    principals:
+                      - "cluster.local/ns/monitoring/sa/prometheus-kube-prometheus-prometheus"
+              to:
+                - operation:
+                    ports: ["9100"]
+    destinationrule:
+      enabled: true
+      trafficPolicy:
+        connectionPool:
+          tcp:
+            maxConnections: 200
+          http:
+            http1MaxPendingRequests: 20
+            http2MaxRequests: 200
+            maxRequestsPerConnection: 4
+        outlierDetection:
+          consecutive5xxErrors: 10
+          interval: 60s
+          baseEjectionTime: 60s
+          maxEjectionPercent: 75

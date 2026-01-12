@@ -3,7 +3,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: test-app
+  name: test-app-main
   labels:
     app.kubernetes.io/instance: test-release
     app.kubernetes.io/managed-by: Helm
@@ -312,6 +312,8 @@ metadata:
     app.kubernetes.io/version: custom-version-override
     helm.sh/chart: test-chart-1.0.0
     app.kubernetes.io/component: "authorization-policy"
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   selector:
     matchLabels:
@@ -341,6 +343,8 @@ metadata:
     app.kubernetes.io/version: custom-version-override
     helm.sh/chart: test-chart-1.0.0
     app.kubernetes.io/component: "authorization-policy"
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   selector:
     matchLabels:
@@ -391,7 +395,7 @@ spec:
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: test-app
+  name: test-app-route
   labels:
     app.kubernetes.io/instance: test-release
     app.kubernetes.io/managed-by: Helm
@@ -399,16 +403,21 @@ metadata:
     app.kubernetes.io/part-of: test-stack
     app.kubernetes.io/version: custom-version-override
     helm.sh/chart: test-chart-1.0.0
-    app.kubernetes.io/component: "httproute"
-
+    app.kubernetes.io/component: "http-route"
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   parentRefs:
     - name: shared-platform-gateway
       namespace: istio-system
+      kind: Gateway
+      group: gateway.networking.k8s.io
+      sectionName: https
   hostnames:
     - test-app.example.com
   rules:
-    - matches:
+    -
+      matches:
         - path:
             type: PathPrefix
             value: /
@@ -418,11 +427,42 @@ spec:
           name: test-app
           port: 80
           weight: 100
-    - matches:
+---
+# Source: app-chart/templates/httproute.yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: test-app-http-redirect
+  labels:
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/part-of: test-stack
+    app.kubernetes.io/version: custom-version-override
+    helm.sh/chart: test-chart-1.0.0
+    app.kubernetes.io/component: "http-route"
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  parentRefs:
+    - name: shared-platform-gateway
+      namespace: istio-system
+      kind: Gateway
+      group: gateway.networking.k8s.io
+      sectionName: http
+  hostnames:
+    - test-app.example.com
+  rules:
+    -
+      matches:
         - path:
             type: PathPrefix
             value: /
-      backendRefs:
+      filters:
+        - requestRedirect:
+            scheme: https
+            statusCode: 301
+          type: RequestRedirect
 ---
 # Source: app-chart/templates/prometheusrule.yaml
 apiVersion: monitoring.coreos.com/v1

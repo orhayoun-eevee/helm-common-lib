@@ -1,5 +1,5 @@
 {{- define "libChart.classes.destinationrule" -}}
-{{- if and .Values.circuitBreaker .Values.circuitBreaker.enabled }}
+{{- if and .Values.network .Values.network.istio .Values.network.istio.destinationrule .Values.network.istio.destinationrule.enabled }}
 ---
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
@@ -8,12 +8,13 @@ metadata:
   labels:
     {{- include "common.helpers.metadata.labels" . | nindent 4 }}
     app.kubernetes.io/component: "destination-rule"
-
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   host: {{ include "common.helpers.chart.names.name" . }}
-  {{- if .Values.circuitBreaker.trafficPolicy }}
+  {{- if .Values.network.istio.destinationrule.trafficPolicy }}
   trafficPolicy:
-    {{- toYaml .Values.circuitBreaker.trafficPolicy | nindent 4 }}
+    {{- toYaml .Values.network.istio.destinationrule.trafficPolicy | nindent 4 }}
   {{- end }}
 {{- end }}
 {{- end -}}

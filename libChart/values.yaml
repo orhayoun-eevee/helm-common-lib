@@ -111,56 +111,6 @@ persistence:
     #     secretName: my-secret
 
 # ----------------------------------------------------------------------------
-# Feature: Networking (Gateway API & Security)
-# ----------------------------------------------------------------------------
-httpRoute:
-  enabled: false  # Feature flag - enable HTTPRoute (Gateway API + security policies)
-  host: ""  # REQUIRED when enabled - hostname (e.g., "radarr-k8s.orhayoun.com")
-  port: 80  # Service port to route to (defaults to first container port if not specified)
-  gateway:
-    name: shared-platform-gateway
-    namespace: istio-system
-  # HTTPRoute configuration - define routes for different listeners
-  # Each route can bind to a listener by sectionName, port, or both
-  # Rules support template strings that will be evaluated at render time
-  routes:
-    # Main Application Route (HTTPS)
-    - name: route
-      listener:
-        sectionName: https
-        # port: 443  # Can be used instead of or in addition to sectionName
-      rules:
-        - matches:
-            - path:
-                type: PathPrefix
-                value: /
-          backendRefs:
-            - name: "{{ .Values.global.name }}"
-              port: "{{ .Values.httpRoute.port }}"
-              weight: 100
-              group: ""
-              kind: Service
-
-    # HTTP Redirect Route
-    - name: http-redirect
-      listener:
-        sectionName: http
-      rules:
-        - matches:
-            - path:
-                type: PathPrefix
-                value: /
-          filters:
-            - type: RequestRedirect
-              requestRedirect:
-                scheme: https
-                statusCode: 301
-  # Auto-generates:
-  # 1. HTTPRoute (Gateway API)
-  # 2. AuthorizationPolicy (ingress source)
-  # 3. NetworkPolicy (ingress rule)
-
-# ----------------------------------------------------------------------------
 # Feature: Observability
 # ----------------------------------------------------------------------------
 metrics:
@@ -228,45 +178,63 @@ podDisruptionBudget:
   minAvailable: null  # Mutually exclusive with maxUnavailable
   maxUnavailable: null  # Mutually exclusive with minAvailable
 
-# ----------------------------------------------------------------------------
-# Security Configuration (Custom Policies)
-# ----------------------------------------------------------------------------
-security:
-  # Authorization Policies - Map of AuthorizationPolicy specs
-  # Key: Name suffix (e.g., "ingress", "prometheus") - full name: {global.name}-{key}
-  # Value: Full AuthorizationPolicy spec (excluding selector, which is auto-injected)
-  # The template handles: apiVersion, kind, metadata, selector
-  # You provide: action, rules (with from/to/ports), etc.
-  #
-  # Template variables can be used in the spec YAML:
-  # {global.name}, {service.port}, {metrics.port}, {httpRoute.gateway.namespace}, {httpRoute.gateway.name}
-  #
-  # authorizationPolicies:
-  #   ingress:
-  #     action: ALLOW
-  #     rules:
-  #       - from:
-  #           - source:
-  #               principals:
-  #                 - "cluster.local/ns/{httpRoute.gateway.namespace}/sa/{httpRoute.gateway.name}-istio"
-  #         to:
-  #           - operation:
-  #               ports: ["{service.port}"]
-  #   prometheus:
-  #     action: ALLOW
-  #     rules:
-  #       - from:
-  #           - source:
-  #               principals:
-  #                 - "cluster.local/ns/monitoring/sa/prometheus-kube-prometheus-prometheus"
-  #         to:
-  #           - operation:
-  #               ports: ["{metrics.port}"]
-  authorizationPolicies: {}
-  
-  # NetworkPolicy - Full NetworkPolicy spec (excluding podSelector, which is auto-injected)
+network:
+  enabled: true
+  httpRoute:
+    enabled: false  # Feature flag - enable HTTPRoute (Gateway API + security policies)
+    host: ""  # REQUIRED when enabled - hostname (e.g., "radarr-k8s.orhayoun.com")
+    port: 80  # Service port to route to (defaults to first container port if not specified)
+    gateway:
+      name: shared-platform-gateway
+      namespace: istio-system
+    # HTTPRoute configuration - define routes for different listeners
+    # Each route can bind to a listener by sectionName, port, or both
+    # Rules support template strings that will be evaluated at render time
+    routes:
+      # Main Application Route (HTTPS)
+      - name: route
+        enabled: true
+        listener:
+          sectionName: https
+          # port: 443  # Can be used instead of or in addition to sectionName
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - name: "{{ .Values.global.name }}"
+                port: "{{ .Values.network.httpRoute.port }}"
+                weight: 100
+                group: ""
+                kind: Service
+
+      # HTTP Redirect Route
+      - name: http-redirect
+        enabled: true
+        listener:
+          sectionName: http
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            filters:
+              - type: RequestRedirect
+                requestRedirect:
+                  scheme: https
+                  statusCode: 301
+    # Auto-generates:
+    # 1. HTTPRoute (Gateway API)
+    # 2. AuthorizationPolicy (ingress source)
+    # 3. NetworkPolicy (ingress rule)
+  # NetworkPolicy Configuration - Multiple policies support
+  # Map of policy name suffix to NetworkPolicy configuration
+  # Each policy will be named: {global.name}-{key}
+  # The key must be explicitly defined (no empty keys allowed)
+  # Full NetworkPolicy spec (excluding podSelector, which is auto-injected)
   # The template handles: apiVersion, kind, metadata, podSelector
-  # You provide: policyTypes, ingress, egress
+  # You provide: enabled, policyTypes, ingress, egress
   #
   # IMPORTANT:
   # - The template does NOT inject any default ingress/egress rules.
@@ -279,68 +247,74 @@ security:
   # Template variables can be used in the spec YAML:
   # {global.name}, {service.port}, {metrics.port}, {httpRoute.gateway.namespace}, {httpRoute.gateway.name}
   #
-  # networkPolicy:
-  #   policyTypes:
-  #     - Ingress
-  #     - Egress
-  #   ingress:
-  #     - from:
-  #         - namespaceSelector:
-  #             matchLabels:
-  #               kubernetes.io/metadata.name: "{httpRoute.gateway.namespace}"
-  #           podSelector:
-  #             matchLabels:
-  #               app.kubernetes.io/name: "{httpRoute.gateway.name}"
-  #       ports:
-  #         - protocol: TCP
-  #           port: "{service.port}"
-  #         - protocol: TCP
-  #           port: 15008
-  #   egress:
-  #     - to:
-  #         - namespaceSelector:
-  #             matchLabels:
-  #               kubernetes.io/metadata.name: kube-system
-  #       ports:
-  #         - protocol: UDP
-  #           port: 53
-  #         - protocol: TCP
-  #           port: 53
-  #     - to:
-  #         - ipBlock:
-  #             cidr: 0.0.0.0/0
-  #             except:
-  #               - 10.42.0.0/16
-  #               - 10.43.0.0/16
-  #       ports:
-  #         - protocol: TCP
-  #           port: 80
-  #         - protocol: TCP
-  #           port: 443
-
-# ----------------------------------------------------------------------------
-# Circuit Breaker Configuration (Istio DestinationRule)
-# ----------------------------------------------------------------------------
-# Provides connection pooling and outlier detection to prevent cascading failures
-circuitBreaker:
-  enabled: false  # Opt-in feature - disabled by default
-  trafficPolicy:
-    connectionPool:
-      tcp:
-        maxConnections: 100  # Maximum number of TCP connections
-      http:
-        http1MaxPendingRequests: 10  # Max pending HTTP/1.1 requests
-        http2MaxRequests: 100  # Max concurrent HTTP/2 requests
-        maxRequestsPerConnection: 2  # Max requests per HTTP/2 connection
-    outlierDetection:
-      consecutive5xxErrors: 5  # Eject after N consecutive 5xx errors
-      interval: 30s  # Time between ejection scans
-      baseEjectionTime: 30s  # Base time a host is ejected
-      maxEjectionPercent: 50  # Maximum percentage of hosts ejected
-
-
-network:
-  enabled: true
+  networkPolicy:
+    items: {}
+      # Example - Single policy:
+      # main:
+      #   enabled: true
+      #   policyTypes:
+      #     - Ingress
+      #     - Egress
+      #   ingress:
+      #     - from:
+      #         - namespaceSelector:
+      #             matchLabels:
+      #               kubernetes.io/metadata.name: "{httpRoute.gateway.namespace}"
+      #           podSelector:
+      #             matchLabels:
+      #               app.kubernetes.io/name: "{httpRoute.gateway.name}"
+      #       ports:
+      #         - protocol: TCP
+      #           port: "{service.port}"
+      #         - protocol: TCP
+      #           port: 15008
+      #   egress:
+      #     - to:
+      #         - namespaceSelector:
+      #             matchLabels:
+      #               kubernetes.io/metadata.name: kube-system
+      #       ports:
+      #         - protocol: UDP
+      #           port: 53
+      #         - protocol: TCP
+      #           port: 53
+      #     - to:
+      #         - ipBlock:
+      #             cidr: 0.0.0.0/0
+      #             except:
+      #               - 10.42.0.0/16
+      #               - 10.43.0.0/16
+      #       ports:
+      #         - protocol: TCP
+      #           port: 80
+      #         - protocol: TCP
+      #           port: 443
+      #
+      # Example - Multiple policies:
+      # ingress:
+      #   enabled: true
+      #   policyTypes:
+      #     - Ingress
+      #   ingress:
+      #     - from:
+      #         - namespaceSelector:
+      #             matchLabels:
+      #               kubernetes.io/metadata.name: istio-system
+      #       ports:
+      #         - protocol: TCP
+      #           port: 8080
+      # egress:
+      #   enabled: true
+      #   policyTypes:
+      #     - Egress
+      #   egress:
+      #     - to:
+      #         - namespaceSelector:
+      #             matchLabels:
+      #               kubernetes.io/metadata.name: kube-system
+      #       ports:
+      #         - protocol: UDP
+      #           port: 53
   # Service Configuration - Multiple services support
   # Map of service name suffix to service configuration
   # Each service will be named: {global.name}-{key}
@@ -508,16 +482,70 @@ network:
                 port: 15008
   istio:
     enabled: true
-    authorizationPolicies:
-      enabled: true
-      policies:
-        ingress: # name
-          enabled: true
-          rules:
-            - from:
-                - source:
-                    principals:
-                      - "cluster.local/ns/istio-system/sa/shared-platform-gateway-istio"
-            - to:
-              - operation:
-                  ports: ["8080"]
+    # AuthorizationPolicy Configuration - Multiple policies support
+    # Map of policy name suffix to AuthorizationPolicy configuration
+    # Each policy will be named: {global.name}-{key}
+    # The key must be explicitly defined (no empty keys allowed)
+    # Full AuthorizationPolicy spec (excluding selector, which is auto-injected)
+    # The template handles: apiVersion, kind, metadata, selector
+    # You provide: enabled, action, rules
+    #
+    # Template variables can be used in the spec YAML:
+    # {global.name}, {service.port}, {metrics.port}, {httpRoute.gateway.namespace}, {httpRoute.gateway.name}
+    #
+    authorizationPolicy:
+      enabled: false  # Feature flag - enable AuthorizationPolicy generation
+      items: {}
+        # Example - Single policy:
+        # default:
+        #   enabled: true
+        #   action: ALLOW
+        #   rules:
+        #     - from:
+        #         - source:
+        #             principals:
+        #               - "cluster.local/ns/{httpRoute.gateway.namespace}/sa/{httpRoute.gateway.name}-istio"
+        #       to:
+        #         - operation:
+        #             ports: ["{service.port}"]
+        #
+        # Example - Multiple policies:
+        # ingress:
+        #   enabled: true
+        #   action: ALLOW
+        #   rules:
+        #     - from:
+        #         - source:
+        #             principals:
+        #               - "cluster.local/ns/istio-system/sa/shared-platform-gateway-istio"
+        #       to:
+        #         - operation:
+        #             ports: ["8080"]
+        # prometheus:
+        #   enabled: true
+        #   action: ALLOW
+        #   rules:
+        #     - from:
+        #         - source:
+        #             principals:
+        #               - "cluster.local/ns/monitoring/sa/prometheus-kube-prometheus-prometheus"
+        #       to:
+        #         - operation:
+        #             ports: ["{metrics.port}"]
+    # DestinationRule Configuration (Circuit Breaker)
+    # Provides connection pooling and outlier detection to prevent cascading failures
+    destinationrule:
+      enabled: false  # Opt-in feature - disabled by default
+      trafficPolicy:
+        connectionPool:
+          tcp:
+            maxConnections: 100  # Maximum number of TCP connections
+          http:
+            http1MaxPendingRequests: 10  # Max pending HTTP/1.1 requests
+            http2MaxRequests: 100  # Max concurrent HTTP/2 requests
+            maxRequestsPerConnection: 2  # Max requests per HTTP/2 connection
+        outlierDetection:
+          consecutive5xxErrors: 5  # Eject after N consecutive 5xx errors
+          interval: 30s  # Time between ejection scans
+          baseEjectionTime: 30s  # Base time a host is ejected
+          maxEjectionPercent: 50  # Maximum percentage of hosts ejected
