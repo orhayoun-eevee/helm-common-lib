@@ -1,0 +1,3 @@
+{{- if and .Values.metrics .Values.metrics.enabled .Values.metrics.grafana .Values.metrics.grafana.enabled -}}
+{{- include "libChart.classes.grafana" . -}}
+{{- end -}}

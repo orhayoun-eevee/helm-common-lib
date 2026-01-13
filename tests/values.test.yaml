@@ -151,6 +151,43 @@ metrics:
         annotations:
           summary: "Test service is down"
           description: "Test service has been down for more than 5 minutes"
+  grafana:
+    enabled: true
+    dashboard:
+      enabled: true
+      items:
+        test-dashboard:
+          enabled: true
+          json: |
+            {
+              "dashboard": {
+                "title": "Test Application Dashboard",
+                "tags": ["test", "application"],
+                "timezone": "browser",
+                "schemaVersion": 16,
+                "version": 1,
+                "refresh": "30s",
+                "panels": [
+                  {
+                    "id": 1,
+                    "title": "Request Rate",
+                    "type": "graph",
+                    "gridPos": {
+                      "h": 8,
+                      "w": 12,
+                      "x": 0,
+                      "y": 0
+                    },
+                    "targets": [
+                      {
+                        "expr": "rate(http_requests_total[5m])",
+                        "legendFormat": "{{instance}}"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
 
 serviceAccount:
   create: true

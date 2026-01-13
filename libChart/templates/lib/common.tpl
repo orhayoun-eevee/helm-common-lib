@@ -31,6 +31,9 @@
   {{- if and .Values.metrics.prometheusRule .Values.metrics.prometheusRule.rules -}}
     {{- include "libChart.classes.prometheusrule" . -}}
   {{- end -}}
+  {{- if and .Values.metrics.grafana .Values.metrics.grafana.enabled -}}
+    {{- include "libChart.classes.grafana" . -}}
+  {{- end -}}
 {{- end -}}
 {{- end -}}
 

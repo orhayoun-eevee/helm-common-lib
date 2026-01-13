@@ -73,6 +73,21 @@ metrics:
   prometheusRule:
     enabled: true
     rules: []
+  grafana:
+    enabled: false
+    dashboard:
+      enabled: false
+      items: {}
+        # Example:
+        # my-dashboard:
+        #   enabled: true
+        #   json: |
+        #     {
+        #       "dashboard": {
+        #         "title": "My Dashboard",
+        #         "panels": []
+        #       }
+        #     }
 
 # ----------------------------------------------------------------------------
 # Service Account

@@ -183,6 +183,25 @@ metrics:
       #     summary: "Service is down"
       #     description: "Service system status is 0 (unhealthy) for more than 5 minutes."
 
+  # Grafana Configuration
+  grafana:
+    enabled: false  # Feature flag - enable Grafana dashboard ConfigMaps
+    dashboard:
+      enabled: false  # Enable Grafana dashboard ConfigMap generation
+      # Dictionary of dashboard items - each key becomes a ConfigMap suffix
+      # Each item will generate a ConfigMap named: {global.name}-{key}
+      items: {}
+        # Example:
+        # my-dashboard:
+        #   enabled: true
+        #   json: |
+        #     {
+        #       "dashboard": {
+        #         "title": "My Dashboard",
+        #         ...
+        #       }
+        #     }
+
 # ----------------------------------------------------------------------------
 # Service Account
 # ----------------------------------------------------------------------------
