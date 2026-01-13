@@ -218,6 +218,7 @@ podDisruptionBudget:
   enabled: false  # Disabled by default - opt-in per service
   minAvailable: null  # Mutually exclusive with maxUnavailable
   maxUnavailable: null  # Mutually exclusive with minAvailable
+  unhealthyPodEvictionPolicy: null  # Optional - "IfHealthyBudget" (default) or "AlwaysAllow" (K8s 1.26+)
 
 network:
   enabled: true
