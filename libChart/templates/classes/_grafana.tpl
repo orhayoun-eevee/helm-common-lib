@@ -5,10 +5,9 @@
     {{- $namePrefix := include "common.helpers.chart.names.name" $root -}}
     {{- $additionalLabels := dict "grafana_dashboard" "1" -}}
     {{- range $dashboardKey, $dashboard := .Values.metrics.grafana.dashboard.items }}
-    {{- if $dashboard.enabled }}
-      {{- $dashboardName := printf "%s.json" $dashboardKey -}}
-      {{- toYaml $dashboard -}}
+      {{- $dashboardName := $dashboard.name | default $dashboardKey -}}
       {{- $jsonContent := $dashboard.json -}}
+      {{- if and $jsonContent (ne (toString $jsonContent) "") -}}
       {{- if kindIs "map" $jsonContent -}}
         {{- $jsonContent = $jsonContent | toJson -}}
       {{- end -}}
@@ -19,7 +18,7 @@
       {{- end -}}
       {{- $singleItemDict := dict $dashboardKey $item -}}
       {{- include "libChart.classes.configmap" (dict "items" $singleItemDict "namePrefix" $namePrefix "componentLabel" "grafana-dashboard" "additionalLabels" $additionalLabels "context" $root) -}}
-    {{- end }}
+      {{- end -}}
     {{- end }}
   {{- end -}}
 {{- end -}}

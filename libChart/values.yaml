@@ -193,7 +193,7 @@ metrics:
       items: {}
         # Example:
         # my-dashboard:
-        #   enabled: true
+        #   name: "my-dashboard"  # Optional - ConfigMap data key name (defaults to key)
         #   json: |
         #     {
         #       "dashboard": {
