@@ -59,11 +59,20 @@ persistence:
 # ----------------------------------------------------------------------------
 metrics:
   enabled: false
-  port: 9100
-  component: ""
-  interval: "10s"
-  scrapeTimeout: "5s"
-  rules: []
+  serviceMonitor:
+    enabled: true
+    port: 9100
+    interval: "10s"
+    scrapeTimeout: "5s"
+    path: ""
+    honorLabels: false
+    selector: {}
+    namespaceSelector: {}
+    relabelings: []
+    metricRelabelings: []
+  prometheusRule:
+    enabled: true
+    rules: []
 
 # ----------------------------------------------------------------------------
 # Service Account

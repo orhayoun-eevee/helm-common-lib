@@ -28,7 +28,7 @@
 {{- end -}}
 {{- if and .Values.metrics .Values.metrics.enabled -}}
   {{- include "libChart.classes.servicemonitor" . -}}
-  {{- if .Values.metrics.rules -}}
+  {{- if and .Values.metrics.prometheusRule .Values.metrics.prometheusRule.rules -}}
     {{- include "libChart.classes.prometheusrule" . -}}
   {{- end -}}
 {{- end -}}

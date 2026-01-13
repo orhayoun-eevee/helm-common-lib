@@ -115,66 +115,73 @@ persistence:
 # ----------------------------------------------------------------------------
 metrics:
   enabled: false  # Feature flag - enable metrics (ServiceMonitor + PrometheusRule)
-  port: 9100  # Metrics port
-  interval: "10s"  # ServiceMonitor scrape interval
-  scrapeTimeout: "5s"  # ServiceMonitor scrape timeout
-  path: ""  # Optional - Metrics endpoint path (e.g., "/metrics")
-  honorLabels: false  # Optional - Honor labels from target (boolean)
   
-  # Selector for ServiceMonitor spec
-  # Allows customizing which services are selected for scraping
-  # Supports both matchLabels and matchExpressions
-  selector: {}
-    # Example with matchLabels:
-    #   matchLabels:
-    #     app.kubernetes.io/name: "my-app"
-    #     app.kubernetes.io/instance: "my-release"
-    # Example with matchExpressions:
-    #   matchExpressions:
-    #     - key: app.kubernetes.io/name
-    #       operator: In
-    #       values: ["app1", "app2"]
-    # If not provided, defaults to standard selectorLabels helper
+  # ServiceMonitor Configuration
+  serviceMonitor:
+    enabled: true  # Enable ServiceMonitor resource creation
+    port: 9100  # Metrics port
+    interval: "10s"  # ServiceMonitor scrape interval
+    scrapeTimeout: "5s"  # ServiceMonitor scrape timeout
+    path: ""  # Optional - Metrics endpoint path (e.g., "/metrics")
+    honorLabels: false  # Optional - Honor labels from target (boolean)
+    
+    # Selector for ServiceMonitor spec
+    # Allows customizing which services are selected for scraping
+    # Supports both matchLabels and matchExpressions
+    selector: {}
+      # Example with matchLabels:
+      #   matchLabels:
+      #     app.kubernetes.io/name: "my-app"
+      #     app.kubernetes.io/instance: "my-release"
+      # Example with matchExpressions:
+      #   matchExpressions:
+      #     - key: app.kubernetes.io/name
+      #       operator: In
+      #       values: ["app1", "app2"]
+      # If not provided, defaults to standard selectorLabels helper
+    
+    # Namespace selector for ServiceMonitor spec
+    # Allows selecting namespaces to scrape from
+    namespaceSelector: {}
+      # Example:
+      #   matchNames:
+      #     - default
+      #     - monitoring
+    
+    # Relabelings - Prometheus relabel configs (applied before scraping)
+    # Full Prometheus relabeling configuration format
+    relabelings: []
+      # Example:
+      #   - action: replace
+      #     sourceLabels: [__meta_kubernetes_pod_name]
+      #     targetLabel: pod_name
+    
+    # Metric relabelings - Prometheus relabel configs (applied after scraping)
+    # Full Prometheus relabeling configuration format
+    metricRelabelings: []
+      # Example:
+      #   - action: replace
+      #     targetLabel: service
+      #     replacement: radarr
+      #   - action: replace
+      #     targetLabel: component
+      #     replacement: media-center
   
-  # Namespace selector for ServiceMonitor spec
-  # Allows selecting namespaces to scrape from
-  namespaceSelector: {}
-    # Example:
-    #   matchNames:
-    #     - default
-    #     - monitoring
-  
-  # Relabelings - Prometheus relabel configs (applied before scraping)
-  # Full Prometheus relabeling configuration format
-  relabelings: []
-    # Example:
-    #   - action: replace
-    #     sourceLabels: [__meta_kubernetes_pod_name]
-    #     targetLabel: pod_name
-  
-  # Metric relabelings - Prometheus relabel configs (applied after scraping)
-  # Full Prometheus relabeling configuration format
-  metricRelabelings: []
-    # Example:
-    #   - action: replace
-    #     targetLabel: service
-    #     replacement: radarr
-    #   - action: replace
-    #     targetLabel: component
-    #     replacement: media-center
-  
-  # Custom Alert Rules
-  # Define service-specific alerts here as an array of PrometheusRule alert definitions
-  rules: []
-    # Example:
-    # - alert: ServiceDown
-    #   expr: service_system_status == 0
-    #   for: 5m
-    #   labels:
-    #     severity: critical
-    #   annotations:
-    #     summary: "Service is down"
-    #     description: "Service system status is 0 (unhealthy) for more than 5 minutes."
+  # PrometheusRule Configuration
+  prometheusRule:
+    enabled: true  # Enable PrometheusRule resource creation
+    # Custom Alert Rules
+    # Define service-specific alerts here as an array of PrometheusRule alert definitions
+    rules: []
+      # Example:
+      # - alert: ServiceDown
+      #   expr: service_system_status == 0
+      #   for: 5m
+      #   labels:
+      #     severity: critical
+      #   annotations:
+      #     summary: "Service is down"
+      #     description: "Service system status is 0 (unhealthy) for more than 5 minutes."
 
 # ----------------------------------------------------------------------------
 # Service Account
@@ -260,7 +267,7 @@ network:
   # - `ports` MUST be valid NetworkPolicyPort objects (no bare ints).
   #
   # Template variables can be used in the spec YAML:
-  # {global.name}, {service.port}, {metrics.port}, {httpRoute.gateway.namespace}, {httpRoute.gateway.name}
+  # {global.name}, {service.port}, {metrics.serviceMonitor.port}, {httpRoute.gateway.namespace}, {httpRoute.gateway.name}
   #
   networkPolicy:
     items: {}
@@ -506,7 +513,7 @@ network:
     # You provide: enabled, action, rules
     #
     # Template variables can be used in the spec YAML:
-    # {global.name}, {service.port}, {metrics.port}, {httpRoute.gateway.namespace}, {httpRoute.gateway.name}
+    # {global.name}, {service.port}, {metrics.serviceMonitor.port}, {httpRoute.gateway.namespace}, {httpRoute.gateway.name}
     #
     authorizationPolicy:
       enabled: false  # Feature flag - enable AuthorizationPolicy generation
@@ -546,7 +553,7 @@ network:
         #               - "cluster.local/ns/monitoring/sa/prometheus-kube-prometheus-prometheus"
         #       to:
         #         - operation:
-        #             ports: ["{metrics.port}"]
+        #             ports: ["{metrics.serviceMonitor.port}"]
     # DestinationRule Configuration (Circuit Breaker)
     # Provides connection pooling and outlier detection to prevent cascading failures
     destinationrule:

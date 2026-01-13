@@ -150,7 +150,7 @@ metadata:
     app.kubernetes.io/part-of: test-stack
     app.kubernetes.io/version: custom-version-override
     helm.sh/chart: test-chart-1.0.0
-    app.kubernetes.io/component: "service"
+    app.kubernetes.io/component: service-main
   annotations:
     test.annotation: test-value
 spec:
@@ -374,9 +374,10 @@ metadata:
     app.kubernetes.io/version: custom-version-override
     helm.sh/chart: test-chart-1.0.0
     app.kubernetes.io/component: "destination-rule"
-
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
-  host: test-app
+  host: test-app.test-namespace.svc.cluster.local
   trafficPolicy:
     connectionPool:
       http:
@@ -470,12 +471,13 @@ kind: PrometheusRule
 metadata:
   name: test-app
   labels:
-    app.kubernetes.io/component: prometheus-rule
     app.kubernetes.io/instance: test-release
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: test-app
-    app.kubernetes.io/version: 1.0.0
+    app.kubernetes.io/part-of: test-stack
+    app.kubernetes.io/version: custom-version-override
     helm.sh/chart: test-chart-1.0.0
+    app.kubernetes.io/component: "prometheus-rule"
 
 spec:
   groups:
@@ -496,12 +498,15 @@ kind: ServiceMonitor
 metadata:
   name: test-app
   labels:
-    app.kubernetes.io/component: servicemonitor
     app.kubernetes.io/instance: test-release
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: test-app
-    app.kubernetes.io/version: 1.0.0
+    app.kubernetes.io/part-of: test-stack
+    app.kubernetes.io/version: custom-version-override
     helm.sh/chart: test-chart-1.0.0
+    app.kubernetes.io/component: "servicemonitor"
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   selector:
     matchLabels:

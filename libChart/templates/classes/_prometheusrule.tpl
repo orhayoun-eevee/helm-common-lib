@@ -1,5 +1,5 @@
 {{- define "libChart.classes.prometheusrule" -}}
-{{- if and .Values.metrics .Values.metrics.enabled .Values.metrics.rules }}
+{{- if and .Values.metrics .Values.metrics.enabled .Values.metrics.prometheusRule .Values.metrics.prometheusRule.enabled .Values.metrics.prometheusRule.rules }}
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -13,6 +13,6 @@ spec:
   groups:
     - name: {{ include "common.helpers.chart.names.name" . }}.rules
       rules:
-        {{- toYaml .Values.metrics.rules | nindent 8 }}
+        {{- toYaml .Values.metrics.prometheusRule.rules | nindent 8 }}
 {{- end }}
 {{- end -}}

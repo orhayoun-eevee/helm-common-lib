@@ -119,34 +119,38 @@ persistence:
 
 metrics:
   enabled: true
-  port: 9100
-  interval: "15s"
-  scrapeTimeout: "10s"
-  path: "/metrics"
-  honorLabels: true
-  namespaceSelector:
-    matchNames:
-      - default
-  relabelings:
-    - action: replace
-      sourceLabels: [__meta_kubernetes_pod_name]
-      targetLabel: pod_name
-  metricRelabelings:
-    - action: replace
-      targetLabel: service
-      replacement: test-app
-    - action: replace
-      targetLabel: component
-      replacement: test-component
-  rules:
-    - alert: TestAlert
-      expr: up == 0
-      for: 5m
-      labels:
-        severity: critical
-      annotations:
-        summary: "Test service is down"
-        description: "Test service has been down for more than 5 minutes"
+  serviceMonitor:
+    enabled: true
+    port: 9100
+    interval: "15s"
+    scrapeTimeout: "10s"
+    path: "/metrics"
+    honorLabels: true
+    namespaceSelector:
+      matchNames:
+        - default
+    relabelings:
+      - action: replace
+        sourceLabels: [__meta_kubernetes_pod_name]
+        targetLabel: pod_name
+    metricRelabelings:
+      - action: replace
+        targetLabel: service
+        replacement: test-app
+      - action: replace
+        targetLabel: component
+        replacement: test-component
+  prometheusRule:
+    enabled: true
+    rules:
+      - alert: TestAlert
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Test service is down"
+          description: "Test service has been down for more than 5 minutes"
 
 serviceAccount:
   create: true
