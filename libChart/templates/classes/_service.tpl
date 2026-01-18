@@ -7,6 +7,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "common.helpers.chart.names.name" $ }}-{{ $serviceKey }}
+  namespace: {{ $.Values.global.namespace | default "default" }}
   labels:
     {{- include "common.helpers.metadata.labels" $ | nindent 4 }}
     app.kubernetes.io/component: service-{{ $serviceKey }}

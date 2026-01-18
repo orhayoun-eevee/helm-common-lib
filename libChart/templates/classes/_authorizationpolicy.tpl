@@ -7,6 +7,7 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: {{ include "common.helpers.chart.names.name" $ }}-{{ $policyKey }}
+  namespace: {{ $.Values.global.namespace | default "default" }}
   labels:
     {{- include "common.helpers.metadata.labels" $ | nindent 4 }}
     app.kubernetes.io/component: "authorization-policy"

@@ -5,6 +5,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: {{ include "common.helpers.chart.names.name" . }}
+  namespace: {{ .Values.global.namespace | default "default" }}
   labels:
     {{- include "common.helpers.metadata.labels" . | nindent 4 }}
     app.kubernetes.io/component: "prometheus-rule"

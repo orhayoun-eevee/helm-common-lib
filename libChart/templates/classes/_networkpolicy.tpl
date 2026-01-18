@@ -7,6 +7,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: {{ include "common.helpers.chart.names.name" $ }}-{{ $policyKey }}
+  namespace: {{ $.Values.global.namespace | default "default" }}
   labels:
     {{- include "common.helpers.metadata.labels" $ | nindent 4 }}
     app.kubernetes.io/component: "network-policy"

@@ -22,6 +22,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ $configMapName }}
+  namespace: {{ $context.Values.global.namespace | default "default" }}
   {{- if $labels }}
   labels:
     {{- toYaml $labels | nindent 4 }}

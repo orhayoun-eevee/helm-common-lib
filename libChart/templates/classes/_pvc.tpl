@@ -7,6 +7,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: {{ printf "%s-%s" (include "common.helpers.chart.names.name" $) $name }}
+  namespace: {{ $.Values.global.namespace | default "default" }}
   labels:
     {{- include "common.helpers.metadata.labels" $ | nindent 4 }}
     app.kubernetes.io/component: "pvc"

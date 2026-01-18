@@ -8,7 +8,7 @@
       "type": "object",
       "additionalProperties": false,
       "description": "Global configuration for all resources",
-      "required": ["name"],
+      "required": ["name", "namespace"],
       "properties": {
         "name": {
           "oneOf": [
