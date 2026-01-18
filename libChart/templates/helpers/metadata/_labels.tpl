@@ -10,7 +10,6 @@
     "app.kubernetes.io/name" $appName
     "app.kubernetes.io/instance" .Release.Name
     "app.kubernetes.io/version" $appVersion
-    "app.kubernetes.io/managed-by" .Release.Service
 -}}
 {{- if and .Values.global .Values.global.labels .Values.global.labels.partOf -}}
   {{- $_ := set $labels "app.kubernetes.io/part-of" .Values.global.labels.partOf -}}

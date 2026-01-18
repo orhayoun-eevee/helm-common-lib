@@ -148,6 +148,10 @@ spec:
           startupProbe:
             {{- toYaml $container.startupProbe | nindent 12 }}
           {{- end }}
+          {{- if $container.lifecycle }}
+          lifecycle:
+            {{- toYaml $container.lifecycle | nindent 12 }}
+          {{- end }}
           {{- if $container.securityContext }}
           securityContext:
             {{- toYaml $container.securityContext | nindent 12 }}
