@@ -32,6 +32,25 @@
           "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
           "maxLength": 253
         },
+        "chart": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Optional - parent chart information (for correct labels)",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Parent chart name (e.g., 'radarr')"
+            },
+            "version": {
+              "type": "string",
+              "description": "Parent chart version (e.g., '0.1.0')"
+            },
+            "appVersion": {
+              "type": "string",
+              "description": "Parent chart appVersion"
+            }
+          }
+        },
         "labels": {
           "type": "object",
           "description": "Global labels applied to all resources",
