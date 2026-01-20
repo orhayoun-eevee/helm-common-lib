@@ -25,12 +25,13 @@ spec:
     metadata:
       name: {{ $name }}
       namespace: {{ $.Values.global.namespace | default "default" }}
-      {{- if $secret.labels }}
       labels:
+        {{- include "common.helpers.metadata.labels" $ | nindent 8 }}
+        {{- if $secret.labels }}
         {{- range $key, $value := $secret.labels }}
         {{ $key }}: {{ $value | quote }}
         {{- end }}
-      {{- end }}
+        {{- end }}
     type: {{ $secret.type | default "Opaque" }}
 {{- end }}
 {{- end }}
