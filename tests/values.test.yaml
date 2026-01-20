@@ -200,6 +200,25 @@ podDisruptionBudget:
   enabled: true
   minAvailable: 1
 
+secrets:
+  enabled: true
+  sealedSecret:
+    enabled: true
+    items:
+      test-secret:
+        data:
+          username: AgBy3i4OJSWK+PiTySYZZA9rO43cGDEQAx...
+          password: AgBy3i4OJSWK+PiTySYZZA9rO43cGDEQAx...
+        annotations:
+          sealedsecrets.bitnami.com/managed: "true"
+        labels:
+          app.kubernetes.io/component: "secrets"
+        type: Opaque
+      api-key:
+        data:
+          apiKey: AgBy3i4OJSWK+PiTySYZZA9rO43cGDEQAx...
+        type: Opaque
+
 network:
   enabled: true
   httpRoute:

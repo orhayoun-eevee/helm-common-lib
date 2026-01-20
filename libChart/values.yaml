@@ -216,6 +216,27 @@ serviceAccount:
   name: ""
 
 # ----------------------------------------------------------------------------
+# Feature: Secrets
+# ----------------------------------------------------------------------------
+secrets:
+  enabled: false  # Feature flag - enable secrets management
+  sealedSecret:
+    enabled: false  # Feature flag - enable SealedSecret generation
+    # Dictionary of sealed secret definitions
+    # Each key is the secret name
+    items: {}
+      # Example:
+      # my-secret:
+      #   data:
+      #     username: AgBy3i4OJSWK+PiTySYZZA9rO43cGDEQAx...
+      #     password: AgBy3i4OJSWK+PiTySYZZA9rO43cGDEQAx...
+      #   annotations:
+      #     sealedsecrets.bitnami.com/managed: "true"
+      #   labels:
+      #     app.kubernetes.io/component: "secrets"
+      #   type: Opaque  # Optional - defaults to "Opaque"
+
+# ----------------------------------------------------------------------------
 # Pod disruption budget configuration
 # ----------------------------------------------------------------------------
 podDisruptionBudget:

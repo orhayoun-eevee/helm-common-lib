@@ -435,6 +435,67 @@
         }
       }
     },
+    "secrets": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Feature: Secrets",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Feature flag - enable secrets management",
+          "default": false
+        },
+        "sealedSecret": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "SealedSecret configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Feature flag - enable SealedSecret generation",
+              "default": false
+            },
+            "items": {
+              "type": "object",
+              "description": "Dictionary of sealed secret definitions. Each key is the secret name",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "description": "Encrypted data - map of key to encrypted value",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "annotations": {
+                    "type": "object",
+                    "description": "SealedSecret metadata annotations",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "labels": {
+                    "type": "object",
+                    "description": "Labels for the generated Secret (in template.metadata.labels)",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Secret type (defaults to 'Opaque')",
+                    "default": "Opaque"
+                  }
+                },
+                "required": ["data"]
+              }
+            }
+          }
+        }
+      }
+    },
     "network": {
       "type": "object",
       "additionalProperties": false,

@@ -2,11 +2,11 @@ apiVersion: v2
 name: app-chart
 description: Standardized application deployment template using libChart library
 type: application
-version: 1.0.0
-appVersion: "1.0.0"
+version: 1.0.1
+appVersion: "1.0.1"
 dependencies:
   - name: lib-chart
-    version: 0.0.1
+    version: 0.0.2
     repository: file://../libChart
     # To use the published OCI chart:
     # repository: oci://ghcr.io/orhayoun-eevee/libchart
