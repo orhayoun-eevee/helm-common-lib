@@ -483,6 +483,13 @@
                       "type": "string"
                     }
                   },
+                  "templateAnnotations": {
+                    "type": "object",
+                    "description": "Annotations for the generated Secret (in template.metadata.annotations)",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
                   "type": {
                     "type": "string",
                     "description": "Secret type (defaults to 'Opaque')",

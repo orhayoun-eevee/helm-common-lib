@@ -213,6 +213,8 @@ secrets:
           sealedsecrets.bitnami.com/managed: "true"
         labels:
           app.kubernetes.io/component: "secrets"
+        templateAnnotations:
+          sealedsecrets.bitnami.com/cluster-wide: "true"
         type: Opaque
       api-key:
         data:

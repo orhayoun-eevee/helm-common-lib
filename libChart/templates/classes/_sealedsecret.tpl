@@ -32,6 +32,12 @@ spec:
         {{ $key }}: {{ $value | quote }}
         {{- end }}
         {{- end }}
+      {{- if $secret.templateAnnotations }}
+      annotations:
+        {{- range $key, $value := $secret.templateAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+      {{- end }}
     type: {{ $secret.type | default "Opaque" }}
 {{- end }}
 {{- end }}

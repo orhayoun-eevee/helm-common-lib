@@ -595,6 +595,8 @@ spec:
         app.kubernetes.io/version: custom-version-override
         helm.sh/chart: test-chart-1.0.0
         app.kubernetes.io/component: "secrets"
+      annotations:
+        sealedsecrets.bitnami.com/cluster-wide: "true"
     type: Opaque
 ---
 # Source: app-chart/templates/servicemonitor.yaml
