@@ -6,7 +6,7 @@ apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
 metadata:
   name: {{ $name }}
-  namespace: {{ .Values.global.namespace | default "default" }}
+  namespace: {{ $.Values.global.namespace | default "default" }}
   labels:
     {{- include "common.helpers.metadata.labels" $ | nindent 4 }}
     app.kubernetes.io/component: "sealed-secret"
@@ -24,7 +24,7 @@ spec:
   template:
     metadata:
       name: {{ $name }}
-      namespace: {{ .Values.global.namespace | default "default" }}
+      namespace: {{ $.Values.global.namespace | default "default" }}
       {{- if $secret.labels }}
       labels:
         {{- range $key, $value := $secret.labels }}
