@@ -77,7 +77,12 @@ jobs:
           set -o pipefail
           cd appChart
           helm template test-release . -f ../tests/values.test.yaml | \
-            kubeconform -strict -skip ServiceMonitor,PrometheusRule,HTTPRoute,AuthorizationPolicy,DestinationRule || {
+            kubeconform \
+              -strict \
+              -summary \
+              -schema-location default \
+              -schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json" \
+              -skip ServiceMonitor,PrometheusRule,HTTPRoute,AuthorizationPolicy,DestinationRule || {
               echo "kubeconform validation failed"
               exit 1
             }
