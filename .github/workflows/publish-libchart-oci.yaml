@@ -81,8 +81,11 @@ jobs:
               -strict \
               -summary \
               -schema-location default \
-              -schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json" \
-              -skip ServiceMonitor,PrometheusRule,HTTPRoute,AuthorizationPolicy,DestinationRule || {
+              -schema-location "../schemas/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json" \
+              -schema-location "../{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json" \
+              -schema-location "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/schemas/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json" \
+              -schema-location "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json" \
+              -schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json" || {
               echo "kubeconform validation failed"
               exit 1
             }
