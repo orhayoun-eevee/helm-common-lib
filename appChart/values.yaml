@@ -74,15 +74,15 @@ metrics:
     enabled: true
     rules: []
   grafana:
-    enabled: true
+    enabled: false
     instanceSelector:
       matchLabels:
         dashboards: "grafana-a"
     dashboard:
-      enabled: true
+      enabled: false
       items:
         example-dashboard:
-          enabled: true
+          enabled: false
           name: "example-dashboard"
           file: "example-dashboard.json"
           # Optional: Override instanceSelector for this specific dashboard
