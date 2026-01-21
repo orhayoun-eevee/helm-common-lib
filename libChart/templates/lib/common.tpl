@@ -32,7 +32,7 @@
     {{- include "libChart.classes.prometheusrule" . -}}
   {{- end -}}
   {{- if and .Values.metrics.grafana .Values.metrics.grafana.enabled -}}
-    {{- include "libChart.classes.grafana" . -}}
+    {{- include "libChart.lib.grafana" . -}}
   {{- end -}}
 {{- end -}}
 {{- if and .Values.secrets .Values.secrets.enabled .Values.secrets.sealedSecret .Values.secrets.sealedSecret.enabled .Values.secrets.sealedSecret.items -}}

@@ -160,6 +160,7 @@ metrics:
       enabled: true
       items:
         test-dashboard:
+          enabled: true
           name: "test-dashboard"
           json: |
             {
