@@ -1,4 +1,0 @@
-{{- if and .Values.network .Values.network.istio .Values.network.istio.authorizationPolicy .Values.network.istio.authorizationPolicy.enabled .Values.network.istio.authorizationPolicy.items -}}
-{{- include "libChart.classes.authorizationpolicy" . -}}
-{{- end -}}
-

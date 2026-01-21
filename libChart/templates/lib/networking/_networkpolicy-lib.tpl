@@ -1,0 +1,5 @@
+{{- define "libChart.lib.networkpolicy" -}}
+{{- if and .Values.network .Values.network.networkPolicy .Values.network.networkPolicy.items }}
+{{ include "libChart.classes.networkpolicy" . }}
+{{- end }}
+{{- end -}}

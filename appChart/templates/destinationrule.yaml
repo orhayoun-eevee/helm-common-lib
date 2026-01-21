@@ -1,4 +1,0 @@
-{{- if and .Values.network .Values.network.istio .Values.network.istio.destinationrule .Values.network.istio.destinationrule.enabled .Values.network.istio.destinationrule.host (ne (.Values.network.istio.destinationrule.host | toString) "") -}}
-{{- include "libChart.classes.destinationrule" . -}}
-{{- end -}}
-
