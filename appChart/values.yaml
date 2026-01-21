@@ -82,6 +82,7 @@ metrics:
       enabled: true
       items:
         example-dashboard:
+          enabled: true
           name: "example-dashboard"
           file: "example-dashboard.json"
           # Optional: Override instanceSelector for this specific dashboard
