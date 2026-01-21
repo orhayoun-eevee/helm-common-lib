@@ -94,52 +94,6 @@ metadata:
     test.serviceaccount.annotation: test-value
 automountServiceAccountToken: true
 ---
-# Source: app-chart/templates/grafana.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: test-app-test-dashboard
-  namespace: test-namespace
-  labels:
-    app.kubernetes.io/component: grafana-dashboard
-    app.kubernetes.io/instance: test-release
-    app.kubernetes.io/name: test-app
-    app.kubernetes.io/part-of: test-stack
-    app.kubernetes.io/version: custom-version-override
-    grafana_dashboard: "1"
-    helm.sh/chart: test-chart-1.0.0
-data:
-  test-dashboard.json: |
-    {
-      "dashboard": {
-        "title": "Test Application Dashboard",
-        "tags": ["test", "application"],
-        "timezone": "browser",
-        "schemaVersion": 16,
-        "version": 1,
-        "refresh": "30s",
-        "panels": [
-          {
-            "id": 1,
-            "title": "Request Rate",
-            "type": "graph",
-            "gridPos": {
-              "h": 8,
-              "w": 12,
-              "x": 0,
-              "y": 0
-            },
-            "targets": [
-              {
-                "expr": "rate(http_requests_total[5m])",
-                "legendFormat": "{{instance}}"
-              }
-            ]
-          }
-        ]
-      }
-    }
----
 # Source: app-chart/templates/pvc.yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -436,6 +390,68 @@ spec:
       consecutive5xxErrors: 10
       interval: 60s
       maxEjectionPercent: 75
+---
+# Source: app-chart/templates/grafana.yaml
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: test-app-test-dashboard
+  namespace: test-namespace
+  labels:
+    app.kubernetes.io/component: grafana-dashboard
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/part-of: test-stack
+    app.kubernetes.io/version: custom-version-override
+    helm.sh/chart: test-chart-1.0.0
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana-a
+  json: |
+    {
+      "id": null,
+      "title": "Test Application Dashboard",
+      "tags": ["test", "application"],
+      "timezone": "browser",
+      "schemaVersion": 17,
+      "version": 0,
+      "refresh": "30s",
+      "panels": [
+        {
+          "id": 1,
+          "title": "Request Rate",
+          "type": "graph",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          },
+          "targets": [
+            {
+              "expr": "rate(http_requests_total[5m])",
+              "legendFormat": "{{instance}}"
+            }
+          ]
+        }
+      ],
+      "time": {
+        "from": "now-6h",
+        "to": "now"
+      },
+      "timepicker": {
+        "time_options": [],
+        "refresh_intervals": []
+      },
+      "templating": {
+        "list": []
+      },
+      "annotations": {
+        "list": []
+      },
+      "links": []
+    }
 ---
 # Source: app-chart/templates/httproute.yaml
 apiVersion: gateway.networking.k8s.io/v1

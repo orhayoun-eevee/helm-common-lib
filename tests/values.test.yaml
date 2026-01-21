@@ -153,40 +153,57 @@ metrics:
           description: "Test service has been down for more than 5 minutes"
   grafana:
     enabled: true
+    instanceSelector:
+      matchLabels:
+        dashboards: "grafana-a"
     dashboard:
       enabled: true
       items:
         test-dashboard:
-          name: "test-dashboard.json"
+          name: "test-dashboard"
           json: |
             {
-              "dashboard": {
-                "title": "Test Application Dashboard",
-                "tags": ["test", "application"],
-                "timezone": "browser",
-                "schemaVersion": 16,
-                "version": 1,
-                "refresh": "30s",
-                "panels": [
-                  {
-                    "id": 1,
-                    "title": "Request Rate",
-                    "type": "graph",
-                    "gridPos": {
-                      "h": 8,
-                      "w": 12,
-                      "x": 0,
-                      "y": 0
-                    },
-                    "targets": [
-                      {
-                        "expr": "rate(http_requests_total[5m])",
-                        "legendFormat": "{{instance}}"
-                      }
-                    ]
-                  }
-                ]
-              }
+              "id": null,
+              "title": "Test Application Dashboard",
+              "tags": ["test", "application"],
+              "timezone": "browser",
+              "schemaVersion": 17,
+              "version": 0,
+              "refresh": "30s",
+              "panels": [
+                {
+                  "id": 1,
+                  "title": "Request Rate",
+                  "type": "graph",
+                  "gridPos": {
+                    "h": 8,
+                    "w": 12,
+                    "x": 0,
+                    "y": 0
+                  },
+                  "targets": [
+                    {
+                      "expr": "rate(http_requests_total[5m])",
+                      "legendFormat": "{{instance}}"
+                    }
+                  ]
+                }
+              ],
+              "time": {
+                "from": "now-6h",
+                "to": "now"
+              },
+              "timepicker": {
+                "time_options": [],
+                "refresh_intervals": []
+              },
+              "templating": {
+                "list": []
+              },
+              "annotations": {
+                "list": []
+              },
+              "links": []
             }
 
 serviceAccount:

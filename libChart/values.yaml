@@ -189,22 +189,53 @@ metrics:
 
   # Grafana Configuration
   grafana:
-    enabled: false  # Feature flag - enable Grafana dashboard ConfigMaps
+    enabled: false  # Feature flag - enable GrafanaDashboard CRD generation
+    # Global instance selector - applied to all dashboards unless overridden per-dashboard
+    # This selects which Grafana instance(s) should receive the dashboards
+    instanceSelector: {}
+      # Example:
+      #   matchLabels:
+      #     dashboards: "grafana-a"
+      # Or with matchExpressions:
+      #   matchExpressions:
+      #     - key: dashboards
+      #       operator: In
+      #       values: ["grafana-a", "grafana-b"]
     dashboard:
-      enabled: false  # Enable Grafana dashboard ConfigMap generation
-      # Dictionary of dashboard items - each key becomes a ConfigMap suffix
-      # Each item will generate a ConfigMap named: {global.name}-{key}
+      enabled: false  # Enable GrafanaDashboard CRD generation
+      # Dictionary of dashboard items - each key becomes a resource name suffix
+      # Each item will generate a GrafanaDashboard CRD named: {global.name}-{key}
       items: {}
         # Example:
         # my-dashboard:
-        #   name: "my-dashboard"  # Optional - ConfigMap data key name (defaults to key)
+        #   name: "my-dashboard"  # Optional - dashboard name (defaults to key)
+        #   # Option 1: Inline JSON content (string or map)
         #   json: |
         #     {
-        #       "dashboard": {
-        #         "title": "My Dashboard",
-        #         ...
-        #       }
+        #       "id": null,
+        #       "title": "My Dashboard",
+        #       "tags": [],
+        #       "timezone": "browser",
+        #       "schemaVersion": 17,
+        #       "version": 0,
+        #       "panels": []
         #     }
+        #   # Option 2: Load JSON from file (relative to dashboards/ directory)
+        #   # file: "my-dashboard.json"
+        #   # Optional: Override global instanceSelector for this dashboard
+        #   instanceSelector:
+        #     matchLabels:
+        #       dashboards: "specific-grafana"
+        #   # Optional: Folder assignment (only one of folder, folderUID, or folderRef)
+        #   # folder: "My Folder"  # Folder title
+        #   # folderUID: "folder-uid"  # Folder UID
+        #   # folderRef: "grafana-folder-resource"  # GrafanaFolder resource name
+        #   # Optional: Required plugins
+        #   plugins: []
+        #     # - name: "grafana-piechart-panel"
+        #     #   version: "1.6.2"
+        #   # Optional: Metadata annotations
+        #   annotations: {}
 
 # ----------------------------------------------------------------------------
 # Service Account

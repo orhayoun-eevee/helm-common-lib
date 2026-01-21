@@ -74,20 +74,24 @@ metrics:
     enabled: true
     rules: []
   grafana:
-    enabled: false
+    enabled: true
+    instanceSelector:
+      matchLabels:
+        dashboards: "grafana-a"
     dashboard:
-      enabled: false
-      items: {}
-        # Example:
-        # my-dashboard:
-        #   name: "my-dashboard"
-        #   json: |
-        #     {
-        #       "dashboard": {
-        #         "title": "My Dashboard",
-        #         "panels": []
-        #       }
-        #     }
+      enabled: true
+      items:
+        example-dashboard:
+          name: "example-dashboard"
+          file: "example-dashboard.json"
+          # Optional: Override instanceSelector for this specific dashboard
+          # instanceSelector:
+          #   matchLabels:
+          #     dashboards: "specific-grafana"
+          # Optional: Folder assignment
+          # folder: "Application Dashboards"
+          # folderUID: "app-dashboards-uid"
+          # folderRef: "grafana-folder-resource"
 
 # ----------------------------------------------------------------------------
 # Service Account

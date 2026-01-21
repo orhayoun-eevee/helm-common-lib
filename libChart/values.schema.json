@@ -321,33 +321,144 @@
           "properties": {
             "enabled": {
               "type": "boolean",
-              "description": "Feature flag - enable Grafana dashboard ConfigMaps",
+              "description": "Feature flag - enable GrafanaDashboard CRD generation",
               "default": false
+            },
+            "instanceSelector": {
+              "type": "object",
+              "description": "Global instance selector - applied to all dashboards unless overridden per-dashboard. This selects which Grafana instance(s) should receive the dashboards",
+              "properties": {
+                "matchLabels": {
+                  "type": "object",
+                  "description": "Label selector for matching Grafana instances",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "matchExpressions": {
+                  "type": "array",
+                  "description": "Label selector expressions for matching Grafana instances",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string"
+                      },
+                      "operator": {
+                        "type": "string",
+                        "enum": ["In", "NotIn", "Exists", "DoesNotExist"]
+                      },
+                      "values": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": ["key", "operator"]
+                  }
+                }
+              }
             },
             "dashboard": {
               "type": "object",
               "additionalProperties": false,
-              "description": "Grafana dashboard ConfigMap generation",
+              "description": "GrafanaDashboard CRD generation",
               "properties": {
                 "enabled": {
                   "type": "boolean",
-                  "description": "Enable Grafana dashboard ConfigMap generation",
+                  "description": "Enable GrafanaDashboard CRD generation",
                   "default": false
                 },
                 "items": {
                   "type": "object",
-                  "description": "Dictionary of dashboard items - each key becomes a ConfigMap suffix. Each item will generate a ConfigMap named: {global.name}-{key}",
+                  "description": "Dictionary of dashboard items - each key becomes a resource name suffix. Each item will generate a GrafanaDashboard CRD named: {global.name}-{key}",
                   "additionalProperties": {
                     "type": "object",
                     "additionalProperties": false,
                     "properties": {
                       "name": {
                         "type": "string",
-                        "description": "Optional - ConfigMap data key name (defaults to key)"
+                        "description": "Optional - dashboard name (defaults to key)"
                       },
                       "json": {
                         "type": "string",
-                        "description": "Grafana dashboard JSON"
+                        "description": "Inline Grafana dashboard JSON content"
+                      },
+                      "file": {
+                        "type": "string",
+                        "description": "Path to JSON file relative to dashboards/ directory (alternative to json)"
+                      },
+                      "instanceSelector": {
+                        "type": "object",
+                        "description": "Optional - override global instanceSelector for this dashboard",
+                        "properties": {
+                          "matchLabels": {
+                            "type": "object",
+                            "description": "Label selector for matching Grafana instances",
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          },
+                          "matchExpressions": {
+                            "type": "array",
+                            "description": "Label selector expressions for matching Grafana instances",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "operator": {
+                                  "type": "string",
+                                  "enum": ["In", "NotIn", "Exists", "DoesNotExist"]
+                                },
+                                "values": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": ["key", "operator"]
+                            }
+                          }
+                        }
+                      },
+                      "folder": {
+                        "type": "string",
+                        "description": "Optional - folder title for dashboard assignment"
+                      },
+                      "folderUID": {
+                        "type": "string",
+                        "description": "Optional - folder UID for dashboard assignment"
+                      },
+                      "folderRef": {
+                        "type": "string",
+                        "description": "Optional - GrafanaFolder resource name for dashboard assignment"
+                      },
+                      "plugins": {
+                        "type": "array",
+                        "description": "Optional - required plugins list",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "version": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["name"]
+                        }
+                      },
+                      "annotations": {
+                        "type": "object",
+                        "description": "Optional - metadata annotations",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
                       }
                     }
                   }
