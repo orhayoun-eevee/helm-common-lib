@@ -234,6 +234,8 @@ metrics:
         #   plugins: []
         #     # - name: "grafana-piechart-panel"
         #     #   version: "1.6.2"
+        #   # Optional: Allow cross-namespace import (boolean)
+        #   allowCrossNamespaceImport: false
         #   # Optional: Metadata annotations
         #   annotations: {}
 

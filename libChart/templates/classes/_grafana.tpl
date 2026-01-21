@@ -42,4 +42,7 @@ spec:
   plugins:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- if hasKey . "allowCrossNamespaceImport" }}
+  allowCrossNamespaceImport: {{ .allowCrossNamespaceImport }}
+  {{- end }}
 {{ end }}

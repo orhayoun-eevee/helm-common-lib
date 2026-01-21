@@ -50,6 +50,9 @@
           {{- if $dashboard.plugins }}
             {{- $params = merge $params (dict "plugins" $dashboard.plugins) -}}
           {{- end }}
+          {{- if hasKey $dashboard "allowCrossNamespaceImport" }}
+            {{- $params = merge $params (dict "allowCrossNamespaceImport" $dashboard.allowCrossNamespaceImport) -}}
+          {{- end }}
           {{ include "libChart.classes.grafana" $params }}
         {{- end }}
       {{- end }}
