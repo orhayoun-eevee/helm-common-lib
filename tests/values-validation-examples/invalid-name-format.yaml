@@ -1,0 +1,16 @@
+# Intentionally invalid: global.name with uppercase (not DNS-1123).
+# Run: helm template test . -f ../tests/values-validation-examples/invalid-name-format.yaml
+# Expected: Error about global.name must be DNS-1123 compliant (lowercase, alphanumeric, dashes)
+
+global:
+  name: "Invalid-NAME-With-Uppercase"
+  namespace: test-namespace
+
+deployment:
+  replicas: 1
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: nginx
+        tag: "1.25"

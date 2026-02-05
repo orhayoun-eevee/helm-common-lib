@@ -117,6 +117,20 @@ persistence:
         server: nfs.example.com
         path: /mnt/shared
 
+configMap:
+  items:
+    app-config:
+      data:
+        config.yaml: |
+          key: value
+          setting: test
+        env: "test"
+      annotations:
+        config.hash: "abc123"
+    extra:
+      data:
+        extra.conf: "option=value"
+
 metrics:
   enabled: true
   serviceMonitor:

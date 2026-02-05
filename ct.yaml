@@ -1,0 +1,14 @@
+# chart-testing (ct) configuration for CI/CD
+# https://github.com/helm/chart-testing
+
+remote: origin
+target-branch: main
+
+# Directories containing Chart.yaml (library and app charts)
+chart-dirs:
+  - libChart
+  - appChart
+
+helm-extra-args: --timeout 600s
+validate-maintainers: false
+check-version-increment: false

@@ -96,6 +96,43 @@ automountServiceAccountToken: true
 ---
 # Source: app-chart/templates/all.yaml
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-app-app-config
+  namespace: test-namespace
+  labels:
+    app.kubernetes.io/component: config
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/part-of: test-stack
+    app.kubernetes.io/version: custom-version-override
+    helm.sh/chart: test-chart-1.0.0
+  annotations:
+    config.hash: abc123
+data:
+  config.yaml: |
+    key: value
+    setting: test
+  env: test
+---
+# Source: app-chart/templates/all.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-app-extra
+  namespace: test-namespace
+  labels:
+    app.kubernetes.io/component: config
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/name: test-app
+    app.kubernetes.io/part-of: test-stack
+    app.kubernetes.io/version: custom-version-override
+    helm.sh/chart: test-chart-1.0.0
+data:
+  extra.conf: option=value
+---
+# Source: app-chart/templates/all.yaml
+apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: test-app-config
