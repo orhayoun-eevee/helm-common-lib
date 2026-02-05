@@ -53,11 +53,13 @@ jobs:
           sudo mv ct /usr/local/bin/
           ct version
 
-      - name: Fetch chart-testing config (Chart.yaml schema for ct lint)
+      - name: Fetch chart-testing config (Chart.yaml schema + yamllint for ct lint)
         run: |
           mkdir -p .ct
           curl -sSL -o .ct/chart_schema.yaml \
             https://raw.githubusercontent.com/helm/chart-testing/main/etc/chart_schema.yaml
+          curl -sSL -o .ct/lintconf.yaml \
+            https://raw.githubusercontent.com/helm/chart-testing/main/etc/lintconf.yaml
 
       - name: Update chart dependencies (for ct lint)
         run: |
