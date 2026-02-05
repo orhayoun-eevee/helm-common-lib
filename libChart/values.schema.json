@@ -1095,10 +1095,6 @@
               "type": "string",
               "description": "Container image tag"
             },
-            "digest": {
-              "type": "string",
-              "description": "Container image digest (optional, used with tag)"
-            },
             "pullPolicy": {
               "type": "string",
               "enum": ["Always", "IfNotPresent", "Never"],
@@ -1258,10 +1254,6 @@
             "tag": {
               "type": "string",
               "description": "Container image tag"
-            },
-            "digest": {
-              "type": "string",
-              "description": "Container image digest (optional, used with tag)"
             },
             "pullPolicy": {
               "type": "string",

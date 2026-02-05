@@ -56,11 +56,7 @@ spec:
         {{- range $name, $container := .Values.deployment.initContainers }}
         - name: {{ $name }}
           {{- if $container.image }}
-          {{- if $container.image.digest }}
-          image: {{ printf "%s:%s@%s" $container.image.repository $container.image.tag $container.image.digest }}
-          {{- else }}
           image: {{ printf "%s:%s" $container.image.repository $container.image.tag }}
-          {{- end }}
           {{- if $container.image.pullPolicy }}
           imagePullPolicy: {{ $container.image.pullPolicy }}
           {{- end }}
@@ -94,11 +90,7 @@ spec:
         {{- range $name, $container := .Values.deployment.containers }}
         - name: {{ $name }}
           {{- if $container.image }}
-          {{- if $container.image.digest }}
-          image: {{ printf "%s:%s@%s" $container.image.repository $container.image.tag $container.image.digest }}
-          {{- else }}
           image: {{ printf "%s:%s" $container.image.repository $container.image.tag }}
-          {{- end }}
           {{- if $container.image.pullPolicy }}
           imagePullPolicy: {{ $container.image.pullPolicy }}
           {{- end }}
