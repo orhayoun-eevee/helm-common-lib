@@ -6,8 +6,8 @@
 # Global Configuration
 # ----------------------------------------------------------------------------
 global:
-  name: ""  # REQUIRED - application name (e.g., "radarr", "sonarr")
-  namespace: default  # Namespace for all resources
+  name: "app"  # REQUIRED - application name (e.g., "radarr", "sonarr", "transmission")
+  namespace: "default"  # REQUIRED - Kubernetes namespace for all resources
   labels:
     partOf: ""  # Optional - name of higher level application (e.g., "media-center")
     component: ""  # Optional - workload component type (e.g., "frontend", "api", "worker")
@@ -113,6 +113,24 @@ persistence:
     # - name: secrets
     #   secret:
     #     secretName: my-secret
+
+# ----------------------------------------------------------------------------
+# Feature: ConfigMap
+# ----------------------------------------------------------------------------
+# Dictionary of ConfigMap definitions. Each key becomes a resource name suffix.
+# Full resource name: {global.name}-{key}
+configMap:
+  items: {}
+    # Example:
+    # app-config:
+    #   data:
+    #     config.yaml: |
+    #       key: value
+    #     setting: "value"
+    #   annotations: {}
+    # other-config:
+    #   data:
+    #     env: "production"
 
 # ----------------------------------------------------------------------------
 # Feature: Observability
@@ -287,8 +305,10 @@ network:
     host: ""  # REQUIRED when enabled - hostname (e.g., "radarr-k8s.orhayoun.com")
     port: 80  # Service port to route to (defaults to first container port if not specified)
     gateway:
-      name: shared-platform-gateway
-      namespace: istio-system
+      # REQUIRED when httpRoute.enabled=true - set explicitly in your chart (no defaults for portability)
+      # Example: name: my-gateway, namespace: istio-system
+      name: ""
+      namespace: ""
     # HTTPRoute configuration - define routes for different listeners
     # Each route can bind to a listener by sectionName, port, or both
     # Rules support template strings that will be evaluated at render time
