@@ -43,7 +43,12 @@ deployment:
       type: RuntimeDefault
     appArmorProfile:
       type: RuntimeDefault
-  containers: {}  # REQUIRED - must be defined by application chart
+  containers:  # REQUIRED - must be defined by application chart
+    app:
+      enabled: true
+      image:
+        repository: changeme   # override when installing
+        tag: latest            # override when installing
   initContainers: {}
 
 # ----------------------------------------------------------------------------

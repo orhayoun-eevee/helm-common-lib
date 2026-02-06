@@ -1,86 +1,214 @@
-# Unit tests for template validation (warning-only mode).
-# Since validations are in WARNING-ONLY mode, templates succeed with warnings as comments.
-# These tests verify that templates render successfully even with validation issues.
-# The validation system emits warnings but does not block rendering.
-suite: test validation warnings
+# Unit tests for template validation (fail-fast).
+# Validations use standard Helm required/fail; invalid values cause template to fail.
+# Schema handles format/type; templates handle business logic (conditional requirements, cross-field rules).
+# Base values from fixtures/valid-base.yaml; each test overrides only what it needs.
+suite: test validation failures
 templates:
   - templates/all.yaml
+values:
+  - fixtures/valid-base.yaml
 tests:
-  - it: should succeed (with warnings) when image repository is empty
+  # ---- Deployment ----
+  - it: should fail when image repository is empty
     set:
-      global:
-        name: test-app
-        namespace: test-namespace
-      deployment:
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: ""
-              tag: "1.25"
+      deployment.containers.app.image.repository: ""
     asserts:
-      # Template should succeed - verify Deployment is rendered
-      - documentIndex: 1
+      - failedTemplate:
+          errorMessage: "deployment.containers.app.image.repository is required"
+
+  - it: should fail when image tag is empty
+    set:
+      deployment.containers.app.image.tag: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "deployment.containers.app.image.tag is required"
+
+  - it: should fail with correct container name when second container has empty repository
+    set:
+      deployment.containers.sidecar.enabled: true
+      deployment.containers.sidecar.image.repository: ""
+      deployment.containers.sidecar.image.tag: "1.0"
+    asserts:
+      - failedTemplate:
+          errorMessage: "deployment.containers.sidecar.image.repository is required"
+
+  - it: should render when disabled container has empty image
+    set:
+      deployment.containers.sidecar.enabled: false
+      deployment.containers.sidecar.image.repository: scratch
+      deployment.containers.sidecar.image.tag: latest
+    asserts:
+      - hasDocuments:
+          count: 2
+
+  # Note: "at least one enabled container" is enforced in _deployment.tpl; not covered here due to
+  # helm-unittest value-merge behavior with the fixture (zero-enabled case does not trigger fail in test context).
+
+  # ---- HTTPRoute ----
+  - it: should fail when HTTPRoute is enabled but gateway name is empty
+    set:
+      network.httpRoute.enabled: true
+      network.httpRoute.host: test.example.com
+      network.httpRoute.port: 80
+      network.httpRoute.gateway.name: ""
+      network.httpRoute.gateway.namespace: istio-system
+    asserts:
+      - failedTemplate:
+          errorMessage: "network.httpRoute.gateway.name is required when HTTPRoute is enabled"
+
+  - it: should fail when HTTPRoute is enabled but gateway namespace is empty
+    set:
+      network.httpRoute.enabled: true
+      network.httpRoute.host: test.example.com
+      network.httpRoute.port: 80
+      network.httpRoute.gateway.name: my-gateway
+      network.httpRoute.gateway.namespace: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "network.httpRoute.gateway.namespace is required when HTTPRoute is enabled"
+
+  - it: should fail when HTTPRoute is enabled but host is empty
+    set:
+      network.httpRoute.enabled: true
+      network.httpRoute.host: ""
+      network.httpRoute.port: 80
+      network.httpRoute.gateway.name: my-gateway
+      network.httpRoute.gateway.namespace: istio-system
+    asserts:
+      - failedTemplate:
+          errorMessage: "network.httpRoute.host is required when HTTPRoute is enabled"
+
+  - it: should render when HTTPRoute is enabled with all required fields
+    set:
+      network.httpRoute.enabled: true
+      network.httpRoute.host: test.example.com
+      network.httpRoute.port: 80
+      network.httpRoute.gateway.name: my-gateway
+      network.httpRoute.gateway.namespace: istio-system
+    asserts:
+      - hasDocuments:
+          count: 2
+      - documentIndex: 0
         equal:
           path: kind
-          value: Deployment
+          value: ServiceAccount
 
-  - it: should succeed (with warnings) when HTTPRoute gateway name is empty
+  # ---- Service ----
+  - it: should fail when service is enabled but has no ports
     set:
-      global:
-        name: test-app
-        namespace: test-namespace
-      deployment:
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
-      network:
-        httpRoute:
-          enabled: true
-          host: test.example.com
-          port: 80
-          gateway:
-            name: ""
-            namespace: istio-system
+      network.services.items.main.enabled: true
+      network.services.items.main.type: ClusterIP
     asserts:
-      # Template should succeed - verify Deployment is rendered (HTTPRoute may not render with empty gateway)
-      - documentIndex: 1
+      - failedTemplate:
+          errorMessage: "network.services.items.main.ports is required when service is enabled"
+
+  - it: should fail when service is enabled but ports is empty
+    set:
+      network.services.items.main.enabled: true
+      network.services.items.main.type: ClusterIP
+      network.services.items.main.ports: {}
+    asserts:
+      - failedTemplate:
+          errorMessage: "network.services.items.main.ports is required when service is enabled"
+
+  # ---- DestinationRule ----
+  - it: should fail when DestinationRule is enabled but host is empty
+    set:
+      network.istio.enabled: true
+      network.istio.destinationrule.enabled: true
+      network.istio.destinationrule.host: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "network.istio.destinationrule.host is required when DestinationRule is enabled"
+
+  # ---- SealedSecret ----
+  - it: should fail when SealedSecret item has no data
+    set:
+      secrets.enabled: true
+      secrets.sealedSecret.enabled: true
+      secrets.sealedSecret.items.mysecret: {}
+    asserts:
+      - failedTemplate:
+          errorMessage: "secrets.sealedSecret.items.mysecret.data is required and must not be empty"
+
+  - it: should fail when SealedSecret item has empty data map
+    set:
+      secrets.enabled: true
+      secrets.sealedSecret.enabled: true
+      secrets.sealedSecret.items.mysecret.data: {}
+    asserts:
+      - failedTemplate:
+          errorMessage: "secrets.sealedSecret.items.mysecret.data is required and must not be empty"
+
+  - it: should skip validation when sealedSecret.enabled is false
+    set:
+      secrets.enabled: true
+      secrets.sealedSecret.enabled: false
+      secrets.sealedSecret.items.mysecret: {}
+    asserts:
+      - hasDocuments:
+          count: 2
+
+  # Note: Empty sealed secret data value (e.g. data.password: "") is validated in _security.tpl;
+  # not tested here because dependency value merge in helm-unittest prevents the failure from triggering.
+
+  # ---- PDB ----
+  - it: should fail when PDB has both minAvailable and maxUnavailable set
+    set:
+      podDisruptionBudget.enabled: true
+      podDisruptionBudget.minAvailable: 1
+      podDisruptionBudget.maxUnavailable: 1
+    asserts:
+      - failedTemplate:
+          errorMessage: "podDisruptionBudget.minAvailable and maxUnavailable are mutually exclusive (set only one)"
+
+  - it: should fail when PDB is enabled but neither minAvailable nor maxUnavailable set
+    set:
+      podDisruptionBudget.enabled: true
+      podDisruptionBudget.minAvailable: null
+      podDisruptionBudget.maxUnavailable: null
+    asserts:
+      - failedTemplate:
+          errorMessage: "podDisruptionBudget requires either minAvailable or maxUnavailable when enabled"
+
+  - it: should render when PDB is enabled with only minAvailable set
+    set:
+      podDisruptionBudget.enabled: true
+      podDisruptionBudget.minAvailable: 1
+      podDisruptionBudget.maxUnavailable: null
+    asserts:
+      - hasDocuments:
+          count: 3
+      - documentIndex: 0
         equal:
           path: kind
-          value: Deployment
+          value: ServiceAccount
 
-  - it: should succeed (with warnings) when PVC size is invalid
+  - it: should render when PDB is enabled with minAvailable zero
     set:
-      global:
-        name: test-app
-        namespace: test-namespace
-      deployment:
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
-      persistence:
-        enabled: true
-        claims:
-          data:
-            size: "invalid-size"
-            storageClass: longhorn
+      podDisruptionBudget.enabled: true
+      podDisruptionBudget.minAvailable: 0
+      podDisruptionBudget.maxUnavailable: null
     asserts:
-      # Template should succeed - verify PVC is rendered even with invalid size
-      - documentIndex: 2
-        equal:
-          path: kind
-          value: PersistentVolumeClaim
+      - hasDocuments:
+          count: 3
 
-  # Note: These tests verify that templates SUCCEED in warning-only mode.
-  # Validation issues appear as YAML comments but do not block rendering.
-  # 
-  # TODO: When validations become blocking (fail-fast mode), update these tests to:
-  #   1. Change suite name to "test validation failures"
-  #   2. Use failedTemplate assertions instead
-  #   3. Check for specific error messages
+  - it: should render when PDB is enabled with only maxUnavailable set
+    set:
+      podDisruptionBudget.enabled: true
+      podDisruptionBudget.minAvailable: null
+      podDisruptionBudget.maxUnavailable: 1
+    asserts:
+      - hasDocuments:
+          count: 3
+
+  - it: should render when PDB is enabled with percentage minAvailable
+    set:
+      podDisruptionBudget.enabled: true
+      podDisruptionBudget.minAvailable: "50%"
+      podDisruptionBudget.maxUnavailable: null
+    asserts:
+      - hasDocuments:
+          count: 3
+
+  # Note: empty global.name and invalid PVC size are caught by JSON schema validation at lint/install time

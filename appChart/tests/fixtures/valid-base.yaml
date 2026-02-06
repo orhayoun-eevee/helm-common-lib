@@ -1,0 +1,12 @@
+# Shared base values for validation_test.yaml (suite-level values).
+# Each test overrides only the values it needs to validate.
+global:
+  name: test-app
+  namespace: test-namespace
+deployment:
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: nginx
+        tag: "1.25"

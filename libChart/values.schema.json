@@ -8,12 +8,14 @@
 
   "properties": {
     "global": {
+      "title": "Global Configuration",
       "type": "object",
       "description": "Global configuration for all resources",
       "required": ["name", "namespace"],
       "additionalProperties": false,
       "properties": {
         "name": {
+          "title": "Application Name",
           "type": "string",
           "description": "Application name (DNS-1123 compliant, max 63 chars)",
           "minLength": 1,
@@ -21,6 +23,7 @@
           "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
         },
         "namespace": {
+          "title": "Namespace",
           "type": "string",
           "description": "Kubernetes namespace for all resources",
           "minLength": 1,
@@ -60,6 +63,7 @@
     },
 
     "deployment": {
+      "title": "Deployment",
       "type": "object",
       "description": "Deployment configuration",
       "properties": {
@@ -261,6 +265,7 @@
     },
 
     "persistence": {
+      "title": "Persistence",
       "type": "object",
       "description": "Persistence configuration",
       "properties": {
@@ -309,6 +314,7 @@
     },
 
     "metrics": {
+      "title": "Metrics and Observability",
       "type": "object",
       "description": "Observability configuration",
       "properties": {
@@ -438,6 +444,7 @@
     },
 
     "serviceAccount": {
+      "title": "Service Account",
       "type": "object",
       "description": "Service account configuration",
       "properties": {
@@ -464,6 +471,7 @@
     },
 
     "secrets": {
+      "title": "Secrets",
       "type": "object",
       "description": "Secrets management",
       "properties": {
@@ -489,11 +497,13 @@
                   "properties": {
                     "data": {
                       "type": "object",
-                      "description": "Sealed secret data"
+                      "description": "Sealed secret data",
+                      "minProperties": 1
                     },
                     "type": {
                       "type": "string",
-                      "default": "Opaque"
+                      "default": "Opaque",
+                      "enum": ["Opaque", "kubernetes.io/tls", "kubernetes.io/dockerconfigjson", "kubernetes.io/basic-auth", "kubernetes.io/ssh-auth", "kubernetes.io/service-account-token"]
                     }
                   }
                 }
@@ -505,6 +515,7 @@
     },
 
     "podDisruptionBudget": {
+      "title": "Pod Disruption Budget",
       "type": "object",
       "description": "Pod disruption budget configuration",
       "properties": {
@@ -539,6 +550,7 @@
     },
 
     "network": {
+      "title": "Network",
       "type": "object",
       "description": "Networking configuration",
       "properties": {

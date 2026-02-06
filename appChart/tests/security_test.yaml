@@ -13,6 +13,7 @@ tests:
         replicas: 1
         containers:
           app:
+            enabled: true
             image:
               repository: nginx
               tag: "1.25"
@@ -47,6 +48,7 @@ tests:
         replicas: 1
         containers:
           app:
+            enabled: true
             image:
               repository: nginx
               tag: latest
@@ -71,6 +73,7 @@ tests:
         replicas: 1
         containers:
           app:
+            enabled: true
             image:
               repository: nginx
               tag: "1.25"
@@ -145,6 +148,7 @@ tests:
         replicas: 1
         containers:
           app:
+            enabled: true
             image:
               repository: nginx
               tag: "1.25"

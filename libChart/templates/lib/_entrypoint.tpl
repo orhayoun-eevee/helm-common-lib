@@ -4,7 +4,7 @@
 {{- include "libChart.deprecations" . -}}
 
 {{- /* ---- Validations (fail-fast with clear errors) ---- */ -}}
-{{- include "libChart.validations.run" . -}}
+{{- include "libChart.validations" . -}}
 
 {{- /* ---- Workload ---- */ -}}
 {{ include "libChart.group.workload" . }}
