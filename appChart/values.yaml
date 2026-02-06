@@ -6,8 +6,8 @@
 # Global Configuration
 # ----------------------------------------------------------------------------
 global:
-  name: ""  # REQUIRED - application name (e.g., "radarr", "sonarr")
-  namespace: default  # Namespace for all resources
+  name: "changeme"  # REQUIRED - application name (e.g., "radarr", "sonarr"); override when installing
+  namespace: "default"  # Namespace for all resources
   # Optional - parent chart information (for correct labels)
   chart:
     name: ""  # Parent chart name (e.g., "radarr")

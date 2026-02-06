@@ -1,0 +1,86 @@
+# Unit tests for the Deployment template (from libChart), run via appChart render.
+# Rendered document order: 0=ServiceAccount, 1=Deployment, 2=PodDisruptionBudget, ...
+suite: test deployment template
+templates:
+  - templates/all.yaml
+tests:
+  - it: should render Deployment with default replicas
+    set:
+      global:
+        name: test-app
+        namespace: test-namespace
+      deployment:
+        replicas: 1
+        containers:
+          app:
+            image:
+              repository: nginx
+              tag: "1.25"
+    asserts:
+      - documentIndex: 1
+        equal:
+          path: kind
+          value: Deployment
+      - documentIndex: 1
+        equal:
+          path: metadata.name
+          value: test-app
+      - documentIndex: 1
+        equal:
+          path: metadata.namespace
+          value: test-namespace
+      - documentIndex: 1
+        equal:
+          path: spec.replicas
+          value: 1
+
+  - it: should render with replicas override
+    set:
+      global:
+        name: test-app
+        namespace: default
+      deployment:
+        replicas: 3
+        containers:
+          app:
+            image:
+              repository: nginx
+              tag: latest
+    asserts:
+      - documentIndex: 1
+        equal:
+          path: spec.replicas
+          value: 3
+
+  - it: should render deployment with strategy and container ports
+    set:
+      global:
+        name: snapshot-app
+        namespace: snapshot-ns
+      deployment:
+        replicas: 2
+        strategy:
+          type: RollingUpdate
+        containers:
+          app:
+            image:
+              repository: nginx
+              tag: "1.25"
+              pullPolicy: IfNotPresent
+            ports:
+              - name: http
+                containerPort: 8080
+                protocol: TCP
+    asserts:
+      - documentIndex: 1
+        equal:
+          path: spec.replicas
+          value: 2
+      - documentIndex: 1
+        equal:
+          path: spec.strategy.type
+          value: RollingUpdate
+      - documentIndex: 1
+        equal:
+          path: spec.template.spec.containers[0].image
+          value: nginx:1.25

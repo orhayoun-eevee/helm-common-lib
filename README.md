@@ -203,3 +203,27 @@ To update the golden snapshot:
 ```bash
 ./scripts/validate.sh --update
 ```
+
+## Testing
+
+For comprehensive testing documentation including all test types, prerequisites, and how to extend tests, see **[docs/TESTING.md](docs/TESTING.md)**.
+
+### Quick Start
+
+```bash
+# Run all tests (CI parity)
+helm dependency update appChart
+helm unittest appChart
+ct lint --config ct.yaml --all
+./scripts/validate.sh
+```
+
+### Test Types
+
+| Test | What it does | Command |
+|------|----------------|---------|
+| **Unit tests** | Assert on rendered templates | `helm unittest appChart` |
+| **Helm lint** | Schema + chart structure | `helm lint libChart` |
+| **Chart-testing** | Lint all charts | `ct lint --config ct.yaml --all` |
+| **Golden snapshot** | Drift detection | `./scripts/validate.sh` |
+| **Validation** | All checks + schema | `./scripts/lint.sh` |

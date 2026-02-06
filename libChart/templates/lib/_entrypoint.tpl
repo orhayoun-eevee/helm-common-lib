@@ -1,5 +1,11 @@
 {{- define "libChart.all" -}}
 
+{{- /* ---- Deprecation warnings (emit as comments, do not fail) ---- */ -}}
+{{- include "libChart.deprecations" . -}}
+
+{{- /* ---- Validations (fail-fast with clear errors) ---- */ -}}
+{{- include "libChart.validations.run" . -}}
+
 {{- /* ---- Workload ---- */ -}}
 {{ include "libChart.group.workload" . }}
 

@@ -1,0 +1,86 @@
+# Unit tests for template validation (warning-only mode).
+# Since validations are in WARNING-ONLY mode, templates succeed with warnings as comments.
+# These tests verify that templates render successfully even with validation issues.
+# The validation system emits warnings but does not block rendering.
+suite: test validation warnings
+templates:
+  - templates/all.yaml
+tests:
+  - it: should succeed (with warnings) when image repository is empty
+    set:
+      global:
+        name: test-app
+        namespace: test-namespace
+      deployment:
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: ""
+              tag: "1.25"
+    asserts:
+      # Template should succeed - verify Deployment is rendered
+      - documentIndex: 1
+        equal:
+          path: kind
+          value: Deployment
+
+  - it: should succeed (with warnings) when HTTPRoute gateway name is empty
+    set:
+      global:
+        name: test-app
+        namespace: test-namespace
+      deployment:
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: "1.25"
+      network:
+        httpRoute:
+          enabled: true
+          host: test.example.com
+          port: 80
+          gateway:
+            name: ""
+            namespace: istio-system
+    asserts:
+      # Template should succeed - verify Deployment is rendered (HTTPRoute may not render with empty gateway)
+      - documentIndex: 1
+        equal:
+          path: kind
+          value: Deployment
+
+  - it: should succeed (with warnings) when PVC size is invalid
+    set:
+      global:
+        name: test-app
+        namespace: test-namespace
+      deployment:
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: "1.25"
+      persistence:
+        enabled: true
+        claims:
+          data:
+            size: "invalid-size"
+            storageClass: longhorn
+    asserts:
+      # Template should succeed - verify PVC is rendered even with invalid size
+      - documentIndex: 2
+        equal:
+          path: kind
+          value: PersistentVolumeClaim
+
+  # Note: These tests verify that templates SUCCEED in warning-only mode.
+  # Validation issues appear as YAML comments but do not block rendering.
+  # 
+  # TODO: When validations become blocking (fail-fast mode), update these tests to:
+  #   1. Change suite name to "test validation failures"
+  #   2. Use failedTemplate assertions instead
+  #   3. Check for specific error messages

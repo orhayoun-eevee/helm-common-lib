@@ -2,6 +2,8 @@
 
 {{ include "libChart.lib.serviceaccount" . }}
 
+{{ include "libChart.lib.configmap" . }}
+
 {{ include "libChart.lib.deployment" . }}
 
 {{ include "libChart.lib.pdb" . }}

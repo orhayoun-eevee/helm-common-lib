@@ -1,0 +1,71 @@
+# Unit tests for the HTTPRoute template (from libChart), run via appChart render.
+# With minimal values (no PDB, no services): 0=ServiceAccount, 1=Deployment, 2=HTTPRoute
+suite: test httproute template
+templates:
+  - templates/all.yaml
+tests:
+  - it: should render HTTPRoute with host and gateway
+    set:
+      global:
+        name: test-app
+        namespace: test-namespace
+      deployment:
+        replicas: 1
+        containers:
+          app:
+            image:
+              repository: nginx
+              tag: "1.25"
+      network:
+        httpRoute:
+          enabled: true
+          host: test-app.example.com
+          port: 80
+          gateway:
+            name: my-gateway
+            namespace: istio-system
+          routes:
+            - name: route
+              enabled: true
+              listener:
+                sectionName: https
+              rules:
+                - matches:
+                    - path:
+                        type: PathPrefix
+                        value: /
+                  backendRefs:
+                    - name: test-app
+                      port: 80
+                      weight: 100
+                      group: ""
+                      kind: Service
+    asserts:
+      - documentIndex: 2
+        equal:
+          path: kind
+          value: HTTPRoute
+      - documentIndex: 2
+        equal:
+          path: metadata.name
+          value: test-app-route
+      - documentIndex: 2
+        equal:
+          path: metadata.namespace
+          value: test-namespace
+      - documentIndex: 2
+        equal:
+          path: spec.hostnames[0]
+          value: test-app.example.com
+      - documentIndex: 2
+        equal:
+          path: spec.parentRefs[0].name
+          value: my-gateway
+      - documentIndex: 2
+        equal:
+          path: spec.parentRefs[0].namespace
+          value: istio-system
+      - documentIndex: 2
+        equal:
+          path: spec.parentRefs[0].sectionName
+          value: https
