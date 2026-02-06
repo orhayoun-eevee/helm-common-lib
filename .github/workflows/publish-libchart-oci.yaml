@@ -1,4 +1,4 @@
-name: Publish Charts to GHCR OCI
+name: Publish libChart to GHCR OCI
 
 on:
   push:
@@ -105,52 +105,3 @@ jobs:
           # Chart name is now lowercase, so it matches OCI requirements
           helm push "$CHART_FILE" oci://ghcr.io/$OWNER_LOWER/$CHART_NAME
           echo "Published: oci://ghcr.io/$OWNER_LOWER/$CHART_NAME:${{ steps.chart_version.outputs.chart_version }}"
-
-      - name: Sync app-chart version and update dependency
-        run: |
-          CHART_VERSION="${{ steps.chart_version.outputs.chart_version }}"
-          OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          LIB_CHART_NAME=$(grep '^name:' libChart/Chart.yaml | awk '{print $2}')
-          
-          # Update app-chart version to match lib-chart version (lockstep)
-          sed -i "s/^version:.*/version: $CHART_VERSION/" appChart/Chart.yaml
-          sed -i "s/^appVersion:.*/appVersion: \"$CHART_VERSION\"/" appChart/Chart.yaml
-          
-          # Update dependency to use OCI repository with strict version
-          sed -i "s|repository: file://../libChart|repository: oci://ghcr.io/$OWNER_LOWER/$LIB_CHART_NAME|" appChart/Chart.yaml
-          sed -i "s/version: 0.0.1/version: $CHART_VERSION/" appChart/Chart.yaml
-          
-          # Remove the commented OCI line if it exists
-          sed -i '/# To use the published OCI chart:/d' appChart/Chart.yaml
-          sed -i '/# repository: oci:/d' appChart/Chart.yaml
-          
-          echo "Updated app-chart version to $CHART_VERSION"
-          echo "Updated dependency to OCI: oci://ghcr.io/$OWNER_LOWER/$LIB_CHART_NAME"
-
-      - name: Update app-chart dependencies
-        run: |
-          cd appChart
-          helm dependency update
-
-      - name: Lint app-chart (with OCI dependency)
-        run: |
-          helm lint ./appChart
-
-      - name: Package app-chart
-        run: |
-          APP_CHART_NAME=$(grep '^name:' appChart/Chart.yaml | awk '{print $2}')
-          helm package ./appChart --destination ./dist
-          echo "Chart packaged: $(ls -1 ./dist/$APP_CHART_NAME-*.tgz)"
-
-      - name: Push app-chart to GHCR OCI
-        run: |
-          APP_CHART_NAME=$(grep '^name:' appChart/Chart.yaml | awk '{print $2}')
-          OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          CHART_VERSION="${{ steps.chart_version.outputs.chart_version }}"
-          
-          # Use dynamic chart name to find the packaged file
-          CHART_FILE=$(ls -1 ./dist/$APP_CHART_NAME-*.tgz)
-          
-          # OCI path format: oci://ghcr.io/<owner>/<chart-name>
-          helm push "$CHART_FILE" oci://ghcr.io/$OWNER_LOWER/$APP_CHART_NAME
-          echo "Published: oci://ghcr.io/$OWNER_LOWER/$APP_CHART_NAME:$CHART_VERSION"

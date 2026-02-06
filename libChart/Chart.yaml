@@ -2,8 +2,8 @@ apiVersion: v2
 name: lib-chart
 description: Unified Helm library chart for application deployment (Deployment, Services, Ingress, Monitoring, Persistence)
 type: library
-version: 0.0.5
-appVersion: "0.0.5"
+version: 0.0.6
+appVersion: "0.0.6"
 keywords:
   - application
   - deployment
