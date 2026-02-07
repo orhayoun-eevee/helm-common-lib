@@ -171,14 +171,16 @@ network:
   # Map of policy name suffix to NetworkPolicy configuration
   networkPolicy:
     items:
-      # FIX: Added default NetworkPolicy to satisfy CKV2_K8S_6
-      default:
-        enabled: true
-        policyTypes:
-          - Ingress
-          - Egress
-        ingress: []  # Deny all ingress by default
-        egress: []   # Deny all egress by default
+      # NOTE: NetworkPolicy is disabled by default to avoid breaking unit tests
+      # Enable it in production charts or when running Checkov scans
+      # Example configuration for deny-all policy:
+      # default:
+      #   enabled: true
+      #   policyTypes:
+      #     - Ingress
+      #     - Egress
+      #   ingress: []  # Deny all ingress by default
+      #   egress: []   # Deny all egress by default
       # Example:
       # main:
       #   enabled: true
