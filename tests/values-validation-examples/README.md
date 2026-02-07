@@ -16,11 +16,11 @@ helm template test . -f ../tests/values-validation-examples/empty-name.yaml
 helm template test . -f ../tests/values-validation-examples/invalid-name-format.yaml
 ```
 
-By default, **schema** validation runs first (e.g. empty name or invalid pattern). To see **template** validation messages instead, use `--skip-schema-validation`: e.g. `helm template test appChart -f ../tests/values-validation-examples/empty-name.yaml --skip-schema-validation`.
+Validations are **fail-fast**: invalid values cause `helm template` to exit with an error. By default **schema** runs first (e.g. empty name); to see **template** validation only, use `--skip-schema-validation`.
 
 | File | Intended failure |
 |------|------------------|
-| `empty-name.yaml` | Template validation: `global.name` is required and cannot be empty |
-| `invalid-name-format.yaml` | Template validation: `global.name` must be DNS-1123 (e.g. no uppercase) |
+| `empty-name.yaml` | Schema or template: `global.name is required` |
+| `invalid-name-format.yaml` | Template: `global.name` must be DNS-1123 compliant (e.g. no uppercase) |
 
 You can add more examples here (e.g. empty image repository, missing HTTPRoute gateway, invalid PVC size) and reference them in docs or unit tests.

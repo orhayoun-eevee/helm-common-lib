@@ -4,10 +4,10 @@
 remote: origin
 target-branch: main
 
-# Directories containing Chart.yaml (library and app charts)
+# Directories containing Chart.yaml (library and test charts)
 chart-dirs:
   - libChart
-  - appChart
+  - test-chart
 
 helm-extra-args: --timeout 600s
 validate-maintainers: false
