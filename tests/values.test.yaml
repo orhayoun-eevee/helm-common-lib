@@ -34,7 +34,7 @@ deployment:
       type: RuntimeDefault
   defaultContainerSecurityContext:
     allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: false
+    readOnlyRootFilesystem: true
     runAsNonRoot: true
     capabilities:
       drop:
@@ -89,8 +89,26 @@ deployment:
     init:
       image:
         repository: busybox
-        tag: latest
+        tag: "1.36.1"
+        pullPolicy: IfNotPresent
       command: ['sh', '-c', 'echo "Initializing..."']
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "128Mi"
+          cpu: "100m"
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        runAsUser: 1000
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
 
 persistence:
   enabled: true
@@ -223,7 +241,7 @@ metrics:
 
 serviceAccount:
   create: true
-  automount: true
+  automount: false
   annotations:
     test.serviceaccount.annotation: "test-value"
   name: "test-service-account"
