@@ -33,6 +33,6 @@ metadata:
   {{- end }}
 data:
   {{- toYaml $configMapData | nindent 2 }}
-{{- end }}
+{{ end }}
 {{- end }}
 {{- end -}}
