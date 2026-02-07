@@ -9,7 +9,7 @@ jobs:
   # Validate libChart (library chart)
   validate-lib:
     name: Validate libChart
-    uses: orhayoun-eevee/build-workflow/.github/workflows/on-pr-flow-v2.yaml@v2
+    uses: orhayoun-eevee/build-workflow/.github/workflows/on-pr-flow-v2.yaml@main
     with:
       chart_path: libChart
       run_lint: true
@@ -24,7 +24,7 @@ jobs:
   # Validate test-chart (test harness for libChart)
   validate-test:
     name: Validate test-chart
-    uses: orhayoun-eevee/build-workflow/.github/workflows/on-pr-flow-v2.yaml@v2
+    uses: orhayoun-eevee/build-workflow/.github/workflows/on-pr-flow-v2.yaml@main
     with:
       chart_path: test-chart
       run_lint: true
