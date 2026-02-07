@@ -113,7 +113,9 @@ data:
   config.yaml: |
     key: value
     setting: test
-  env: test---
+  env: test
+---
+# Source: app-chart/templates/all.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
