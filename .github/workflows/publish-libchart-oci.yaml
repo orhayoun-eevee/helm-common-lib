@@ -46,41 +46,6 @@ jobs:
           fi
           echo "Version match verified: ${{ steps.chart_version.outputs.chart_version }}"
 
-      - name: Lint libChart
-        run: |
-          helm lint ./libChart
-
-      - name: Update appChart dependencies
-        run: |
-          cd appChart
-          # This uses the local file:// dependency to test the current source code
-          helm dependency update
-
-      - name: Lint appChart
-        run: |
-          helm lint ./appChart
-
-      - name: Install kubeconform
-        env:
-          KUBECONFORM_VERSION: v0.6.4
-          # SHA256 for v0.6.4 linux-amd64
-          KUBECONFORM_SHA256: "2b4ebeaa4d5ac4843cf8f7b7e66a8874252b6b71bc7cbfc4ef1cbf85acec7c07"
-        run: |
-          wget -q https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz
-          echo "${KUBECONFORM_SHA256}  kubeconform-linux-amd64.tar.gz" | sha256sum -c -
-          tar -xzf kubeconform-linux-amd64.tar.gz
-          sudo mv kubeconform /usr/local/bin/
-          kubeconform -v
-
-      - name: Validate manifests with kubeconform
-        working-directory: appChart
-        run: |
-          helm template test-release . -f ../tests/values.test.yaml | kubeconform \
-            -strict \
-            -summary \
-            -schema-location default \
-            -schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json"
-
       - name: Login to GHCR
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io \

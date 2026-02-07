@@ -184,7 +184,27 @@ main() {
     check_drift
     echo ""
     
+    # Optional JSON Schema validation
+    validate_schema
+    echo ""
+    
     info "Validation complete - all checks passed!"
+}
+
+# Optional JSON Schema validation
+validate_schema() {
+    if command -v ajv &> /dev/null; then
+        info "Validating JSON Schema with ajv..."
+        cd "$PROJECT_ROOT"
+        if ajv validate -s libChart/values.schema.json -d libChart/values.yaml; then
+            info "JSON Schema validation passed"
+        else
+            error "JSON Schema validation failed"
+            exit 1
+        fi
+    else
+        warn "Skipping JSON Schema validation (ajv not installed)"
+    fi
 }
 
 main
