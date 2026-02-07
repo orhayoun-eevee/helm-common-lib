@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 global:
   name: "changeme"  # REQUIRED - application name (e.g., "radarr", "sonarr"); override when installing
-  namespace: "default"  # Namespace for all resources
+  namespace: "test-namespace"  # Namespace for all resources (default should not be used per CKV_K8S_21)
   # Optional - parent chart information (for correct labels)
   chart:
     name: ""  # Parent chart name (e.g., "radarr")
@@ -28,13 +28,14 @@ deployment:
   imagePullSecrets: []
   terminationGracePeriodSeconds: 30
   podLabels: {}
+  automountServiceAccountToken: false  # FIX: Added to satisfy CKV_K8S_38
   podSecurityContext:
     runAsNonRoot: true
     seccompProfile:
       type: RuntimeDefault
   defaultContainerSecurityContext:
     allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: false
+    readOnlyRootFilesystem: true  # FIX: Changed from false to true (CKV_K8S_22)
     runAsNonRoot: true
     capabilities:
       drop:
@@ -48,7 +49,28 @@ deployment:
       enabled: true
       image:
         repository: changeme   # override when installing
-        tag: latest            # override when installing
+        tag: "1.0.0"           # FIX: Changed from 'latest' to specific version (CKV_K8S_14)
+      # FIX: Added resources to satisfy CKV_K8S_10, CKV_K8S_11, CKV_K8S_12, CKV_K8S_13
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "100m"
+        limits:
+          memory: "256Mi"
+          cpu: "200m"
+      # FIX: Added probes to satisfy CKV_K8S_8, CKV_K8S_9
+      livenessProbe:
+        httpGet:
+          path: /healthz
+          port: 8080
+        initialDelaySeconds: 30
+        periodSeconds: 10
+      readinessProbe:
+        httpGet:
+          path: /ready
+          port: 8080
+        initialDelaySeconds: 5
+        periodSeconds: 5
   initContainers: {}
 
 # ----------------------------------------------------------------------------
@@ -148,7 +170,15 @@ network:
   # NetworkPolicy Configuration - Multiple policies support
   # Map of policy name suffix to NetworkPolicy configuration
   networkPolicy:
-    items: {}
+    items:
+      # FIX: Added default NetworkPolicy to satisfy CKV2_K8S_6
+      default:
+        enabled: true
+        policyTypes:
+          - Ingress
+          - Egress
+        ingress: []  # Deny all ingress by default
+        egress: []   # Deny all egress by default
       # Example:
       # main:
       #   enabled: true
