@@ -28,14 +28,15 @@ deployment:
     test.pod.label: "test-value"
   podSecurityContext:
     runAsNonRoot: true
-    runAsUser: 1000
-    fsGroup: 1000
+    runAsUser: 20000  # FIX: Changed to 20000+ for CKV_K8S_40
+    fsGroup: 20000    # FIX: Changed to 20000+ for consistency
     seccompProfile:
       type: RuntimeDefault
   defaultContainerSecurityContext:
     allowPrivilegeEscalation: false
     readOnlyRootFilesystem: true
     runAsNonRoot: true
+    runAsUser: 20000  # FIX: Added explicit high UID for CKV_K8S_40
     capabilities:
       drop:
         - ALL
@@ -103,7 +104,7 @@ deployment:
         allowPrivilegeEscalation: false
         readOnlyRootFilesystem: true
         runAsNonRoot: true
-        runAsUser: 10000  # FIX: Changed from 1000 to 10000 (CKV_K8S_40 - high UID)
+        runAsUser: 20000  # FIX: Changed to 20000+ for CKV_K8S_40 (high UID requirement)
         capabilities:
           drop:
             - ALL
