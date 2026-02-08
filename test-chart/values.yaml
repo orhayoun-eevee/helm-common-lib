@@ -31,12 +31,15 @@ deployment:
   automountServiceAccountToken: false  # FIX: Added to satisfy CKV_K8S_38
   podSecurityContext:
     runAsNonRoot: true
+    runAsUser: 20000  # High UID to avoid host conflicts (CKV_K8S_40)
+    fsGroup: 20000
     seccompProfile:
       type: RuntimeDefault
   defaultContainerSecurityContext:
     allowPrivilegeEscalation: false
     readOnlyRootFilesystem: true  # FIX: Changed from false to true (CKV_K8S_22)
     runAsNonRoot: true
+    runAsUser: 20000  # High UID to avoid host conflicts (CKV_K8S_40)
     capabilities:
       drop:
         - ALL

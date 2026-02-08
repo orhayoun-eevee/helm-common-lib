@@ -242,9 +242,9 @@ spec:
         - name: test-registry-secret
       terminationGracePeriodSeconds: 60
       securityContext:
-        fsGroup: 1000
+        fsGroup: 20000
         runAsNonRoot: true
-        runAsUser: 1000
+        runAsUser: 20000
         seccompProfile:
           type: RuntimeDefault
       serviceAccountName: test-service-account
@@ -273,7 +273,7 @@ spec:
               - ALL
             readOnlyRootFilesystem: true
             runAsNonRoot: true
-            runAsUser: 10000
+            runAsUser: 20000
             seccompProfile:
               type: RuntimeDefault
       containers:
@@ -325,6 +325,7 @@ spec:
               - ALL
             readOnlyRootFilesystem: true
             runAsNonRoot: true
+            runAsUser: 20000
             seccompProfile:
               type: RuntimeDefault
       volumes:
