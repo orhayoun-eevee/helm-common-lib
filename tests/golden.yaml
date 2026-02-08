@@ -1,5 +1,5 @@
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -57,7 +57,7 @@ spec:
           - 10.42.0.0/16
           - 10.43.0.0/16
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -77,7 +77,7 @@ spec:
       app.kubernetes.io/name: test-app
   minAvailable: 1
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -92,9 +92,9 @@ metadata:
     app.kubernetes.io/component: "serviceaccount"
   annotations:
     test.serviceaccount.annotation: test-value
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -115,7 +115,7 @@ data:
     setting: test
   env: test
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -131,7 +131,7 @@ metadata:
 data:
   extra.conf: option=value
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -154,7 +154,7 @@ spec:
     requests:
       storage: 1Gi
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -175,7 +175,7 @@ spec:
     requests:
       storage: 10Gi
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -205,7 +205,7 @@ spec:
     app.kubernetes.io/instance: test-release
     app.kubernetes.io/name: test-app
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -253,20 +253,20 @@ spec:
       enableServiceLinks: false
       initContainers:
         - name: init
-          image: busybox:latest
+          image: busybox:1.36.1
+          imagePullPolicy: IfNotPresent
           command:
             - sh
             - -c
             - echo "Initializing..."
           securityContext:
             allowPrivilegeEscalation: false
-            appArmorProfile:
-              type: RuntimeDefault
             capabilities:
               drop:
               - ALL
-            readOnlyRootFilesystem: false
+            readOnlyRootFilesystem: true
             runAsNonRoot: true
+            runAsUser: 1000
             seccompProfile:
               type: RuntimeDefault
       containers:
@@ -316,7 +316,7 @@ spec:
             capabilities:
               drop:
               - ALL
-            readOnlyRootFilesystem: false
+            readOnlyRootFilesystem: true
             runAsNonRoot: true
             seccompProfile:
               type: RuntimeDefault
@@ -335,7 +335,7 @@ spec:
             path: /mnt/shared
             server: nfs.example.com
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
@@ -366,7 +366,7 @@ spec:
           ports:
           - "80"
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
@@ -397,7 +397,7 @@ spec:
           ports:
           - "9100"
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
@@ -428,7 +428,7 @@ spec:
       interval: 60s
       maxEjectionPercent: 75
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
@@ -448,7 +448,7 @@ spec:
   json: |
     {"annotations":{"list":[]},"id":null,"links":[],"panels":[{"gridPos":{"h":8,"w":12,"x":0,"y":0},"id":1,"targets":[{"expr":"rate(http_requests_total[5m])","legendFormat":"{{instance}}"}],"title":"Request Rate","type":"graph"}],"refresh":"30s","schemaVersion":17,"tags":["test","application"],"templating":{"list":[]},"time":{"from":"now-6h","to":"now"},"timepicker":{"refresh_intervals":[],"time_options":[]},"timezone":"browser","title":"Test Application Dashboard","version":0}
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -485,7 +485,7 @@ spec:
           port: 80
           weight: 100
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -521,7 +521,7 @@ spec:
             statusCode: 301
           type: RequestRedirect
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -548,7 +548,7 @@ spec:
           labels:
             severity: critical
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
 metadata:
@@ -576,7 +576,7 @@ spec:
         helm.sh/chart: test-chart-1.0.0
     type: Opaque
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
 metadata:
@@ -610,7 +610,7 @@ spec:
         sealedsecrets.bitnami.com/cluster-wide: "true"
     type: Opaque
 ---
-# Source: app-chart/templates/all.yaml
+# Source: test-chart/templates/all.yaml
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
