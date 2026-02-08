@@ -48,7 +48,7 @@ deployment:
       image:
         repository: nginx
         tag: "1.25"
-        pullPolicy: IfNotPresent
+        pullPolicy: Always  # FIX: Changed from IfNotPresent to Always (CKV_K8S_15)
       ports:
         - name: http
           containerPort: 8080
@@ -90,7 +90,7 @@ deployment:
       image:
         repository: busybox
         tag: "1.36.1"
-        pullPolicy: IfNotPresent
+        pullPolicy: Always  # FIX: Changed from IfNotPresent to Always (CKV_K8S_15)
       command: ['sh', '-c', 'echo "Initializing..."']
       resources:
         requests:
@@ -103,7 +103,7 @@ deployment:
         allowPrivilegeEscalation: false
         readOnlyRootFilesystem: true
         runAsNonRoot: true
-        runAsUser: 1000
+        runAsUser: 10000  # FIX: Changed from 1000 to 10000 (CKV_K8S_40 - high UID)
         capabilities:
           drop:
             - ALL

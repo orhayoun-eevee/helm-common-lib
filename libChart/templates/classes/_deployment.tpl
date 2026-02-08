@@ -77,6 +77,10 @@ spec:
           volumeMounts:
             {{- toYaml $container.volumeMounts | nindent 12 }}
           {{- end }}
+          {{- if $container.resources }}
+          resources:
+            {{- toYaml $container.resources | nindent 12 }}
+          {{- end }}
           {{- if $container.securityContext }}
           securityContext:
             {{- toYaml $container.securityContext | nindent 12 }}
