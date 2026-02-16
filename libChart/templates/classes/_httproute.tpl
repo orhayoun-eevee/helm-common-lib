@@ -1,6 +1,6 @@
 {{- define "libChart.classes.httproute" -}}
 {{- if and .Values.network.httpRoute .Values.network.httpRoute.enabled .Values.network.httpRoute.host }}
-{{- $baseName := include "common.helpers.chart.names.name" . }}
+{{- $baseName := include "libChart.name" . }}
 {{- $gateway := .Values.network.httpRoute.gateway }}
 {{- $host := .Values.network.httpRoute.host }}
 {{- range .Values.network.httpRoute.routes }}
@@ -12,10 +12,7 @@ metadata:
   name: {{ $baseName }}-{{ .name }}
   namespace: {{ $.Values.global.namespace | default "default" }}
   labels:
-    {{- include "common.helpers.metadata.labels" $ | nindent 4 }}
-    app.kubernetes.io/component: "http-route"
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    {{- include "libChart.labelsWithComponent" (dict "root" $ "component" "http-route") | nindent 4 }}
 spec:
   parentRefs:
     - name: {{ $gateway.name }}

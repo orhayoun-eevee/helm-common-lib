@@ -1,39 +1,28 @@
-# Library chart tests
+# libChart Tests
 
-Unit tests for libChart templates are run via the **appChart** (the consumer chart), because Helm library charts are not directly templateable.
+Unit tests for libChart templates are run via **test-chart** (the consumer chart), because Helm library charts are not directly templateable.
 
-## Run unit tests
-
-```bash
-cd appChart && helm dependency update && helm unittest .
-```
-
-Or from the repository root:
+## Running Tests
 
 ```bash
-helm dependency update appChart
-helm unittest appChart
+cd test-chart && helm dependency update && helm unittest .
 ```
 
-Test files that assert on library behavior live in **`appChart/tests/`** (e.g. `appChart/tests/deployment_test.yaml`).
+Or from the project root:
 
-## How to extend
+```bash
+helm dependency update test-chart
+helm unittest test-chart
+```
 
-1. **Add a new test case** in an existing file under `appChart/tests/`:
-   - Add an entry under `tests:` with `it: <description>`, `set:` (values overrides), and `asserts:` (e.g. `equal`, `documentIndex`).
-   - Use [helm-unittest assertions](https://github.com/helm-unittest/helm-unittest/blob/master/docs/assertions.md) such as `equal`, `matchSnapshot`, or `failedTemplate` for validation failures.
+Test files live in **`test-chart/tests/`** (e.g. `test-chart/tests/deployment_test.yaml`).
 
-2. **Add a new test file** (e.g. for Service or HTTPRoute):
-   - Create `appChart/tests/<resource>_test.yaml`.
-   - Set `suite:`, `templates: [templates/all.yaml]`, and a list of `tests:`.
-   - Run `helm unittest appChart` to include it.
+## Adding Tests
 
-3. **Test that validation fails** when values are invalid:
-   - In a test, use `set:` with invalid data (e.g. `global.name: ""`) and add an assert:
-     ```yaml
-     asserts:
-       - failedTemplate:
-           errorMessage: "global.name"
-     ```
+1. **Add a new test case** in an existing file under `test-chart/tests/`:
+   - Follow the existing patterns in `deployment_test.yaml`, `service_test.yaml`, etc.
 
-For the full testing guide (all test types, CI, golden snapshot, validation examples), see **[docs/TESTING.md](../docs/TESTING.md)**.
+2. **Add a new test file** for a new template:
+   - Create `test-chart/tests/<resource>_test.yaml`.
+   - Follow the helm-unittest format.
+   - Run `helm unittest test-chart` to include it.

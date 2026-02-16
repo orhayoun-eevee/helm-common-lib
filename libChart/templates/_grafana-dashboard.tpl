@@ -1,9 +1,9 @@
-{{- define "libChart.lib.grafana" -}}
+{{- define "libChart.grafanaDashboard" -}}
 {{- with .Values.metrics.grafana }}
   {{- if and .enabled .dashboard .dashboard.enabled .dashboard.items }}
-    {{- $namePrefix := include "common.helpers.chart.names.name" $ -}}
-    {{- $baseLabels := include "common.helpers.metadata.labels" $ | fromYaml -}}
-    {{- $baseLabels = merge $baseLabels (dict "app.kubernetes.io/component" "grafana-dashboard") -}}
+    {{- $namePrefix := include "libChart.name" $ -}}
+    {{- $baseLabels := include "libChart.labels" $ | fromYaml -}}
+    {{- $_ := set $baseLabels "app.kubernetes.io/component" "grafana-dashboard" -}}
     {{- $globalInstanceSelector := .instanceSelector | default (dict) -}}
     {{- $namespace := $.Values.global.namespace | default "default" -}}
     {{- range $dashboardKey, $dashboard := .dashboard.items }}
@@ -53,7 +53,7 @@
           {{- if hasKey $dashboard "allowCrossNamespaceImport" }}
             {{- $params = merge $params (dict "allowCrossNamespaceImport" $dashboard.allowCrossNamespaceImport) -}}
           {{- end }}
-          {{ include "libChart.classes.grafana" $params }}
+          {{- include "libChart.classes.grafana" $params -}}
         {{- end }}
       {{- end }}
     {{- end }}

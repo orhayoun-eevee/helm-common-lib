@@ -1,14 +1,22 @@
-# chart-testing (ct) configuration for CI/CD
+# chart-testing (ct) configuration
 # https://github.com/helm/chart-testing
+#
+# Used by Layer 3 (validate-metadata.sh) via the build-workflow framework
 
 remote: origin
 target-branch: main
 
-# Directories containing Chart.yaml (library and test charts)
+# Directories containing Chart.yaml
+# Note: build-workflow passes --charts explicitly, but ct.yaml is also used
+# locally for reference and consistency with ct conventions
 chart-dirs:
   - libChart
   - test-chart
 
-helm-extra-args: --timeout 600s
+# Enforcement settings (aligned with new validation framework)
+check-version-increment: true
 validate-maintainers: false
-check-version-increment: false
+validate-chart-schema: true
+validate-yaml: true
+
+helm-extra-args: --timeout 600s

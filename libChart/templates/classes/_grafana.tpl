@@ -1,4 +1,4 @@
-{{- define "libChart.classes.grafana" }}
+{{- define "libChart.classes.grafana" -}}
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
@@ -45,4 +45,4 @@ spec:
   {{- if hasKey . "allowCrossNamespaceImport" }}
   allowCrossNamespaceImport: {{ .allowCrossNamespaceImport }}
   {{- end }}
-{{ end }}
+{{- end -}}

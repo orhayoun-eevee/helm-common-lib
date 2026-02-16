@@ -1,16 +1,17 @@
 {{- define "libChart.classes.pvc" -}}
 {{- if and .Values.persistence .Values.persistence.enabled .Values.persistence.claims }}
-  {{- range $name, $claim := .Values.persistence.claims }}
+  {{- $claims := .Values.persistence.claims -}}
+  {{- range $name := (keys $claims | sortAlpha) }}
+    {{- $claim := index $claims $name }}
     {{- if $claim }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ printf "%s-%s" (include "common.helpers.chart.names.name" $) $name }}
+  name: {{ printf "%s-%s" (include "libChart.name" $) $name }}
   namespace: {{ $.Values.global.namespace | default "default" }}
   labels:
-    {{- include "common.helpers.metadata.labels" $ | nindent 4 }}
-    app.kubernetes.io/component: "pvc"
+    {{- include "libChart.labelsWithComponent" (dict "root" $ "component" "pvc") | nindent 4 }}
   {{- if $claim.retain }}
   annotations:
     helm.sh/resource-policy: keep

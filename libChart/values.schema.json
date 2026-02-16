@@ -4,7 +4,7 @@
   "description": "JSON Schema validation for helm-common-lib libChart values",
   "type": "object",
   "required": ["global"],
-  "additionalProperties": true,
+  "additionalProperties": false,
 
   "properties": {
     "global": {
@@ -32,7 +32,16 @@
         },
         "chart": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chart name override"
+            },
+            "version": {
+              "type": "string",
+              "description": "Chart version override"
+            },
             "appVersion": {
               "type": "string",
               "description": "Application version"
@@ -41,6 +50,7 @@
         },
         "labels": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "partOf": {
               "type": "string",
@@ -66,6 +76,7 @@
       "title": "Deployment",
       "type": "object",
       "description": "Deployment configuration",
+      "additionalProperties": false,
       "properties": {
         "replicas": {
           "type": "integer",
@@ -75,6 +86,7 @@
         },
         "strategy": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "type": {
               "type": "string",
@@ -95,6 +107,7 @@
           "items": {
             "type": "object",
             "required": ["name"],
+            "additionalProperties": false,
             "properties": {
               "name": { "type": "string" }
             }
@@ -126,20 +139,33 @@
         },
         "podSecurityContext": {
           "type": "object",
-          "description": "Pod-level security context"
+          "description": "Pod-level security context (ref: https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#security-context)"
         },
         "defaultContainerSecurityContext": {
           "type": "object",
-          "description": "Default security context for all containers"
+          "description": "Default security context for all containers (ref: https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#security-context-1)"
         },
         "nodeSelector": {
           "type": "object",
           "description": "Node selector",
           "additionalProperties": { "type": "string" }
         },
+        "affinity": {
+          "type": "object",
+          "description": "Pod affinity/anti-affinity rules (ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity)"
+        },
+        "tolerations": {
+          "type": "array",
+          "description": "Pod tolerations (ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/)"
+        },
+        "topologySpreadConstraints": {
+          "type": "array",
+          "description": "Topology spread constraints (ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/)"
+        },
         "containers": {
           "type": "object",
           "description": "Container definitions (at least one required for deployment to be created)",
+          "minProperties": 1,
           "patternProperties": {
             "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$": {
               "type": "object",
@@ -152,6 +178,7 @@
                 "image": {
                   "type": "object",
                   "required": ["repository", "tag"],
+                  "additionalProperties": false,
                   "properties": {
                     "repository": {
                       "type": "string",
@@ -194,6 +221,7 @@
                   "items": {
                     "type": "object",
                     "required": ["name", "containerPort"],
+                    "additionalProperties": false,
                     "properties": {
                       "name": {
                         "type": "string",
@@ -219,27 +247,37 @@
                 },
                 "resources": {
                   "type": "object",
-                  "description": "Resource requests and limits"
+                  "description": "Resource requests and limits (ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/)",
+                  "properties": {
+                    "requests": {
+                      "type": "object",
+                      "description": "Minimum resource guarantees"
+                    },
+                    "limits": {
+                      "type": "object",
+                      "description": "Maximum resource constraints"
+                    }
+                  }
                 },
                 "livenessProbe": {
                   "type": "object",
-                  "description": "Liveness probe configuration"
+                  "description": "Liveness probe configuration (ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)"
                 },
                 "readinessProbe": {
                   "type": "object",
-                  "description": "Readiness probe configuration"
+                  "description": "Readiness probe configuration (ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)"
                 },
                 "startupProbe": {
                   "type": "object",
-                  "description": "Startup probe configuration"
+                  "description": "Startup probe configuration (ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)"
                 },
                 "lifecycle": {
                   "type": "object",
-                  "description": "Lifecycle hooks"
+                  "description": "Lifecycle hooks (ref: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/)"
                 },
                 "securityContext": {
                   "type": "object",
-                  "description": "Container security context"
+                  "description": "Container security context (ref: https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#security-context-1)"
                 }
               }
             }
@@ -255,7 +293,51 @@
               "properties": {
                 "image": {
                   "type": "object",
-                  "required": ["repository", "tag"]
+                  "required": ["repository", "tag"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "repository": {
+                      "type": "string",
+                      "description": "Container image repository",
+                      "minLength": 1
+                    },
+                    "tag": {
+                      "type": "string",
+                      "description": "Image tag",
+                      "minLength": 1
+                    },
+                    "pullPolicy": {
+                      "type": "string",
+                      "enum": ["Always", "IfNotPresent", "Never"],
+                      "default": "IfNotPresent"
+                    }
+                  }
+                },
+                "command": {
+                  "type": "array",
+                  "description": "Container command",
+                  "items": { "type": "string" }
+                },
+                "args": {
+                  "type": "array",
+                  "description": "Container arguments",
+                  "items": { "type": "string" }
+                },
+                "env": {
+                  "type": "array",
+                  "description": "Environment variables"
+                },
+                "volumeMounts": {
+                  "type": "array",
+                  "description": "Volume mounts"
+                },
+                "resources": {
+                  "type": "object",
+                  "description": "Resource requests and limits"
+                },
+                "securityContext": {
+                  "type": "object",
+                  "description": "Container security context"
                 }
               }
             }
@@ -268,6 +350,7 @@
       "title": "Persistence",
       "type": "object",
       "description": "Persistence configuration",
+      "additionalProperties": false,
       "properties": {
         "enabled": {
           "type": "boolean",
@@ -281,6 +364,7 @@
             "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$": {
               "type": "object",
               "required": ["size", "storageClass"],
+              "additionalProperties": false,
               "properties": {
                 "size": {
                   "type": "string",
@@ -313,10 +397,58 @@
       }
     },
 
+    "configMap": {
+      "title": "ConfigMap",
+      "type": "object",
+      "description": "ConfigMap definitions",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "object",
+          "description": "Map of ConfigMap definitions (key is the resource name suffix)",
+          "patternProperties": {
+            "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$": {
+              "type": "object",
+              "required": ["data"],
+              "additionalProperties": false,
+              "properties": {
+                "data": {
+                  "type": "object",
+                  "description": "ConfigMap data entries (key-value pairs)",
+                  "minProperties": 1,
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "annotations": {
+                  "type": "object",
+                  "description": "Additional annotations for this ConfigMap",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "componentLabel": {
+          "type": "string",
+          "description": "Override the app.kubernetes.io/component label for ConfigMap resources (default: config)",
+          "default": "config"
+        },
+        "additionalLabels": {
+          "type": "object",
+          "description": "Additional labels to apply to all ConfigMap resources",
+          "additionalProperties": { "type": "string" }
+        }
+      }
+    },
+
     "metrics": {
       "title": "Metrics and Observability",
       "type": "object",
       "description": "Observability configuration",
+      "additionalProperties": false,
       "properties": {
         "enabled": {
           "type": "boolean",
@@ -325,6 +457,7 @@
         },
         "serviceMonitor": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "enabled": {
               "type": "boolean",
@@ -333,9 +466,14 @@
             },
             "port": {
               "type": "integer",
-              "description": "Metrics port",
+              "description": "Metrics container port number",
               "minimum": 1,
               "maximum": 65535
+            },
+            "portName": {
+              "type": "string",
+              "description": "Named port on the Service that the ServiceMonitor endpoint targets",
+              "default": "metrics"
             },
             "interval": {
               "type": "string",
@@ -375,6 +513,7 @@
         },
         "prometheusRule": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "enabled": {
               "type": "boolean",
@@ -389,6 +528,7 @@
         },
         "grafana": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "enabled": {
               "type": "boolean",
@@ -401,6 +541,7 @@
             },
             "dashboard": {
               "type": "object",
+              "additionalProperties": false,
               "properties": {
                 "enabled": {
                   "type": "boolean",
@@ -428,6 +569,31 @@
                           "type": "string",
                           "description": "Dashboard file path"
                         },
+                        "instanceSelector": {
+                          "type": "object",
+                          "description": "Override global Grafana instance selector for this dashboard"
+                        },
+                        "annotations": {
+                          "type": "object",
+                          "description": "Dashboard resource annotations",
+                          "additionalProperties": { "type": "string" }
+                        },
+                        "folder": {
+                          "type": "string",
+                          "description": "Grafana folder title"
+                        },
+                        "folderUID": {
+                          "type": "string",
+                          "description": "Grafana folder UID"
+                        },
+                        "folderRef": {
+                          "type": "string",
+                          "description": "GrafanaFolder resource name reference"
+                        },
+                        "plugins": {
+                          "type": "array",
+                          "description": "Required Grafana plugins"
+                        },
                         "allowCrossNamespaceImport": {
                           "type": "boolean",
                           "default": false
@@ -447,6 +613,7 @@
       "title": "Service Account",
       "type": "object",
       "description": "Service account configuration",
+      "additionalProperties": false,
       "properties": {
         "create": {
           "type": "boolean",
@@ -474,6 +641,7 @@
       "title": "Secrets",
       "type": "object",
       "description": "Secrets management",
+      "additionalProperties": false,
       "properties": {
         "enabled": {
           "type": "boolean",
@@ -481,6 +649,7 @@
         },
         "sealedSecret": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "enabled": {
               "type": "boolean",
@@ -494,16 +663,36 @@
                 "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$": {
                   "type": "object",
                   "required": ["data"],
+                  "additionalProperties": false,
                   "properties": {
                     "data": {
                       "type": "object",
-                      "description": "Sealed secret data",
-                      "minProperties": 1
+                      "description": "Sealed secret data (encrypted base64 values)",
+                      "minProperties": 1,
+                      "additionalProperties": {
+                        "type": "string",
+                        "minLength": 1
+                      }
                     },
                     "type": {
                       "type": "string",
                       "default": "Opaque",
                       "enum": ["Opaque", "kubernetes.io/tls", "kubernetes.io/dockerconfigjson", "kubernetes.io/basic-auth", "kubernetes.io/ssh-auth", "kubernetes.io/service-account-token"]
+                    },
+                    "annotations": {
+                      "type": "object",
+                      "description": "SealedSecret metadata annotations",
+                      "additionalProperties": { "type": "string" }
+                    },
+                    "labels": {
+                      "type": "object",
+                      "description": "Generated Secret labels",
+                      "additionalProperties": { "type": "string" }
+                    },
+                    "templateAnnotations": {
+                      "type": "object",
+                      "description": "Generated Secret annotations",
+                      "additionalProperties": { "type": "string" }
                     }
                   }
                 }
@@ -518,6 +707,7 @@
       "title": "Pod Disruption Budget",
       "type": "object",
       "description": "Pod disruption budget configuration",
+      "additionalProperties": false,
       "properties": {
         "enabled": {
           "type": "boolean",
@@ -553,6 +743,7 @@
       "title": "Network",
       "type": "object",
       "description": "Networking configuration",
+      "additionalProperties": false,
       "properties": {
         "enabled": {
           "type": "boolean",
@@ -560,11 +751,8 @@
         },
         "services": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": true
-            },
             "items": {
               "type": "object",
               "description": "Service definitions",
@@ -572,6 +760,7 @@
                 "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$": {
                   "type": "object",
                   "required": ["enabled", "type", "ports"],
+                  "additionalProperties": false,
                   "properties": {
                     "enabled": {
                       "type": "boolean"
@@ -589,6 +778,7 @@
                         "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$": {
                           "type": "object",
                           "required": ["port"],
+                          "additionalProperties": false,
                           "properties": {
                             "port": {
                               "type": "integer",
@@ -622,6 +812,7 @@
         },
         "httpRoute": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "enabled": {
               "type": "boolean",
@@ -639,38 +830,119 @@
             },
             "gateway": {
               "type": "object",
+              "additionalProperties": false,
               "properties": {
                 "name": {
                   "type": "string",
-                  "description": "Gateway name (required when httpRoute.enabled is true)"
+                  "description": "Gateway name"
                 },
                 "namespace": {
                   "type": "string",
-                  "description": "Gateway namespace (required when httpRoute.enabled is true)"
+                  "description": "Gateway namespace"
                 }
               }
             },
             "routes": {
               "type": "array",
-              "description": "HTTPRoute rules"
+              "description": "HTTPRoute route definitions",
+              "items": {
+                "type": "object",
+                "required": ["name", "enabled"],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Route name suffix (appended to chart name)",
+                    "minLength": 1
+                  },
+                  "enabled": {
+                    "type": "boolean",
+                    "description": "Enable this route"
+                  },
+                  "listener": {
+                    "type": "object",
+                    "description": "Gateway listener to attach to",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sectionName": {
+                        "type": "string",
+                        "description": "Gateway listener section name (e.g., https)"
+                      },
+                      "port": {
+                        "type": "integer",
+                        "description": "Gateway listener port",
+                        "minimum": 1,
+                        "maximum": 65535
+                      }
+                    }
+                  },
+                  "rules": {
+                    "type": "array",
+                    "description": "Route rules (matches, backendRefs, filters)",
+                    "items": {
+                      "type": "object"
+                    }
+                  },
+                  "matches": {
+                    "type": "array",
+                    "description": "Shorthand matches (when only one rule is needed)",
+                    "items": {
+                      "type": "object"
+                    }
+                  },
+                  "backendRefs": {
+                    "type": "array",
+                    "description": "Shorthand backendRefs (when only one rule is needed)",
+                    "items": {
+                      "type": "object"
+                    }
+                  },
+                  "filters": {
+                    "type": "array",
+                    "description": "Shorthand filters (when only one rule is needed)",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
             }
           },
           "if": {
             "properties": {
-              "enabled": { "const": true }
-            }
+              "enabled": {
+                "const": true
+              }
+            },
+            "required": ["enabled"]
           },
           "then": {
-            "required": ["host", "port", "gateway"]
+            "required": ["host", "port", "gateway"],
+            "properties": {
+              "host": {
+                "minLength": 1
+              },
+              "port": {
+                "minimum": 1
+              },
+              "gateway": {
+                "required": ["name", "namespace"],
+                "properties": {
+                  "name": {
+                    "minLength": 1
+                  },
+                  "namespace": {
+                    "minLength": 1
+                  }
+                }
+              }
+            }
           }
         },
         "networkPolicy": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false
-            },
             "items": {
               "type": "object",
               "description": "NetworkPolicy definitions",
@@ -678,6 +950,7 @@
                 "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$": {
                   "type": "object",
                   "required": ["enabled", "policyTypes"],
+                  "additionalProperties": false,
                   "properties": {
                     "enabled": {
                       "type": "boolean"
@@ -706,6 +979,7 @@
         },
         "istio": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "enabled": {
               "type": "boolean",
@@ -714,6 +988,7 @@
             },
             "authorizationPolicy": {
               "type": "object",
+              "additionalProperties": false,
               "properties": {
                 "enabled": {
                   "type": "boolean",
@@ -726,6 +1001,7 @@
                     "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$": {
                       "type": "object",
                       "required": ["enabled", "action"],
+                      "additionalProperties": false,
                       "properties": {
                         "enabled": {
                           "type": "boolean"
@@ -744,8 +1020,9 @@
                 }
               }
             },
-            "destinationrule": {
+            "destinationRule": {
               "type": "object",
+              "additionalProperties": false,
               "properties": {
                 "enabled": {
                   "type": "boolean",
@@ -762,11 +1039,19 @@
               },
               "if": {
                 "properties": {
-                  "enabled": { "const": true }
-                }
+                  "enabled": {
+                    "const": true
+                  }
+                },
+                "required": ["enabled"]
               },
               "then": {
-                "required": ["host"]
+                "required": ["host"],
+                "properties": {
+                  "host": {
+                    "minLength": 1
+                  }
+                }
               }
             }
           }

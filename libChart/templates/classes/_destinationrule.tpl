@@ -1,21 +1,18 @@
-{{- define "libChart.classes.destinationrule" -}}
-{{- if and .Values.network .Values.network.istio .Values.network.istio.destinationrule .Values.network.istio.destinationrule.enabled .Values.network.istio.destinationrule.host (ne (.Values.network.istio.destinationrule.host | toString) "") }}
+{{- define "libChart.classes.destinationRule" -}}
+{{- if and .Values.network .Values.network.istio .Values.network.istio.destinationRule .Values.network.istio.destinationRule.enabled .Values.network.istio.destinationRule.host (ne (.Values.network.istio.destinationRule.host | toString) "") }}
 ---
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
-  name: {{ include "common.helpers.chart.names.name" . }}
+  name: {{ include "libChart.name" . }}
   namespace: {{ .Values.global.namespace | default "default" }}
   labels:
-    {{- include "common.helpers.metadata.labels" . | nindent 4 }}
-    app.kubernetes.io/component: "destination-rule"
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    {{- include "libChart.labelsWithComponent" (dict "root" . "component" "destination-rule") | nindent 4 }}
 spec:
-  host: {{ .Values.network.istio.destinationrule.host }}
-  {{- if .Values.network.istio.destinationrule.trafficPolicy }}
+  host: {{ .Values.network.istio.destinationRule.host }}
+  {{- if .Values.network.istio.destinationRule.trafficPolicy }}
   trafficPolicy:
-    {{- toYaml .Values.network.istio.destinationrule.trafficPolicy | nindent 4 }}
+    {{- toYaml .Values.network.istio.destinationRule.trafficPolicy | nindent 4 }}
   {{- end }}
 {{- end }}
 {{- end -}}

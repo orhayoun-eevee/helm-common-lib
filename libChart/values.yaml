@@ -1,4 +1,4 @@
-# Default values for application-v2
+# Default values for libChart
 # This is a YAML-formatted file.
 # This chart is a unified library chart that consolidates application, networking, and monitoring functionality.
 
@@ -6,41 +6,55 @@
 # Global Configuration
 # ----------------------------------------------------------------------------
 global:
-  name: "app"  # REQUIRED - application name (e.g., "radarr", "sonarr", "transmission")
-  namespace: "default"  # REQUIRED - Kubernetes namespace for all resources
+  # name is the application name (DNS-1123 compliant, max 63 chars). Required.
+  name: "app"
+  # namespace is the Kubernetes namespace for all resources. Required.
+  namespace: "default"
   labels:
-    partOf: ""  # Optional - name of higher level application (e.g., "media-center")
-    component: ""  # Optional - workload component type (e.g., "frontend", "api", "worker")
-    overrides: {}  # Optional - map to override any standard label (e.g., "app.kubernetes.io/name": "custom-name")
+    # partOf is the name of higher level application (e.g., "media-center"). Optional.
+    partOf: ""
+    # component is the workload component type (e.g., "frontend", "api", "worker"). Optional.
+    component: ""
+    # overrides is a map to override standard metadata labels.
+    # Reserved selector labels cannot be overridden:
+    # - app.kubernetes.io/name
+    # - app.kubernetes.io/instance
+    # Optional.
+    overrides: {}
 
 # ----------------------------------------------------------------------------
 # Deployment Configuration
 # ----------------------------------------------------------------------------
 deployment:
+  # replicas is the number of pod replicas.
   replicas: 1
   strategy:
+    # type is the deployment strategy type (Recreate or RollingUpdate).
     type: Recreate
+  # revisionHistoryLimit is the number of old ReplicaSets to retain.
   revisionHistoryLimit: 3
-  
-  # Image Pull Secrets
+
+  # imagePullSecrets is the list of image pull secrets.
   imagePullSecrets: []
-  
-  # Termination grace period (seconds)
+
+  # terminationGracePeriodSeconds is the pod termination grace period in seconds.
   terminationGracePeriodSeconds: 30
 
-  # Pod labels
+  # podLabels are additional labels to add to pods.
   podLabels: {}
 
-  # Pod security context - secure defaults
+  # podSecurityContext is the pod-level security context with secure defaults.
   podSecurityContext:
     runAsNonRoot: true
     seccompProfile:
       type: RuntimeDefault
 
-  # Default securityContext (applied to all containers unless overridden)
+  # defaultContainerSecurityContext is the default security context applied to all containers unless overridden.
   defaultContainerSecurityContext:
     allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: false  # Most containers need write access
+    # readOnlyRootFilesystem is enabled by default for stronger container hardening.
+    # Override per container when writable filesystem is required.
+    readOnlyRootFilesystem: true
     runAsNonRoot: true
     capabilities:
       drop:
@@ -50,7 +64,21 @@ deployment:
     appArmorProfile:
       type: RuntimeDefault
 
-  # Map of containers - NO DEFAULT, must be explicitly defined by service chart
+  # --- Scheduling (all optional, omit to use Kubernetes defaults) ---
+  # nodeSelector constrains pods to nodes with matching labels. Optional.
+  # nodeSelector: {}
+  # affinity defines pod affinity/anti-affinity rules. Optional.
+  # affinity: {}
+  # tolerations defines pod tolerations. Optional.
+  # tolerations: []
+  # topologySpreadConstraints controls how pods spread across topology domains. Optional.
+  # topologySpreadConstraints: []
+  # dnsPolicy sets the DNS policy for pods (ClusterFirst, Default, None, ClusterFirstWithHostNet). Optional.
+  # dnsPolicy: ClusterFirst
+  # enableServiceLinks controls whether service environment variables are injected. Optional.
+  # enableServiceLinks: true
+
+  # containers is a map of container definitions. Must be explicitly defined by service chart.
   # Services must define their containers explicitly, e.g.:
   # containers:
   #   radarr:
@@ -66,9 +94,14 @@ deployment:
   #       preStop:
   #         exec:
   #           command: ["/bin/sh", "-c", "sleep 15"]
-  containers: {}
+  containers:
+    placeholder:
+      enabled: false
+      image:
+        repository: changeme
+        tag: changeme
 
-  # Map of init containers
+  # initContainers is a map of init container definitions.
   initContainers: {}
     # example-init:
     #   image:
@@ -80,9 +113,10 @@ deployment:
 # Feature: Persistence
 # ----------------------------------------------------------------------------
 persistence:
-  enabled: false  # Feature flag - enable persistence (PVC + volumes)
-  
-  # Persistent Volume Claims - Dictionary of PVC definitions
+  # enabled is the feature flag to enable persistence (PVC + volumes).
+  enabled: false
+
+  # claims is a dictionary of PVC definitions.
   # Each key is the claim name suffix (full name: {global.name}-{key})
   # Chart will generate PVC resources for each entry
   claims: {}
@@ -92,9 +126,8 @@ persistence:
     #   storageClass: "local-path"  # REQUIRED - storage class name
     #   accessMode: ReadWriteOnce
     #   retain: true  # Retain PVC on release deletion (adds helm.sh/resource-policy: keep)
-  
-  # Deployment Volumes - List of volume definitions
-  # Define standard Kubernetes volume specs (nfs, hostPath, emptyDir, secret, configMap, etc.)
+
+  # volumes is a list of volume definitions (nfs, hostPath, emptyDir, secret, configMap, etc).
   # These volumes will be added to the Deployment's spec.template.spec.volumes
   # For PVC volumes, reference the claim name: {global.name}-{claimKey}
   volumes: []
@@ -117,9 +150,13 @@ persistence:
 # ----------------------------------------------------------------------------
 # Feature: ConfigMap
 # ----------------------------------------------------------------------------
-# Dictionary of ConfigMap definitions. Each key becomes a resource name suffix.
+# configMap is a dictionary of ConfigMap definitions. Each key becomes a resource name suffix.
 # Full resource name: {global.name}-{key}
 configMap:
+  # componentLabel overrides the app.kubernetes.io/component label for all ConfigMaps (default: "config").
+  componentLabel: ""
+  # additionalLabels are extra labels applied to all ConfigMap resources.
+  additionalLabels: {}
   items: {}
     # Example:
     # app-config:
@@ -136,17 +173,26 @@ configMap:
 # Feature: Observability
 # ----------------------------------------------------------------------------
 metrics:
-  enabled: false  # Feature flag - enable metrics (ServiceMonitor + PrometheusRule)
-  
-  # ServiceMonitor Configuration
+  # enabled is the feature flag to enable metrics collection (ServiceMonitor + PrometheusRule).
+  enabled: false
+
+  # serviceMonitor is the ServiceMonitor configuration.
   serviceMonitor:
-    enabled: true  # Enable ServiceMonitor resource creation
-    port: 9100  # Metrics port
-    interval: "10s"  # ServiceMonitor scrape interval
-    scrapeTimeout: "5s"  # ServiceMonitor scrape timeout
-    path: ""  # Optional - Metrics endpoint path (e.g., "/metrics")
-    honorLabels: false  # Optional - Honor labels from target (boolean)
-    
+    # enabled controls ServiceMonitor resource creation.
+    enabled: true
+    # port is the metrics container port number (for reference).
+    port: 9100
+    # portName is the named port on the Service that the ServiceMonitor endpoint targets.
+    portName: "metrics"
+    # interval is the ServiceMonitor scrape interval.
+    interval: "10s"
+    # scrapeTimeout is the ServiceMonitor scrape timeout.
+    scrapeTimeout: "5s"
+    # path is the metrics endpoint path (e.g., "/metrics"). Optional.
+    path: ""
+    # honorLabels controls whether to honor labels from target. Optional.
+    honorLabels: false
+
     # Selector for ServiceMonitor spec
     # Allows customizing which services are selected for scraping
     # Supports both matchLabels and matchExpressions
@@ -161,7 +207,7 @@ metrics:
       #       operator: In
       #       values: ["app1", "app2"]
       # If not provided, defaults to standard selectorLabels helper
-    
+
     # Namespace selector for ServiceMonitor spec
     # Allows selecting namespaces to scrape from
     namespaceSelector: {}
@@ -169,7 +215,7 @@ metrics:
       #   matchNames:
       #     - default
       #     - monitoring
-    
+
     # Relabelings - Prometheus relabel configs (applied before scraping)
     # Full Prometheus relabeling configuration format
     relabelings: []
@@ -177,7 +223,7 @@ metrics:
       #   - action: replace
       #     sourceLabels: [__meta_kubernetes_pod_name]
       #     targetLabel: pod_name
-    
+
     # Metric relabelings - Prometheus relabel configs (applied after scraping)
     # Full Prometheus relabeling configuration format
     metricRelabelings: []
@@ -188,7 +234,7 @@ metrics:
       #   - action: replace
       #     targetLabel: component
       #     replacement: media-center
-  
+
   # PrometheusRule Configuration
   prometheusRule:
     enabled: true  # Enable PrometheusRule resource creation
@@ -261,20 +307,26 @@ metrics:
 # Service Account
 # ----------------------------------------------------------------------------
 serviceAccount:
+  # create controls whether to create a service account.
   create: true
-  automount: false  # SECURITY: Disabled by default. Enable only if service needs K8s API access
+  # automount controls service account token automounting. Disabled by default for security.
+  # Enable only if service needs Kubernetes API access.
+  automount: false
+  # annotations are service account annotations.
   annotations: {}
+  # name is the service account name (defaults to chart name if empty).
   name: ""
 
 # ----------------------------------------------------------------------------
 # Feature: Secrets
 # ----------------------------------------------------------------------------
 secrets:
-  enabled: false  # Feature flag - enable secrets management
+  # enabled is the feature flag to enable secrets management.
+  enabled: false
   sealedSecret:
-    enabled: false  # Feature flag - enable SealedSecret generation
-    # Dictionary of sealed secret definitions
-    # Each key is the secret name
+    # enabled is the feature flag to enable SealedSecret generation.
+    enabled: false
+    # items is a dictionary of sealed secret definitions. Each key is the secret name.
     items: {}
       # Example:
       # my-secret:
@@ -293,23 +345,31 @@ secrets:
 # Pod disruption budget configuration
 # ----------------------------------------------------------------------------
 podDisruptionBudget:
-  enabled: false  # Disabled by default - opt-in per service
-  minAvailable: null  # Mutually exclusive with maxUnavailable
-  maxUnavailable: null  # Mutually exclusive with minAvailable
-  unhealthyPodEvictionPolicy: null  # Optional - "IfHealthyBudget" (default) or "AlwaysAllow" (K8s 1.26+)
+  # enabled controls whether to create a PodDisruptionBudget. Disabled by default.
+  enabled: false
+  # minAvailable is the minimum available pods. Mutually exclusive with maxUnavailable.
+  minAvailable: null
+  # maxUnavailable is the maximum unavailable pods. Mutually exclusive with minAvailable.
+  maxUnavailable: null
+  # unhealthyPodEvictionPolicy is the eviction policy ("IfHealthyBudget" or "AlwaysAllow"). K8s 1.26+. Optional.
+  unhealthyPodEvictionPolicy: null
 
 network:
+  # enabled is the feature flag to enable networking features.
   enabled: true
   httpRoute:
-    enabled: false  # Feature flag - enable HTTPRoute (Gateway API + security policies)
-    host: ""  # REQUIRED when enabled - hostname (e.g., "radarr-k8s.orhayoun.com")
-    port: 80  # Service port to route to (defaults to first container port if not specified)
+    # enabled is the feature flag to enable HTTPRoute (Gateway API + security policies).
+    enabled: false
+    # host is the hostname for HTTPRoute. Required when httpRoute.enabled is true.
+    host: ""
+    # port is the service port to route to.
+    port: 80
     gateway:
-      # REQUIRED when httpRoute.enabled=true - set explicitly in your chart (no defaults for portability)
-      # Example: name: my-gateway, namespace: istio-system
+      # name is the gateway name. Required when httpRoute.enabled is true.
       name: ""
+      # namespace is the gateway namespace. Required when httpRoute.enabled is true.
       namespace: ""
-    # HTTPRoute configuration - define routes for different listeners
+    # routes is the HTTPRoute configuration for different listeners.
     # Each route can bind to a listener by sectionName, port, or both
     # Rules support template strings that will be evaluated at render time
     routes:
@@ -437,10 +497,9 @@ network:
       #       ports:
       #         - protocol: UDP
       #           port: 53
-  # Service Configuration - Multiple services support
+  # services is the Service configuration supporting multiple services.
   # Map of service name suffix to service configuration
   # Each service will be named: {global.name}-{key}
-  # The key must be explicitly defined (no empty keys allowed)
   services:
     items: {}
       # Example - Single service:
@@ -471,152 +530,15 @@ network:
       #       port: 9100
       #       targetPort: 9100
       #       protocol: TCP
-  networkpolicies:
-    enabled: true
-    policies:
-      allow_dns: # name
-        enabled: tfrue
-        podSelector: test
-        policyTypes: [Ingress, Egress]
-        ingress:
-          - from:
-              - ipBlock:
-                  cidr: 169.254.7.127/32
-          - from:
-              - namespaceSelector:
-                  matchLabels:
-                    kubernetes.io/metadata.name: istio-system
-        egress:
-          - to:
-              - namespaceSelector:
-                  matchLabels:
-                    kubernetes.io/metadata.name: kube-system
-      allow_api: # name
-        enabled: true
-        podSelector: test
-        policyTypes: [Ingress, Egress]
-        ingress:
-          # Health probes (link-local IP) - required for Istio ambient mesh
-          # Ambient mesh uses SNAT to rewrite kubelet health probe packets with link-local IP
-          - from:
-              - ipBlock:
-                  cidr: 169.254.7.127/32
-
-          # Gateway traffic (HTTP + HBONE for ambient mesh)
-          - from:
-              - namespaceSelector:
-                  matchLabels:
-                    kubernetes.io/metadata.name: istio-system
-                podSelector:
-                  matchLabels:
-                    app.kubernetes.io/name: shared-platform-gateway
-            ports:
-              - protocol: TCP
-                port: 8080
-              - protocol: TCP
-                port: 15008
-
-          # Prometheus metrics scraping (metrics port + HBONE for ambient mesh)
-          - from:
-              - namespaceSelector:
-                  matchLabels:
-                    kubernetes.io/metadata.name: monitoring
-                podSelector:
-                  matchLabels:
-                    app.kubernetes.io/name: prometheus
-            ports:
-              - protocol: TCP
-                port: 9100
-              - protocol: TCP
-                port: 15008
-
-          - from:
-              - namespaceSelector:
-                  matchLabels:
-                    kubernetes.io/metadata.name: homeassistant
-                podSelector:
-                  matchLabels:
-                    app.kubernetes.io/name: home-assistant
-            ports:
-              - protocol: TCP
-                port: 8080
-              - protocol: TCP
-                port: 15008
-        egress:
-          # DNS access (required for service discovery and external lookups)
-          - to:
-              - namespaceSelector:
-                  matchLabels:
-                    kubernetes.io/metadata.name: kube-system
-            ports:
-              - protocol: UDP
-                port: 53
-              - protocol: TCP
-                port: 53
-
-          # Kubernetes API access (if needed for service discovery)
-          - to:
-              - ipBlock:
-                  cidr: 10.43.0.1/32
-            ports:
-              - protocol: TCP
-                port: 6443
-
-          - to:
-              - namespaceSelector:
-                  matchLabels:
-                    kubernetes.io/metadata.name: download-clients
-            ports:
-              - protocol: TCP
-                port: 8080
-              - protocol: TCP
-                port: 15008
-          - to:
-              - ipBlock:
-                  cidr: "192.168.30.0/24"
-            ports:
-              - protocol: TCP
-                port: 80
-              - protocol: TCP
-                port: 443
-              - protocol: TCP
-                port: 8080
-          - to:
-              - ipBlock:
-                  cidr: "0.0.0.0/0"
-                  except:
-                    - "10.42.0.0/16"
-                    - "10.43.0.0/16"
-                    - "192.168.0.0/16"
-            ports:
-              - protocol: TCP
-                port: 80
-              - protocol: TCP
-                port: 443
-              - protocol: TCP
-                port: 8080
-          - to:
-              - namespaceSelector:
-                  matchLabels:
-                    kubernetes.io/metadata.name: istio-system
-            ports:
-              - protocol: TCP
-                port: 15008
   istio:
+    # enabled is the feature flag to enable Istio features.
     enabled: true
-    # AuthorizationPolicy Configuration - Multiple policies support
+    # authorizationPolicy is the AuthorizationPolicy configuration.
     # Map of policy name suffix to AuthorizationPolicy configuration
     # Each policy will be named: {global.name}-{key}
-    # The key must be explicitly defined (no empty keys allowed)
-    # Full AuthorizationPolicy spec (excluding selector, which is auto-injected)
-    # The template handles: apiVersion, kind, metadata, selector
-    # You provide: enabled, action, rules
-    #
-    # Template variables can be used in the spec YAML:
-    # {global.name}, {service.port}, {metrics.serviceMonitor.port}, {httpRoute.gateway.namespace}, {httpRoute.gateway.name}
-    #
     authorizationPolicy:
-      enabled: false  # Feature flag - enable AuthorizationPolicy generation
+      # enabled is the feature flag to enable AuthorizationPolicy generation.
+      enabled: false
       items: {}
         # Example - Single policy:
         # default:
@@ -654,11 +576,13 @@ network:
         #       to:
         #         - operation:
         #             ports: ["{metrics.serviceMonitor.port}"]
-    # DestinationRule Configuration (Circuit Breaker)
+    # destinationRule is the DestinationRule configuration (Circuit Breaker).
     # Provides connection pooling and outlier detection to prevent cascading failures
-    destinationrule:
-      enabled: false  # Opt-in feature - disabled by default
-      host: ""  # REQUIRED when enabled - destination service hostname (e.g., "service-name.namespace.svc.cluster.local")
+    destinationRule:
+      # enabled is the feature flag to enable DestinationRule. Opt-in, disabled by default.
+      enabled: false
+      # host is the destination service hostname. Required when enabled.
+      host: ""
       trafficPolicy:
         connectionPool:
           tcp:

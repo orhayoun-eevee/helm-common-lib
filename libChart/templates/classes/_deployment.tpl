@@ -4,11 +4,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "common.helpers.chart.names.name" . }}
+  name: {{ include "libChart.name" . }}
   namespace: {{ .Values.global.namespace | default "default" }}
   labels:
-    {{- include "common.helpers.metadata.labels" . | nindent 4 }}
-    app.kubernetes.io/component: "deployment"
+    {{- include "libChart.labelsWithComponent" (dict "root" . "component" "deployment") | nindent 4 }}
 spec:
   replicas: {{ .Values.deployment.replicas | default 1 }}
   revisionHistoryLimit: {{ .Values.deployment.revisionHistoryLimit | default 3 }}
@@ -16,17 +15,14 @@ spec:
     type: {{ .Values.deployment.strategy.type | default "Recreate" }}
   selector:
     matchLabels:
-      {{- include "common.helpers.metadata.selectorLabels" . | nindent 6 }}
+      {{- include "libChart.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "common.helpers.metadata.labels" . | nindent 8 }}
-        {{- $defaultLabels := dict "app.kubernetes.io/component" "deployment" }}
-        {{- $podLabels := $defaultLabels }}
+        {{- include "libChart.labelsWithComponent" (dict "root" . "component" "deployment") | nindent 8 }}
         {{- if .Values.deployment.podLabels }}
-          {{- $podLabels = merge (deepCopy .Values.deployment.podLabels) $defaultLabels }}
+        {{- toYaml .Values.deployment.podLabels | nindent 8 }}
         {{- end }}
-        {{- toYaml $podLabels | nindent 8 }}
     spec:
       {{- if .Values.deployment.imagePullSecrets }}
       imagePullSecrets:
@@ -40,7 +36,23 @@ spec:
         {{- toYaml .Values.deployment.podSecurityContext | nindent 8 }}
       {{- end }}
       {{- if and .Values.serviceAccount .Values.serviceAccount.create }}
-      serviceAccountName: {{ .Values.serviceAccount.name | default (include "common.helpers.chart.names.name" .) }}
+      serviceAccountName: {{ .Values.serviceAccount.name | default (include "libChart.name" .) }}
+      {{- end }}
+      {{- if .Values.deployment.affinity }}
+      affinity:
+        {{- toYaml .Values.deployment.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.deployment.tolerations }}
+      tolerations:
+        {{- toYaml .Values.deployment.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.deployment.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.deployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml .Values.deployment.topologySpreadConstraints | nindent 8 }}
       {{- end }}
       {{- if .Values.deployment.dnsPolicy }}
       dnsPolicy: {{ .Values.deployment.dnsPolicy }}
@@ -53,7 +65,9 @@ spec:
       {{- end }}
       {{- if .Values.deployment.initContainers }}
       initContainers:
-        {{- range $name, $container := .Values.deployment.initContainers }}
+        {{- $initContainers := .Values.deployment.initContainers -}}
+        {{- range $name := (keys $initContainers | sortAlpha) }}
+        {{- $container := index $initContainers $name }}
         - name: {{ $name }}
           {{- if $container.image }}
           image: {{ printf "%s:%s" $container.image.repository $container.image.tag }}
@@ -91,7 +105,10 @@ spec:
         {{- end }}
       {{- end }}
       containers:
-        {{- range $name, $container := .Values.deployment.containers }}
+        {{- $containers := .Values.deployment.containers -}}
+        {{- range $name := (keys $containers | sortAlpha) }}
+        {{- $container := index $containers $name }}
+        {{- if $container.enabled }}
         - name: {{ $name }}
           {{- if $container.image }}
           image: {{ printf "%s:%s" $container.image.repository $container.image.tag }}
@@ -157,11 +174,10 @@ spec:
             {{- toYaml $.Values.deployment.defaultContainerSecurityContext | nindent 12 }}
           {{- end }}
         {{- end }}
+        {{- end }}
       {{- if .Values.persistence.volumes }}
       volumes:
-        {{- range .Values.persistence.volumes }}
-        - {{- toYaml . | nindent 10 }}
-        {{- end }}
+        {{- toYaml .Values.persistence.volumes | nindent 8 }}
       {{- end }}
 {{- end }}
 {{- end -}}
