@@ -2,11 +2,11 @@ apiVersion: v2
 name: test-chart
 description: Test harness for libChart library (unit tests and validation)
 type: application
-version: 0.0.6
-appVersion: "0.0.6"
+version: 0.0.7
+appVersion: "0.0.7"
 dependencies:
   - name: lib-chart
-    version: 0.0.6
+    version: 0.0.7
     repository: file://../libChart
     # To use the published OCI chart:
     # repository: oci://ghcr.io/orhayoun-eevee/libchart
