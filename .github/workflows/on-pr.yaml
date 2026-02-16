@@ -13,15 +13,28 @@ jobs:
   auth:
     name: Create GitHub App Token
     runs-on: ubuntu-latest
+    env:
+      GH_APP_ID: ${{ secrets.GHCR_AUTO_APP_ID }}
+      GH_APP_PRIVATE_KEY: ${{ secrets.GHCR_AUTO_PKEY }}
     outputs:
       workflow_repo_token: ${{ steps.app-token.outputs.token }}
     steps:
+      - name: Validate app credentials presence
+        run: |
+          if [ -z "${GH_APP_ID}" ]; then
+            echo "Missing required secret: GHCR_AUTO_APP_ID" >&2
+            exit 1
+          fi
+          if [ -z "${GH_APP_PRIVATE_KEY}" ]; then
+            echo "Missing required secret: GHCR_AUTO_PKEY" >&2
+            exit 1
+          fi
       - name: Mint app installation token
         id: app-token
         uses: actions/create-github-app-token@v1
         with:
-          app-id: ${{ secrets.GHCR_AUTO_APP_ID || vars.GHCR_AUTO_APP_ID }}
-          private-key: ${{ secrets.GHCR_AUTO_PKEY }}
+          app-id: ${{ env.GH_APP_ID }}
+          private-key: ${{ env.GH_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
 
   # Validate libChart (library chart)
