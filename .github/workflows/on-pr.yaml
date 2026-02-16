@@ -16,7 +16,7 @@ jobs:
   # Library charts skip render-dependent layers.
   validate-lib:
     name: Validate libChart
-    uses: orhayoun-eevee/build-workflow/.github/workflows/helm-validate.yaml@dff4ed0ab6bdf00b0912cebd23c4bff7f2d0904a
+    uses: orhayoun-eevee/build-workflow/.github/workflows/helm-validate.yaml@a09da8aa067393d9300f796b54ba1e6c4f206988
     with:
       chart_path: libChart
       kubernetes_version: "1.30.0"
@@ -35,7 +35,7 @@ jobs:
   validate-test:
     name: Validate test-chart
     needs: validate-lib
-    uses: orhayoun-eevee/build-workflow/.github/workflows/helm-validate.yaml@dff4ed0ab6bdf00b0912cebd23c4bff7f2d0904a
+    uses: orhayoun-eevee/build-workflow/.github/workflows/helm-validate.yaml@a09da8aa067393d9300f796b54ba1e6c4f206988
     with:
       chart_path: test-chart
       kubernetes_version: "1.30.0"
