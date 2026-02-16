@@ -269,39 +269,39 @@ metrics:
       enabled: false  # Enable GrafanaDashboard CRD generation
       # Dictionary of dashboard items - each key becomes a resource name suffix
       # Each item will generate a GrafanaDashboard CRD named: {global.name}-{key}
+      # Example:
+      #   my-dashboard:
+      #     name: "my-dashboard"  # Optional - dashboard name (defaults to key)
+      #     # Option 1: Inline JSON content (string or map)
+      #     json: |
+      #       {
+      #         "id": null,
+      #         "title": "My Dashboard",
+      #         "tags": [],
+      #         "timezone": "browser",
+      #         "schemaVersion": 17,
+      #         "version": 0,
+      #         "panels": []
+      #       }
+      #     # Option 2: Load JSON from file (relative to dashboards/ directory)
+      #     # file: "my-dashboard.json"
+      #     # Optional: Override global instanceSelector for this dashboard
+      #     instanceSelector:
+      #       matchLabels:
+      #         dashboards: "specific-grafana"
+      #     # Optional: Folder assignment (only one of folder, folderUID, or folderRef)
+      #     # folder: "My Folder"  # Folder title
+      #     # folderUID: "folder-uid"  # Folder UID
+      #     # folderRef: "grafana-folder-resource"  # GrafanaFolder resource name
+      #     # Optional: Required plugins
+      #     plugins: []
+      #       # - name: "grafana-piechart-panel"
+      #       #   version: "1.6.2"
+      #     # Optional: Allow cross-namespace import (boolean)
+      #     allowCrossNamespaceImport: false
+      #     # Optional: Metadata annotations
+      #     annotations: {}
       items: {}
-        # Example:
-        # my-dashboard:
-        #   name: "my-dashboard"  # Optional - dashboard name (defaults to key)
-        #   # Option 1: Inline JSON content (string or map)
-        #   json: |
-        #     {
-        #       "id": null,
-        #       "title": "My Dashboard",
-        #       "tags": [],
-        #       "timezone": "browser",
-        #       "schemaVersion": 17,
-        #       "version": 0,
-        #       "panels": []
-        #     }
-        #   # Option 2: Load JSON from file (relative to dashboards/ directory)
-        #   # file: "my-dashboard.json"
-        #   # Optional: Override global instanceSelector for this dashboard
-        #   instanceSelector:
-        #     matchLabels:
-        #       dashboards: "specific-grafana"
-        #   # Optional: Folder assignment (only one of folder, folderUID, or folderRef)
-        #   # folder: "My Folder"  # Folder title
-        #   # folderUID: "folder-uid"  # Folder UID
-        #   # folderRef: "grafana-folder-resource"  # GrafanaFolder resource name
-        #   # Optional: Required plugins
-        #   plugins: []
-        #     # - name: "grafana-piechart-panel"
-        #     #   version: "1.6.2"
-        #   # Optional: Allow cross-namespace import (boolean)
-        #   allowCrossNamespaceImport: false
-        #   # Optional: Metadata annotations
-        #   annotations: {}
 
 # ----------------------------------------------------------------------------
 # Service Account
@@ -327,19 +327,19 @@ secrets:
     # enabled is the feature flag to enable SealedSecret generation.
     enabled: false
     # items is a dictionary of sealed secret definitions. Each key is the secret name.
+    # Example:
+    #   my-secret:
+    #     data:
+    #       username: AgBy3i4OJSWK+PiTySYZZA9rO43cGDEQAx...
+    #       password: AgBy3i4OJSWK+PiTySYZZA9rO43cGDEQAx...
+    #     annotations:
+    #       sealedsecrets.bitnami.com/managed: "true"
+    #     labels:
+    #       app.kubernetes.io/component: "secrets"
+    #     templateAnnotations:
+    #       sealedsecrets.bitnami.com/cluster-wide: "true"
+    #     type: Opaque  # Optional - defaults to "Opaque"
     items: {}
-      # Example:
-      # my-secret:
-      #   data:
-      #     username: AgBy3i4OJSWK+PiTySYZZA9rO43cGDEQAx...
-      #     password: AgBy3i4OJSWK+PiTySYZZA9rO43cGDEQAx...
-      #   annotations:
-      #     sealedsecrets.bitnami.com/managed: "true"
-      #   labels:
-      #     app.kubernetes.io/component: "secrets"
-      #   templateAnnotations:
-      #     sealedsecrets.bitnami.com/cluster-wide: "true"
-      #   type: Opaque  # Optional - defaults to "Opaque"
 
 # ----------------------------------------------------------------------------
 # Pod disruption budget configuration
@@ -372,6 +372,10 @@ network:
     # routes is the HTTPRoute configuration for different listeners.
     # Each route can bind to a listener by sectionName, port, or both
     # Rules support template strings that will be evaluated at render time
+    # Auto-generates:
+    # 1. HTTPRoute (Gateway API)
+    # 2. AuthorizationPolicy (ingress source)
+    # 3. NetworkPolicy (ingress rule)
     routes:
       # Main Application Route (HTTPS)
       - name: route
@@ -406,10 +410,6 @@ network:
                 requestRedirect:
                   scheme: https
                   statusCode: 301
-    # Auto-generates:
-    # 1. HTTPRoute (Gateway API)
-    # 2. AuthorizationPolicy (ingress source)
-    # 3. NetworkPolicy (ingress rule)
   # NetworkPolicy Configuration - Multiple policies support
   # Map of policy name suffix to NetworkPolicy configuration
   # Each policy will be named: {global.name}-{key}
@@ -430,106 +430,106 @@ network:
   # {global.name}, {service.port}, {metrics.serviceMonitor.port}, {httpRoute.gateway.namespace}, {httpRoute.gateway.name}
   #
   networkPolicy:
+    # Example - Single policy:
+    #   main:
+    #     enabled: true
+    #     policyTypes:
+    #       - Ingress
+    #       - Egress
+    #     ingress:
+    #       - from:
+    #           - namespaceSelector:
+    #               matchLabels:
+    #                 kubernetes.io/metadata.name: "{httpRoute.gateway.namespace}"
+    #             podSelector:
+    #               matchLabels:
+    #                 app.kubernetes.io/name: "{httpRoute.gateway.name}"
+    #         ports:
+    #           - protocol: TCP
+    #             port: "{service.port}"
+    #           - protocol: TCP
+    #             port: 15008
+    #     egress:
+    #       - to:
+    #           - namespaceSelector:
+    #               matchLabels:
+    #                 kubernetes.io/metadata.name: kube-system
+    #         ports:
+    #           - protocol: UDP
+    #             port: 53
+    #           - protocol: TCP
+    #             port: 53
+    #       - to:
+    #           - ipBlock:
+    #               cidr: 0.0.0.0/0
+    #               except:
+    #                 - 10.42.0.0/16
+    #                 - 10.43.0.0/16
+    #         ports:
+    #           - protocol: TCP
+    #             port: 80
+    #           - protocol: TCP
+    #             port: 443
+    #
+    # Example - Multiple policies:
+    #   ingress:
+    #     enabled: true
+    #     policyTypes:
+    #       - Ingress
+    #     ingress:
+    #       - from:
+    #           - namespaceSelector:
+    #               matchLabels:
+    #                 kubernetes.io/metadata.name: istio-system
+    #         ports:
+    #           - protocol: TCP
+    #             port: 8080
+    #   egress:
+    #     enabled: true
+    #     policyTypes:
+    #       - Egress
+    #     egress:
+    #       - to:
+    #           - namespaceSelector:
+    #               matchLabels:
+    #                 kubernetes.io/metadata.name: kube-system
+    #         ports:
+    #           - protocol: UDP
+    #             port: 53
     items: {}
-      # Example - Single policy:
-      # main:
-      #   enabled: true
-      #   policyTypes:
-      #     - Ingress
-      #     - Egress
-      #   ingress:
-      #     - from:
-      #         - namespaceSelector:
-      #             matchLabels:
-      #               kubernetes.io/metadata.name: "{httpRoute.gateway.namespace}"
-      #           podSelector:
-      #             matchLabels:
-      #               app.kubernetes.io/name: "{httpRoute.gateway.name}"
-      #       ports:
-      #         - protocol: TCP
-      #           port: "{service.port}"
-      #         - protocol: TCP
-      #           port: 15008
-      #   egress:
-      #     - to:
-      #         - namespaceSelector:
-      #             matchLabels:
-      #               kubernetes.io/metadata.name: kube-system
-      #       ports:
-      #         - protocol: UDP
-      #           port: 53
-      #         - protocol: TCP
-      #           port: 53
-      #     - to:
-      #         - ipBlock:
-      #             cidr: 0.0.0.0/0
-      #             except:
-      #               - 10.42.0.0/16
-      #               - 10.43.0.0/16
-      #       ports:
-      #         - protocol: TCP
-      #           port: 80
-      #         - protocol: TCP
-      #           port: 443
-      #
-      # Example - Multiple policies:
-      # ingress:
-      #   enabled: true
-      #   policyTypes:
-      #     - Ingress
-      #   ingress:
-      #     - from:
-      #         - namespaceSelector:
-      #             matchLabels:
-      #               kubernetes.io/metadata.name: istio-system
-      #       ports:
-      #         - protocol: TCP
-      #           port: 8080
-      # egress:
-      #   enabled: true
-      #   policyTypes:
-      #     - Egress
-      #   egress:
-      #     - to:
-      #         - namespaceSelector:
-      #             matchLabels:
-      #               kubernetes.io/metadata.name: kube-system
-      #       ports:
-      #         - protocol: UDP
-      #           port: 53
   # services is the Service configuration supporting multiple services.
   # Map of service name suffix to service configuration
   # Each service will be named: {global.name}-{key}
   services:
+    # Example - Single service:
+    #   main:
+    #     enabled: true
+    #     type: ClusterIP
+    #     ports:
+    #       http:
+    #         port: 80
+    #         targetPort: 8080
+    #         protocol: TCP
+    #     annotations: {}
+    #
+    # Example - Multiple services:
+    #   main:
+    #     enabled: true
+    #     type: ClusterIP
+    #     ports:
+    #       http:
+    #         port: 80
+    #         targetPort: 8080
+    #         protocol: TCP
+    #   metrics:
+    #     enabled: true
+    #     type: ClusterIP
+    #     ports:
+    #       metrics:
+    #         port: 9100
+    #         targetPort: 9100
+    #         protocol: TCP
     items: {}
-      # Example - Single service:
-      # main:
-      #   enabled: true
-      #   type: ClusterIP
-      #   ports:
-      #     http:
-      #       port: 80
-      #       targetPort: 8080
-      #       protocol: TCP
-      #   annotations: {}
-      #
-      # Example - Multiple services:
-      # main:
-      #   enabled: true
-      #   type: ClusterIP
-      #   ports:
-      #     http:
-      #       port: 80
-      #       targetPort: 8080
-      #       protocol: TCP
-      # metrics:
-      #   enabled: true
-      #   type: ClusterIP
-      #   ports:
-      #     metrics:
-      #       port: 9100
-      #       targetPort: 9100
-      #       protocol: TCP
   istio:
     # enabled is the feature flag to enable Istio features.
     enabled: true
@@ -539,43 +539,43 @@ network:
     authorizationPolicy:
       # enabled is the feature flag to enable AuthorizationPolicy generation.
       enabled: false
+      # Example - Single policy:
+      #   default:
+      #     enabled: true
+      #     action: ALLOW
+      #     rules:
+      #       - from:
+      #           - source:
+      #               principals:
+      #                 - "cluster.local/ns/{httpRoute.gateway.namespace}/sa/{httpRoute.gateway.name}-istio"
+      #         to:
+      #           - operation:
+      #               ports: ["{service.port}"]
+      #
+      # Example - Multiple policies:
+      #   ingress:
+      #     enabled: true
+      #     action: ALLOW
+      #     rules:
+      #       - from:
+      #           - source:
+      #               principals:
+      #                 - "cluster.local/ns/istio-system/sa/shared-platform-gateway-istio"
+      #         to:
+      #           - operation:
+      #               ports: ["8080"]
+      #   prometheus:
+      #     enabled: true
+      #     action: ALLOW
+      #     rules:
+      #       - from:
+      #           - source:
+      #               principals:
+      #                 - "cluster.local/ns/monitoring/sa/prometheus-kube-prometheus-prometheus"
+      #         to:
+      #           - operation:
+      #               ports: ["{metrics.serviceMonitor.port}"]
       items: {}
-        # Example - Single policy:
-        # default:
-        #   enabled: true
-        #   action: ALLOW
-        #   rules:
-        #     - from:
-        #         - source:
-        #             principals:
-        #               - "cluster.local/ns/{httpRoute.gateway.namespace}/sa/{httpRoute.gateway.name}-istio"
-        #       to:
-        #         - operation:
-        #             ports: ["{service.port}"]
-        #
-        # Example - Multiple policies:
-        # ingress:
-        #   enabled: true
-        #   action: ALLOW
-        #   rules:
-        #     - from:
-        #         - source:
-        #             principals:
-        #               - "cluster.local/ns/istio-system/sa/shared-platform-gateway-istio"
-        #       to:
-        #         - operation:
-        #             ports: ["8080"]
-        # prometheus:
-        #   enabled: true
-        #   action: ALLOW
-        #   rules:
-        #     - from:
-        #         - source:
-        #             principals:
-        #               - "cluster.local/ns/monitoring/sa/prometheus-kube-prometheus-prometheus"
-        #       to:
-        #         - operation:
-        #             ports: ["{metrics.serviceMonitor.port}"]
     # destinationRule is the DestinationRule configuration (Circuit Breaker).
     # Provides connection pooling and outlier detection to prevent cascading failures
     destinationRule:
