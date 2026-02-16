@@ -1,4 +1,4 @@
-# Unit tests for the Service template (from libChart), run via appChart render.
+# Unit tests for the Service template (from libChart), run via test-chart render.
 # With minimal values (no PDB): 0=ServiceAccount, 1=Deployment, 2=Service
 suite: test service template
 templates:

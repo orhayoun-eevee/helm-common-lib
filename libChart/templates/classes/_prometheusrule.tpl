@@ -4,15 +4,13 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: {{ include "common.helpers.chart.names.name" . }}
+  name: {{ include "libChart.name" . }}
   namespace: {{ .Values.global.namespace | default "default" }}
   labels:
-    {{- include "common.helpers.metadata.labels" . | nindent 4 }}
-    app.kubernetes.io/component: "prometheus-rule"
-
+    {{- include "libChart.labelsWithComponent" (dict "root" . "component" "prometheus-rule") | nindent 4 }}
 spec:
   groups:
-    - name: {{ include "common.helpers.chart.names.name" . }}.rules
+    - name: {{ include "libChart.name" . }}.rules
       rules:
         {{- toYaml .Values.metrics.prometheusRule.rules | nindent 8 }}
 {{- end }}

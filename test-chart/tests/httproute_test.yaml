@@ -1,4 +1,4 @@
-# Unit tests for the HTTPRoute template (from libChart), run via appChart render.
+# Unit tests for the HTTPRoute template (from libChart), run via test-chart render.
 # With minimal values (no PDB, no services): 0=ServiceAccount, 1=Deployment, 2=HTTPRoute
 suite: test httproute template
 templates:

@@ -4,13 +4,10 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "common.helpers.chart.names.name" . }}
+  name: {{ include "libChart.name" . }}
   namespace: {{ .Values.global.namespace | default "default" }}
   labels:
-    {{- include "common.helpers.metadata.labels" . | nindent 4 }}
-    app.kubernetes.io/component: "servicemonitor"
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    {{- include "libChart.labelsWithComponent" (dict "root" . "component" "servicemonitor") | nindent 4 }}
 spec:
   {{- if .Values.metrics.serviceMonitor.selector }}
   selector:
@@ -18,14 +15,14 @@ spec:
   {{- else }}
   selector:
     matchLabels:
-      {{- include "common.helpers.metadata.selectorLabels" . | nindent 6 }}
+      {{- include "libChart.selectorLabels" . | nindent 6 }}
   {{- end }}
   {{- if .Values.metrics.serviceMonitor.namespaceSelector }}
   namespaceSelector:
     {{- toYaml .Values.metrics.serviceMonitor.namespaceSelector | nindent 4 }}
   {{- end }}
   endpoints:
-    - port: metrics
+    - port: {{ .Values.metrics.serviceMonitor.portName | default "metrics" }}
       interval: {{ .Values.metrics.serviceMonitor.interval | default "10s" }}
       scrapeTimeout: {{ .Values.metrics.serviceMonitor.scrapeTimeout | default "5s" }}
       {{- if .Values.metrics.serviceMonitor.path }}

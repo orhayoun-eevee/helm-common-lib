@@ -4,20 +4,24 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ include "common.helpers.chart.names.name" . }}
+  name: {{ include "libChart.name" . }}
   namespace: {{ .Values.global.namespace | default "default" }}
   labels:
-    {{- include "common.helpers.metadata.labels" . | nindent 4 }}
-    app.kubernetes.io/component: "pod-disruption-budget"
+    {{- include "libChart.labelsWithComponent" (dict "root" . "component" "pod-disruption-budget") | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      {{- include "common.helpers.metadata.selectorLabels" . | nindent 6 }}
-  {{- if .Values.podDisruptionBudget.minAvailable }}
-  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+      {{- include "libChart.selectorLabels" . | nindent 6 }}
+  {{- /* Use index + ne nil to support zero values (e.g., minAvailable: 0).
+       A simple {{- if .val }} would drop 0 because Go templates treat 0 as falsy.
+       This matches the pattern used in the PDB validation template (_pdb.tpl). */ -}}
+  {{- $min := index .Values.podDisruptionBudget "minAvailable" }}
+  {{- if ne $min nil }}
+  minAvailable: {{ $min }}
   {{- end }}
-  {{- if .Values.podDisruptionBudget.maxUnavailable }}
-  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
+  {{- $max := index .Values.podDisruptionBudget "maxUnavailable" }}
+  {{- if ne $max nil }}
+  maxUnavailable: {{ $max }}
   {{- end }}
   {{- if .Values.podDisruptionBudget.unhealthyPodEvictionPolicy }}
   unhealthyPodEvictionPolicy: {{ .Values.podDisruptionBudget.unhealthyPodEvictionPolicy }}

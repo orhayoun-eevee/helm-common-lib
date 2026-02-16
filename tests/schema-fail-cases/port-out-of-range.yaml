@@ -1,0 +1,16 @@
+# Test: Container port out of range
+# Expected error: containerPort exceeds maximum
+global:
+  name: test-app
+  namespace: test-namespace
+deployment:
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: nginx
+        tag: "1.25"
+      ports:
+        - name: http
+          containerPort: 99999
+          protocol: TCP

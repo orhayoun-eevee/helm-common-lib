@@ -1,0 +1,79 @@
+# Unit tests for GrafanaDashboard template rendering (from libChart), run via test-chart render.
+suite: test grafana dashboard template
+templates:
+  - templates/all.yaml
+tests:
+  - it: should render GrafanaDashboard from dashboard file with metadata options
+    set:
+      global:
+        name: grafana-app
+        namespace: monitor-ns
+      deployment:
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: "1.25"
+      metrics:
+        enabled: true
+        serviceMonitor:
+          enabled: false
+        prometheusRule:
+          enabled: false
+        grafana:
+          enabled: true
+          instanceSelector:
+            matchLabels:
+              dashboards: grafana-a
+          dashboard:
+            enabled: true
+            items:
+              example:
+                enabled: true
+                file: example-dashboard.json
+                folder: App Dashboards
+                folderUID: app-folder
+                folderRef: shared-folder
+                annotations:
+                  owner: sre
+                allowCrossNamespaceImport: true
+    asserts:
+      - hasDocuments:
+          count: 3
+      - documentIndex: 2
+        equal:
+          path: kind
+          value: GrafanaDashboard
+      - documentIndex: 2
+        equal:
+          path: metadata.name
+          value: grafana-app-example
+      - documentIndex: 2
+        equal:
+          path: metadata.namespace
+          value: monitor-ns
+      - documentIndex: 2
+        equal:
+          path: metadata.annotations.owner
+          value: sre
+      - documentIndex: 2
+        equal:
+          path: spec.instanceSelector.matchLabels.dashboards
+          value: grafana-a
+      - documentIndex: 2
+        equal:
+          path: spec.folder
+          value: App Dashboards
+      - documentIndex: 2
+        equal:
+          path: spec.folderUID
+          value: app-folder
+      - documentIndex: 2
+        equal:
+          path: spec.folderRef
+          value: shared-folder
+      - documentIndex: 2
+        equal:
+          path: spec.allowCrossNamespaceImport
+          value: true

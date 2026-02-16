@@ -1,22 +1,23 @@
 {{- /*
-  Deployment validations - business logic only (schema handles types/format).
-  NOTE: "$_ := required 'msg' value" is used so we get fail-fast validation without emitting output;
-  "required" returns the value when non-empty; assigning to $_ discards it and suppresses template output.
+  Deployment validations - business logic only (schema handles types/format/conditional-required).
+  Returns error messages as newline-delimited string (empty string if valid).
+  Schema cross-ref: values.schema.json -> $.properties.deployment.properties.containers
+
+  Schema enforces: container names (DNS-1123), required image object with repository/tag (minLength 1),
+                   port ranges, at least one container defined (minProperties: 1).
+  Template enforces: at least one enabled container (requires iteration over dynamic map keys).
 */ -}}
 {{- define "libChart.validation.deployment" -}}
-{{- $enabledList := list }}
-{{- range $name, $container := .Values.deployment.containers }}
-  {{- if $container.enabled }}
-    {{- $enabledList = append $enabledList 1 }}
-    {{- /* guard: image map must exist before checking sub-keys with required */ -}}
-    {{- if not $container.image }}
-      {{- fail (printf "deployment.containers.%s.image is required" $name) }}
-    {{- end }}
-    {{- $_ := required (printf "deployment.containers.%s.image.repository is required" $name) $container.image.repository -}}
-    {{- $_ := required (printf "deployment.containers.%s.image.tag is required" $name) $container.image.tag -}}
-  {{- end }}
+{{- $errors := list -}}
+{{- $dep := .Values.deployment | default dict }}
+{{- $containers := $dep.containers | default dict }}
+{{- $hasEnabled := false }}
+{{- range $name := (keys $containers | sortAlpha) }}
+  {{- $container := index $containers $name }}
+  {{- if $container.enabled }}{{- $hasEnabled = true }}{{- end }}
 {{- end }}
-{{- if eq (len $enabledList) 0 }}
-  {{- fail "deployment.containers must have at least one enabled container" }}
+{{- if not $hasEnabled }}
+  {{- $errors = append $errors "deployment.containers must have at least one enabled container" -}}
 {{- end }}
+{{- join "\n" $errors -}}
 {{- end -}}

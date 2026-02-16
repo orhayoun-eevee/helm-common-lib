@@ -1,0 +1,14 @@
+# Test: Unknown strategy type
+# Expected error: strategy.type must be one of [Recreate, RollingUpdate]
+global:
+  name: test-app
+  namespace: test-namespace
+deployment:
+  strategy:
+    type: BlueGreen
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: nginx
+        tag: "1.25"

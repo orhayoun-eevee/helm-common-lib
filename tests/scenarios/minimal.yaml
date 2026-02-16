@@ -1,0 +1,26 @@
+# Minimal scenario - bare minimum values that produce a valid chart
+# This tests that defaults work correctly
+
+global:
+  name: "test-app"
+  namespace: "test-namespace"
+
+deployment:
+  replicas: 1
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: nginx
+        tag: "1.27.0"
+      ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "128Mi"
+          cpu: "100m"

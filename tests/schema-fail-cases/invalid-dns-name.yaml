@@ -1,0 +1,12 @@
+# Test: DNS name with uppercase should fail pattern validation
+# Expected error: does not match pattern '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+global:
+  name: "INVALID_UPPERCASE"
+  namespace: test-namespace
+deployment:
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: nginx
+        tag: "1.25"

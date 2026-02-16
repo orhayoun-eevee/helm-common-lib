@@ -1,0 +1,16 @@
+# Checkov configuration for helm-common-lib
+# https://www.checkov.io/2.Basics/CLI%20Command%20Reference.html
+#
+# Skip checks that are not applicable to test-chart rendered manifests:
+#
+# CKV_K8S_43 - "Image should use digest"
+#   Test scenarios use image tags (e.g., nginx:1.27.0), not digests.
+#   Consumer charts should use digests in production; this is documented.
+#
+# CKV2_K8S_6 - "Minimize pods which lack an associated NetworkPolicy"
+#   Known Checkov limitation: when scanning rendered Helm output as a single
+#   file, Checkov cannot correlate the NetworkPolicy to the Deployment's Pod.
+#   The test-chart does include a NetworkPolicy resource.
+skip-check:
+  - CKV_K8S_43
+  - CKV2_K8S_6

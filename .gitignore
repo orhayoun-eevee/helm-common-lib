@@ -1,10 +1,8 @@
 # Helm chart packages
 *.tgz
 
-# Helm dependency cache directories
+# Helm dependency cache
 **/charts/
-appChart/charts/
-libChart/charts/
 
 # Build artifacts
 dist/
@@ -17,16 +15,10 @@ dist/
 *.swo
 *~
 
+# Python virtual environment
+.venv/
+.debug/
+
 # OS files
 .DS_Store
 Thumbs.db
-
-# Analysis and working documents (AI-generated, not for commit)
-*_ANALYSIS.md
-*_VALIDATION.md
-*_SUMMARY.md
-ARCHITECTURE_ANALYSIS.md
-BEST_PRACTICES_VALIDATION.md
-SCHEMA_VALIDATION.md
-TEMPLATE_VALIDATION.md
-VALIDATION_SUMMARY.md

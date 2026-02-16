@@ -1,0 +1,13 @@
+global:
+  name: test-app
+  namespace: test-namespace
+  labels:
+    overrides:
+      app.kubernetes.io/name: custom-name
+deployment:
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: nginx
+        tag: "1.25"

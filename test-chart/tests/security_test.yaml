@@ -1,4 +1,4 @@
-# Unit tests for ServiceAccount, NetworkPolicy, and SealedSecret (from libChart), run via appChart render.
+# Unit tests for ServiceAccount, NetworkPolicy, and SealedSecret (from libChart), run via test-chart render.
 # Document order varies by test; each test uses minimal values to fix indices.
 suite: test security templates
 templates:

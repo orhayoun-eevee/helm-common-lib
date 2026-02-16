@@ -1,0 +1,182 @@
+# Full scenario - all optional features enabled
+# This produces ALL resource types for maximum validation coverage.
+#
+# Resources rendered:
+#   ConfigMap, NetworkPolicy, PodDisruptionBudget, ServiceAccount,
+#   PVC, Service, Deployment, PrometheusRule, ServiceMonitor
+
+global:
+  name: "full-app"
+  namespace: "test-namespace"
+  labels:
+    partOf: "test-suite"
+    # NOTE: Resource-specific component labels (e.g., "deployment", "service")
+    # properly override any global.labels.component value in the templates.
+
+deployment:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+  terminationGracePeriodSeconds: 30
+  automountServiceAccountToken: false
+  podLabels:
+    test-label: "full-scenario"
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                    - full-app
+            topologyKey: kubernetes.io/hostname
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 20000
+    fsGroup: 20000
+    seccompProfile:
+      type: RuntimeDefault
+  defaultContainerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 20000
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+    appArmorProfile:
+      type: RuntimeDefault
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: nginx
+        tag: "1.27.0"
+        pullPolicy: Always
+      ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+        - name: metrics
+          containerPort: 9100
+          protocol: TCP
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "100m"
+        limits:
+          memory: "256Mi"
+          cpu: "200m"
+      livenessProbe:
+        httpGet:
+          path: /
+          port: 80
+        initialDelaySeconds: 30
+        periodSeconds: 10
+      readinessProbe:
+        httpGet:
+          path: /
+          port: 80
+        initialDelaySeconds: 5
+        periodSeconds: 5
+      env:
+        - name: TEST_ENV
+          value: "full-scenario"
+      volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: tmp
+          mountPath: /tmp
+
+serviceAccount:
+  create: true
+  automount: false
+  annotations:
+    test-annotation: "full-scenario"
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+  unhealthyPodEvictionPolicy: AlwaysAllow
+
+persistence:
+  enabled: true
+  claims:
+    data:
+      accessMode: ReadWriteOnce
+      size: 1Gi
+      storageClass: "standard"
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: full-app-data
+    - name: tmp
+      emptyDir: {}
+
+configMap:
+  componentLabel: "config"
+  items:
+    app-config:
+      data:
+        config.yaml: |
+          environment: test
+          logLevel: info
+        settings.json: |
+          {"featureFlags":{"darkMode":true}}
+
+network:
+  enabled: true
+  services:
+    items:
+      main:
+        enabled: true
+        type: ClusterIP
+        ports:
+          http:
+            port: 80
+            targetPort: 80
+            protocol: TCP
+  networkPolicy:
+    items:
+      default:
+        enabled: true
+        policyTypes:
+          - Ingress
+          - Egress
+        ingress:
+          - from:
+              - namespaceSelector:
+                  matchLabels:
+                    name: test-namespace
+            ports:
+              - protocol: TCP
+                port: 80
+        egress:
+          - to:
+              - namespaceSelector: {}
+            ports:
+              - protocol: TCP
+                port: 443
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    port: 9100
+    interval: "30s"
+    scrapeTimeout: "10s"
+  prometheusRule:
+    enabled: true
+    rules:
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"

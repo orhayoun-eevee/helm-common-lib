@@ -1,7 +1,9 @@
-# Unit tests for template validation (fail-fast).
-# Validations use standard Helm required/fail; invalid values cause template to fail.
-# Schema handles format/type; templates handle business logic (conditional requirements, cross-field rules).
-# Base values from fixtures/valid-base.yaml; each test overrides only what it needs.
+# Template validation tests (business logic only).
+# Structural checks (types, patterns, conditional-required, minProperties) are enforced by
+# values.schema.json and tested via automated schema fail-case tests (make test-schema).
+# These tests cover only what schema cannot express:
+#   - deployment: at least one enabled container (iteration logic)
+#   - PDB: mutual exclusivity with zero-value awareness (index + ne nil)
 suite: test validation failures
 templates:
   - templates/all.yaml
@@ -9,148 +11,12 @@ values:
   - fixtures/valid-base.yaml
 tests:
   # ---- Deployment ----
-  - it: should fail when image repository is empty
-    set:
-      deployment.containers.app.image.repository: ""
+  - it: should fail when no containers are enabled
+    values:
+      - fixtures/no-enabled-containers.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "deployment.containers.app.image.repository is required"
-
-  - it: should fail when image tag is empty
-    set:
-      deployment.containers.app.image.tag: ""
-    asserts:
-      - failedTemplate:
-          errorMessage: "deployment.containers.app.image.tag is required"
-
-  - it: should fail with correct container name when second container has empty repository
-    set:
-      deployment.containers.sidecar.enabled: true
-      deployment.containers.sidecar.image.repository: ""
-      deployment.containers.sidecar.image.tag: "1.0"
-    asserts:
-      - failedTemplate:
-          errorMessage: "deployment.containers.sidecar.image.repository is required"
-
-  - it: should render when disabled container has empty image
-    set:
-      deployment.containers.sidecar.enabled: false
-      deployment.containers.sidecar.image.repository: scratch
-      deployment.containers.sidecar.image.tag: latest
-    asserts:
-      - hasDocuments:
-          count: 2
-
-  # Note: "at least one enabled container" is enforced in _deployment.tpl; not covered here due to
-  # helm-unittest value-merge behavior with the fixture (zero-enabled case does not trigger fail in test context).
-
-  # ---- HTTPRoute ----
-  - it: should fail when HTTPRoute is enabled but gateway name is empty
-    set:
-      network.httpRoute.enabled: true
-      network.httpRoute.host: test.example.com
-      network.httpRoute.port: 80
-      network.httpRoute.gateway.name: ""
-      network.httpRoute.gateway.namespace: istio-system
-    asserts:
-      - failedTemplate:
-          errorMessage: "network.httpRoute.gateway.name is required when HTTPRoute is enabled"
-
-  - it: should fail when HTTPRoute is enabled but gateway namespace is empty
-    set:
-      network.httpRoute.enabled: true
-      network.httpRoute.host: test.example.com
-      network.httpRoute.port: 80
-      network.httpRoute.gateway.name: my-gateway
-      network.httpRoute.gateway.namespace: ""
-    asserts:
-      - failedTemplate:
-          errorMessage: "network.httpRoute.gateway.namespace is required when HTTPRoute is enabled"
-
-  - it: should fail when HTTPRoute is enabled but host is empty
-    set:
-      network.httpRoute.enabled: true
-      network.httpRoute.host: ""
-      network.httpRoute.port: 80
-      network.httpRoute.gateway.name: my-gateway
-      network.httpRoute.gateway.namespace: istio-system
-    asserts:
-      - failedTemplate:
-          errorMessage: "network.httpRoute.host is required when HTTPRoute is enabled"
-
-  - it: should render when HTTPRoute is enabled with all required fields
-    set:
-      network.httpRoute.enabled: true
-      network.httpRoute.host: test.example.com
-      network.httpRoute.port: 80
-      network.httpRoute.gateway.name: my-gateway
-      network.httpRoute.gateway.namespace: istio-system
-    asserts:
-      - hasDocuments:
-          count: 2
-      - documentIndex: 0
-        equal:
-          path: kind
-          value: ServiceAccount
-
-  # ---- Service ----
-  - it: should fail when service is enabled but has no ports
-    set:
-      network.services.items.main.enabled: true
-      network.services.items.main.type: ClusterIP
-    asserts:
-      - failedTemplate:
-          errorMessage: "network.services.items.main.ports is required when service is enabled"
-
-  - it: should fail when service is enabled but ports is empty
-    set:
-      network.services.items.main.enabled: true
-      network.services.items.main.type: ClusterIP
-      network.services.items.main.ports: {}
-    asserts:
-      - failedTemplate:
-          errorMessage: "network.services.items.main.ports is required when service is enabled"
-
-  # ---- DestinationRule ----
-  - it: should fail when DestinationRule is enabled but host is empty
-    set:
-      network.istio.enabled: true
-      network.istio.destinationrule.enabled: true
-      network.istio.destinationrule.host: ""
-    asserts:
-      - failedTemplate:
-          errorMessage: "network.istio.destinationrule.host is required when DestinationRule is enabled"
-
-  # ---- SealedSecret ----
-  - it: should fail when SealedSecret item has no data
-    set:
-      secrets.enabled: true
-      secrets.sealedSecret.enabled: true
-      secrets.sealedSecret.items.mysecret: {}
-    asserts:
-      - failedTemplate:
-          errorMessage: "secrets.sealedSecret.items.mysecret.data is required and must not be empty"
-
-  - it: should fail when SealedSecret item has empty data map
-    set:
-      secrets.enabled: true
-      secrets.sealedSecret.enabled: true
-      secrets.sealedSecret.items.mysecret.data: {}
-    asserts:
-      - failedTemplate:
-          errorMessage: "secrets.sealedSecret.items.mysecret.data is required and must not be empty"
-
-  - it: should skip validation when sealedSecret.enabled is false
-    set:
-      secrets.enabled: true
-      secrets.sealedSecret.enabled: false
-      secrets.sealedSecret.items.mysecret: {}
-    asserts:
-      - hasDocuments:
-          count: 2
-
-  # Note: Empty sealed secret data value (e.g. data.password: "") is validated in _security.tpl;
-  # not tested here because dependency value merge in helm-unittest prevents the failure from triggering.
+          errorMessage: "deployment.containers must have at least one enabled container"
 
   # ---- PDB ----
   - it: should fail when PDB has both minAvailable and maxUnavailable set
@@ -211,4 +77,12 @@ tests:
       - hasDocuments:
           count: 3
 
-  # Note: empty global.name and invalid PVC size are caught by JSON schema validation at lint/install time
+  - it: should render when PDB is disabled (skip validation)
+    set:
+      podDisruptionBudget.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 2
+
+  # Aggregated multi-error output is validated by scripts/test-validation-aggregation.sh.
+  # helm-unittest failedTemplate assertions are exact-match and can be brittle for multiline errors.

@@ -6,107 +6,101 @@ Unified Helm library chart for application deployment. Provides reusable templat
 
 This repository contains:
 - **`libChart/`**: The library chart (published to OCI) - reusable templates for building custom charts
-- **`appChart/`**: Generic application chart (published to OCI) - ready-to-use standardized deployment template
+- **`test-chart/`**: Test harness chart used for rendering and validating libChart templates
 
-Both charts are published to GitHub Container Registry (GHCR) and can be used as dependencies in other Helm charts.
+The library chart is published to GitHub Container Registry (GHCR) and can be used as a dependency in other Helm charts.
 
-## Publishing a Release
+## Development and Release
 
-Both charts are automatically published to GitHub Container Registry (GHCR) when you push a git tag. They are published in **lockstep** with synchronized versions.
+### Quick Start
 
-### Release Process
+For contributors working on helm-common-lib:
 
-1. **Update the chart version** in `libChart/Chart.yaml`:
-   ```yaml
-   version: 0.0.2  # Bump to your desired version
-   ```
+```bash
+# Install dependencies
+make deps
 
-2. **Commit the change**:
-   ```bash
-   git add libChart/Chart.yaml
-   git commit -m "chore: bump version to 0.0.2"
-   ```
+# Make template changes, then update snapshot files
+make snapshot-update
 
-3. **Create and push a git tag** matching the version (with `v` prefix):
-   ```bash
-   git tag v0.0.2
-   git push origin v0.0.2
-   ```
+# Run full local CI (same as GitHub CI)
+make ci
 
-4. **GitHub Actions will automatically**:
-   - Verify the tag matches the chart version
-   - Lint both charts
-   - Validate manifests with kubeconform
-   - Package and publish `lib-chart` to `oci://ghcr.io/orhayoun-eevee/libchart`
-   - Sync `app-chart` version and update its dependency to use the published `lib-chart`
-   - Package and publish `app-chart` to `oci://ghcr.io/orhayoun-eevee/app-chart`
+# Commit and push
+git commit -am "feat: your changes"
+git push
+```
 
-### Version Verification
+### Creating a Release
 
-The workflow enforces that the git tag version (e.g., `v0.0.2`) must exactly match the `version` field in `libChart/Chart.yaml` (e.g., `0.0.2`). If they don't match, the publish will fail. The `app-chart` version is automatically synchronized to match `lib-chart` during the release process.
+```bash
+# Bump version in all Chart.yaml files
+make bump VERSION=0.0.7
+
+# Commit and tag
+git commit -am "chore: bump version to 0.0.7"
+git push
+git tag v0.0.7 && git push origin v0.0.7
+```
+
+The publish workflow automatically packages and pushes the chart to GHCR when you push a version tag.
+
+**For the complete developer workflow, release process, troubleshooting, and Makefile reference, see [docs/WORKFLOW.md](docs/WORKFLOW.md).**
+
+## Testing and Validation
+
+### Quick Reference
+
+```bash
+make help           # Show all available commands
+make test           # Run unit tests
+make validate       # Run full 5-layer validation pipeline
+make ci             # Run full CI suite locally
+```
+
+### Test Types
+
+| Test | What it does | Command |
+|------|----------------|---------|
+| **Unit tests** | Assert on rendered templates | `make test` |
+| **Schema tests** | Verify invalid values fail schema validation | `make test-schema` |
+| **Validation** | Full 5-layer pipeline (syntax, schema, metadata, tests, policy) | `make validate` |
+| **Full CI** | Everything (mirrors GitHub CI) | `make ci` |
+
+**For detailed testing documentation, see [docs/TESTING.md](docs/TESTING.md).**
+
+**For the complete workflow guide, see [docs/WORKFLOW.md](docs/WORKFLOW.md).**
+
+**For validation architecture and rules, see [docs/VALIDATIONS.md](docs/VALIDATIONS.md).**
+
+**For deprecation policy and current breaking changes, see [docs/DEPRECATIONS.md](docs/DEPRECATIONS.md).**
 
 ## Using as a Dependency
 
-### Option 1: Use `app-chart` as a Generic Service Chart (Recommended)
+### Add libChart as a Dependency
 
-For most services, you can use `app-chart` directly without creating your own Helm chart. This is the fastest way to deploy standardized services.
-
-#### With Helm CLI
-
-```bash
-helm install my-service oci://ghcr.io/orhayoun-eevee/app-chart \
-  --version 0.0.2 \
-  --set global.name=my-service \
-  --set deployment.containers.app.image=my-service:latest \
-  --set network.services.items.main.ports.http.port=8080
-```
-
-#### With ArgoCD Application
+In your chart's `Chart.yaml`:
 
 ```yaml
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: my-service
-  namespace: argocd
-spec:
-  project: default
-  source:
-    chart: app-chart
-    repoURL: oci://ghcr.io/orhayoun-eevee
-    targetRevision: 0.0.2
-    helm:
-      values: |
-        global:
-          name: my-service
-          namespace: production
-        deployment:
-          replicas: 3
-          containers:
-            app:
-              image: my-service:latest
-              imagePullPolicy: IfNotPresent
-              ports:
-                - name: http
-                  containerPort: 8080
-        network:
-          services:
-            items:
-              main:
-                enabled: true
-                ports:
-                  http:
-                    port: 80
-                    targetPort: http
-        httpRoute:
-          enabled: true
-          host: my-service.example.com
-          port: 80
+dependencies:
+  - name: lib-chart
+    version: "0.0.6"
+    repository: "oci://ghcr.io/orhayoun-eevee"
 ```
 
-#### Example Values File
+Then in your chart's `templates/all.yaml`:
 
-Create a `values.yaml` for your service:
+```yaml
+{{ include "libChart.all" . }}
+```
+
+This renders all libChart resources based on your values.
+
+### Configuration
+
+Configure your chart via `values.yaml`. See [libChart/values.yaml](libChart/values.yaml) for the complete schema with inline documentation.
+
+Minimal example:
 
 ```yaml
 global:
@@ -117,17 +111,13 @@ deployment:
   replicas: 2
   containers:
     app:
-      image: my-service:v1.2.3
-      imagePullPolicy: IfNotPresent
+      enabled: true
+      image:
+        repository: my-service
+        tag: "v1.2.3"
       ports:
         - name: http
           containerPort: 8080
-      env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: my-service-secrets
-              key: database-url
 
 network:
   services:
@@ -139,91 +129,33 @@ network:
           http:
             port: 80
             targetPort: http
-
-persistence:
-  enabled: true
-  claims:
-    data:
-      storage: 10Gi
-      accessMode: ReadWriteOnce
-
-httpRoute:
-  enabled: true
-  host: my-service.example.com
-  port: 80
 ```
 
-### Option 2: Use `lib-chart` to Build Custom Charts
+### Using Individual Templates
 
-If you need custom logic or additional resources beyond what `app-chart` provides, create your own chart that depends on `lib-chart`:
-
-```yaml
-apiVersion: v2
-name: my-custom-app
-version: 1.0.0
-dependencies:
-  - name: lib-chart
-    version: 0.0.2
-    repository: oci://ghcr.io/orhayoun-eevee/libchart
-```
-
-Then in your `templates/deployment.yaml`:
+If you only need specific resources instead of `libChart.all`, you can include individual templates:
 
 ```yaml
 {{- include "libChart.classes.deployment" . -}}
+{{- include "libChart.classes.service" . -}}
 ```
+
+See `libChart/templates/classes/` for all available resource templates.
 
 ### In This Repository (Development)
 
-The `appChart` in this repository uses a local file dependency to ensure it always tests the current source code:
+The `test-chart` in this repository uses a local file dependency to ensure it always tests the current source code:
 
 ```yaml
 dependencies:
   - name: lib-chart
-    version: 0.0.1
+    version: 0.0.6
     repository: file://../libChart
 ```
 
-During the release process, this dependency is automatically updated to use the OCI repository before publishing.
+## Documentation
 
-## Validation
-
-The repository includes validation scripts to ensure chart quality:
-
-```bash
-./scripts/validate.sh
-```
-
-This script:
-- Lints both charts
-- Validates generated manifests with kubeconform
-- Compares against golden snapshot to detect drift
-
-To update the golden snapshot:
-```bash
-./scripts/validate.sh --update
-```
-
-## Testing
-
-For comprehensive testing documentation including all test types, prerequisites, and how to extend tests, see **[docs/TESTING.md](docs/TESTING.md)**.
-
-### Quick Start
-
-```bash
-# Run all tests (CI parity)
-helm dependency update appChart
-helm unittest appChart
-ct lint --config ct.yaml --all
-./scripts/validate.sh
-```
-
-### Test Types
-
-| Test | What it does | Command |
-|------|----------------|---------|
-| **Unit tests** | Assert on rendered templates | `helm unittest appChart` |
-| **Helm lint** | Schema + chart structure | `helm lint libChart` |
-| **Chart-testing** | Lint all charts | `ct lint --config ct.yaml --all` |
-| **Golden snapshot** | Drift detection | `./scripts/validate.sh` |
-| **Validation** | All checks + schema | `./scripts/lint.sh` |
+- **[docs/WORKFLOW.md](docs/WORKFLOW.md)** -- Complete development workflow, release process, and troubleshooting
+- **[docs/TESTING.md](docs/TESTING.md)** -- Comprehensive testing documentation
+- **[docs/VALIDATIONS.md](docs/VALIDATIONS.md)** -- Validation rules and requirements
+- **[docs/DEPRECATIONS.md](docs/DEPRECATIONS.md)** -- Deprecation warnings and migration guides
