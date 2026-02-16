@@ -102,12 +102,12 @@ deployment:
         tag: changeme
 
   # initContainers is a map of init container definitions.
+  # example-init:
+  #   image:
+  #     repository: busybox
+  #     tag: latest
+  #   command: ['sh', '-c', 'echo init']
   initContainers: {}
-    # example-init:
-    #   image:
-    #     repository: busybox
-    #     tag: latest
-    #   command: ['sh', '-c', 'echo init']
 
 # ----------------------------------------------------------------------------
 # Feature: Persistence
@@ -119,33 +119,33 @@ persistence:
   # claims is a dictionary of PVC definitions.
   # Each key is the claim name suffix (full name: {global.name}-{key})
   # Chart will generate PVC resources for each entry
+  # Example:
+  # config:
+  #   size: 1Gi
+  #   storageClass: "local-path"  # REQUIRED - storage class name
+  #   accessMode: ReadWriteOnce
+  #   retain: true  # Retain PVC on release deletion (adds helm.sh/resource-policy: keep)
   claims: {}
-    # Example:
-    # config:
-    #   size: 1Gi
-    #   storageClass: "local-path"  # REQUIRED - storage class name
-    #   accessMode: ReadWriteOnce
-    #   retain: true  # Retain PVC on release deletion (adds helm.sh/resource-policy: keep)
 
   # volumes is a list of volume definitions (nfs, hostPath, emptyDir, secret, configMap, etc).
   # These volumes will be added to the Deployment's spec.template.spec.volumes
   # For PVC volumes, reference the claim name: {global.name}-{claimKey}
+  # Example:
+  # - name: config
+  #   persistentVolumeClaim:
+  #     claimName: "{global.name}-config"
+  # - name: media
+  #   nfs:
+  #     server: snorlax.orhayoun.com
+  #     path: /mnt/vol1/media-center/media
+  # - name: downloads
+  #   nfs:
+  #     server: snorlax.orhayoun.com
+  #     path: /mnt/vol1/media-center/downloads
+  # - name: secrets
+  #   secret:
+  #     secretName: my-secret
   volumes: []
-    # Example:
-    # - name: config
-    #   persistentVolumeClaim:
-    #     claimName: "{global.name}-config"
-    # - name: media
-    #   nfs:
-    #     server: snorlax.orhayoun.com
-    #     path: /mnt/vol1/media-center/media
-    # - name: downloads
-    #   nfs:
-    #     server: snorlax.orhayoun.com
-    #     path: /mnt/vol1/media-center/downloads
-    # - name: secrets
-    #   secret:
-    #     secretName: my-secret
 
 # ----------------------------------------------------------------------------
 # Feature: ConfigMap
@@ -157,17 +157,17 @@ configMap:
   componentLabel: ""
   # additionalLabels are extra labels applied to all ConfigMap resources.
   additionalLabels: {}
+  # Example:
+  # app-config:
+  #   data:
+  #     config.yaml: |
+  #       key: value
+  #     setting: "value"
+  #   annotations: {}
+  # other-config:
+  #   data:
+  #     env: "production"
   items: {}
-    # Example:
-    # app-config:
-    #   data:
-    #     config.yaml: |
-    #       key: value
-    #     setting: "value"
-    #   annotations: {}
-    # other-config:
-    #   data:
-    #     env: "production"
 
 # ----------------------------------------------------------------------------
 # Feature: Observability
@@ -196,75 +196,75 @@ metrics:
     # Selector for ServiceMonitor spec
     # Allows customizing which services are selected for scraping
     # Supports both matchLabels and matchExpressions
+    # Example with matchLabels:
+    #   matchLabels:
+    #     app.kubernetes.io/name: "my-app"
+    #     app.kubernetes.io/instance: "my-release"
+    # Example with matchExpressions:
+    #   matchExpressions:
+    #     - key: app.kubernetes.io/name
+    #       operator: In
+    #       values: ["app1", "app2"]
+    # If not provided, defaults to standard selectorLabels helper
     selector: {}
-      # Example with matchLabels:
-      #   matchLabels:
-      #     app.kubernetes.io/name: "my-app"
-      #     app.kubernetes.io/instance: "my-release"
-      # Example with matchExpressions:
-      #   matchExpressions:
-      #     - key: app.kubernetes.io/name
-      #       operator: In
-      #       values: ["app1", "app2"]
-      # If not provided, defaults to standard selectorLabels helper
 
     # Namespace selector for ServiceMonitor spec
     # Allows selecting namespaces to scrape from
+    # Example:
+    #   matchNames:
+    #     - default
+    #     - monitoring
     namespaceSelector: {}
-      # Example:
-      #   matchNames:
-      #     - default
-      #     - monitoring
 
     # Relabelings - Prometheus relabel configs (applied before scraping)
     # Full Prometheus relabeling configuration format
+    # Example:
+    #   - action: replace
+    #     sourceLabels: [__meta_kubernetes_pod_name]
+    #     targetLabel: pod_name
     relabelings: []
-      # Example:
-      #   - action: replace
-      #     sourceLabels: [__meta_kubernetes_pod_name]
-      #     targetLabel: pod_name
 
     # Metric relabelings - Prometheus relabel configs (applied after scraping)
     # Full Prometheus relabeling configuration format
+    # Example:
+    #   - action: replace
+    #     targetLabel: service
+    #     replacement: radarr
+    #   - action: replace
+    #     targetLabel: component
+    #     replacement: media-center
     metricRelabelings: []
-      # Example:
-      #   - action: replace
-      #     targetLabel: service
-      #     replacement: radarr
-      #   - action: replace
-      #     targetLabel: component
-      #     replacement: media-center
 
   # PrometheusRule Configuration
   prometheusRule:
     enabled: true  # Enable PrometheusRule resource creation
     # Custom Alert Rules
     # Define service-specific alerts here as an array of PrometheusRule alert definitions
+    # Example:
+    # - alert: ServiceDown
+    #   expr: service_system_status == 0
+    #   for: 5m
+    #   labels:
+    #     severity: critical
+    #   annotations:
+    #     summary: "Service is down"
+    #     description: "Service system status is 0 (unhealthy) for more than 5 minutes."
     rules: []
-      # Example:
-      # - alert: ServiceDown
-      #   expr: service_system_status == 0
-      #   for: 5m
-      #   labels:
-      #     severity: critical
-      #   annotations:
-      #     summary: "Service is down"
-      #     description: "Service system status is 0 (unhealthy) for more than 5 minutes."
 
   # Grafana Configuration
   grafana:
     enabled: false  # Feature flag - enable GrafanaDashboard CRD generation
     # Global instance selector - applied to all dashboards unless overridden per-dashboard
     # This selects which Grafana instance(s) should receive the dashboards
+    # Example:
+    #   matchLabels:
+    #     dashboards: "grafana-a"
+    # Or with matchExpressions:
+    #   matchExpressions:
+    #     - key: dashboards
+    #       operator: In
+    #       values: ["grafana-a", "grafana-b"]
     instanceSelector: {}
-      # Example:
-      #   matchLabels:
-      #     dashboards: "grafana-a"
-      # Or with matchExpressions:
-      #   matchExpressions:
-      #     - key: dashboards
-      #       operator: In
-      #       values: ["grafana-a", "grafana-b"]
     dashboard:
       enabled: false  # Enable GrafanaDashboard CRD generation
       # Dictionary of dashboard items - each key becomes a resource name suffix
