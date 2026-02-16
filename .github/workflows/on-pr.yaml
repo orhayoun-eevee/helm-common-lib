@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Mint app installation token
         id: app-token
-        uses: actions/create-github-app-token@a51e0de8c73aa6766449672d9297c5789d9dbf43 # v1.11.0
+        uses: actions/create-github-app-token@v1
         with:
           app-id: ${{ secrets.GHCR_AUTO_APP_ID || vars.GHCR_AUTO_APP_ID }}
           private-key: ${{ secrets.GHCR_AUTO_PKEY }}
