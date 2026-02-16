@@ -1,0 +1,72 @@
+# Unit tests for PodDisruptionBudget template rendering (from libChart), run via test-chart render.
+suite: test poddisruptionbudget template
+templates:
+  - templates/all.yaml
+tests:
+  - it: should render PDB with minAvailable set to zero
+    set:
+      global:
+        name: pdb-app
+        namespace: pdb-ns
+      deployment:
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: "1.25"
+      podDisruptionBudget:
+        enabled: true
+        minAvailable: 0
+        maxUnavailable: null
+    asserts:
+      - hasDocuments:
+          count: 3
+      - documentIndex: 2
+        equal:
+          path: kind
+          value: PodDisruptionBudget
+      - documentIndex: 2
+        equal:
+          path: metadata.name
+          value: pdb-app
+      - documentIndex: 2
+        equal:
+          path: spec.minAvailable
+          value: 0
+      - documentIndex: 2
+        notExists:
+          path: spec.maxUnavailable
+
+  - it: should render PDB with maxUnavailable and unhealthyPodEvictionPolicy
+    set:
+      global:
+        name: pdb-app
+        namespace: pdb-ns
+      deployment:
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: "1.25"
+      podDisruptionBudget:
+        enabled: true
+        minAvailable: null
+        maxUnavailable: "50%"
+        unhealthyPodEvictionPolicy: AlwaysAllow
+    asserts:
+      - hasDocuments:
+          count: 3
+      - documentIndex: 2
+        equal:
+          path: kind
+          value: PodDisruptionBudget
+      - documentIndex: 2
+        equal:
+          path: spec.maxUnavailable
+          value: "50%"
+      - documentIndex: 2
+        equal:
+          path: spec.unhealthyPodEvictionPolicy
+          value: AlwaysAllow

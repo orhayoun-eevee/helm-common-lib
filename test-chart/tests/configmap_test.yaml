@@ -1,0 +1,58 @@
+# Unit tests for ConfigMap template rendering (from libChart), run via test-chart render.
+suite: test configmap template
+templates:
+  - templates/all.yaml
+tests:
+  - it: should render ConfigMap with data, annotations, and labels
+    set:
+      global:
+        name: cfg-app
+        namespace: cfg-ns
+      deployment:
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: "1.25"
+      configMap:
+        componentLabel: app-config
+        additionalLabels:
+          team: platform
+        items:
+          settings:
+            annotations:
+              config.kubernetes.io/local-config: "true"
+            data:
+              app.yaml: |
+                env: prod
+                level: info
+    asserts:
+      - documentIndex: 1
+        equal:
+          path: kind
+          value: ConfigMap
+      - documentIndex: 1
+        equal:
+          path: metadata.name
+          value: cfg-app-settings
+      - documentIndex: 1
+        equal:
+          path: metadata.namespace
+          value: cfg-ns
+      - documentIndex: 1
+        equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: app-config
+      - documentIndex: 1
+        equal:
+          path: metadata.labels.team
+          value: platform
+      - documentIndex: 1
+        equal:
+          path: metadata.annotations["config.kubernetes.io/local-config"]
+          value: "true"
+      - documentIndex: 1
+        equal:
+          path: data["app.yaml"]
+          value: "env: prod\nlevel: info\n"

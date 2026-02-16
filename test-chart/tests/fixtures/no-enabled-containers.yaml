@@ -1,0 +1,10 @@
+global:
+  name: test-app
+  namespace: test-namespace
+deployment:
+  containers:
+    app:
+      enabled: false
+      image:
+        repository: nginx
+        tag: "1.25"

@@ -1,5 +1,5 @@
-# Default values for app-template
-# This chart wraps libChart to provide a standardized application deployment interface.
+# Default values for test-chart
+# Test harness chart that wraps libChart for rendering and validating templates.
 # All values are passed directly to libChart - no prefix needed.
 
 # ----------------------------------------------------------------------------
@@ -15,7 +15,7 @@ global:
     appVersion: ""  # Parent chart appVersion
   labels:
     partOf: ""  # Optional - name of higher level application (e.g., "media-center")
-    overrides: {}  # Optional - map to override any standard label (e.g., "app.kubernetes.io/name": "custom-name")
+    overrides: {}  # Optional - map to override metadata labels (selector labels name/instance are reserved)
 
 # ----------------------------------------------------------------------------
 # Deployment Configuration
@@ -28,7 +28,7 @@ deployment:
   imagePullSecrets: []
   terminationGracePeriodSeconds: 30
   podLabels: {}
-  automountServiceAccountToken: false  # FIX: Added to satisfy CKV_K8S_38
+  automountServiceAccountToken: false
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 20000  # High UID to avoid host conflicts (CKV_K8S_40)
@@ -37,7 +37,7 @@ deployment:
       type: RuntimeDefault
   defaultContainerSecurityContext:
     allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: true  # FIX: Changed from false to true (CKV_K8S_22)
+    readOnlyRootFilesystem: true
     runAsNonRoot: true
     runAsUser: 20000  # High UID to avoid host conflicts (CKV_K8S_40)
     capabilities:
@@ -52,8 +52,7 @@ deployment:
       enabled: true
       image:
         repository: changeme   # override when installing
-        tag: "1.0.0"           # FIX: Changed from 'latest' to specific version (CKV_K8S_14)
-      # FIX: Added resources to satisfy CKV_K8S_10, CKV_K8S_11, CKV_K8S_12, CKV_K8S_13
+        tag: "1.0.0"
       resources:
         requests:
           memory: "128Mi"
@@ -61,7 +60,6 @@ deployment:
         limits:
           memory: "256Mi"
           cpu: "200m"
-      # FIX: Added probes to satisfy CKV_K8S_8, CKV_K8S_9
       livenessProbe:
         httpGet:
           path: /healthz
@@ -92,6 +90,7 @@ metrics:
   serviceMonitor:
     enabled: true
     port: 9100
+    portName: "metrics"
     interval: "10s"
     scrapeTimeout: "5s"
     path: ""
@@ -153,78 +152,69 @@ network:
     gateway:
       name: shared-platform-gateway
       namespace: istio-system
+    # Example routes:
+    # - name: route
+    #   enabled: true
+    #   listener:
+    #     sectionName: https
+    #   rules:
+    #     - matches:
+    #         - path:
+    #             type: PathPrefix
+    #             value: /
+    #       backendRefs:
+    #         - name: "{{ .Values.global.name }}"
+    #           port: 80
+    #           weight: 100
+    #           group: ""
+    #           kind: Service
     routes: []
-      # Example:
-      # - name: route
-      #   enabled: true
-      #   listener:
-      #     sectionName: https
-      #   rules:
-      #     - matches:
-      #         - path:
-      #             type: PathPrefix
-      #             value: /
-      #       backendRefs:
-      #         - name: "{{ .Values.global.name }}"
-      #           port: 80
-      #           weight: 100
-      #           group: ""
-      #           kind: Service
   # NetworkPolicy Configuration - Multiple policies support
-  # Map of policy name suffix to NetworkPolicy configuration
+  # NOTE: NetworkPolicy is disabled by default to avoid breaking unit tests.
+  # Enable it in production charts or when running Checkov scans.
+  # Example:
+  #   items:
+  #     default:
+  #       enabled: true
+  #       policyTypes: [Ingress, Egress]
+  #       ingress: []
+  #       egress: []
   networkPolicy:
-    items:
-      # NOTE: NetworkPolicy is disabled by default to avoid breaking unit tests
-      # Enable it in production charts or when running Checkov scans
-      # Example configuration for deny-all policy:
-      # default:
-      #   enabled: true
-      #   policyTypes:
-      #     - Ingress
-      #     - Egress
-      #   ingress: []  # Deny all ingress by default
-      #   egress: []   # Deny all egress by default
-      # Example:
-      # main:
-      #   enabled: true
-      #   policyTypes:
-      #     - Ingress
-      #     - Egress
-      #   ingress: []
-      #   egress: []
+    items: {}
   # Service Configuration - Multiple services support
-  # Map of service name suffix to service configuration
+  # Example:
+  #   items:
+  #     "":                    # Empty string uses global.name as service name
+  #       enabled: true
+  #       type: ClusterIP
+  #       ports:
+  #         http:
+  #           port: 80
+  #           targetPort: 8080
+  #           protocol: TCP
+  #       annotations: {}
   services:
     items: {}
-      # Example - Single service (uses {global.name} as service name):
-      # "":
-      #   enabled: true
-      #   type: ClusterIP
-      #   ports:
-      #     http:
-      #       port: 80
-      #       targetPort: 8080
-      #       protocol: TCP
-      #   annotations: {}
   # Istio Configuration
   istio:
     enabled: true
     authorizationPolicy:
       enabled: false  # Feature flag - enable AuthorizationPolicy generation
+      # Example:
+      #   items:
+      #     default:
+      #       enabled: true
+      #       action: ALLOW
+      #       rules:
+      #         - from:
+      #             - source:
+      #                 principals:
+      #                   - "cluster.local/ns/istio-system/sa/shared-platform-gateway-istio"
+      #           to:
+      #             - operation:
+      #                 ports: ["80"]
       items: {}
-        # Example:
-        # default:
-        #   enabled: true
-        #   action: ALLOW
-        #   rules:
-        #     - from:
-        #         - source:
-        #             principals:
-        #               - "cluster.local/ns/istio-system/sa/shared-platform-gateway-istio"
-        #       to:
-        #         - operation:
-        #             ports: ["80"]
-    destinationrule:
+    destinationRule:
       enabled: false  # Feature flag - enable DestinationRule (Circuit Breaker) generation
       trafficPolicy:
         connectionPool:

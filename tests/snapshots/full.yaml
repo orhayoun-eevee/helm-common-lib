@@ -1,0 +1,308 @@
+---
+# Source: test-chart/templates/all.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: full-app-default
+  namespace: test-namespace
+  labels:
+    app.kubernetes.io/component: network-policy
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: full-app
+    app.kubernetes.io/part-of: test-suite
+    app.kubernetes.io/version: 0.0.6
+    helm.sh/chart: test-chart-0.0.6
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: full-app
+      app.kubernetes.io/instance: test-release
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: test-namespace
+      ports:
+      - port: 80
+        protocol: TCP
+  egress:
+    - ports:
+      - port: 443
+        protocol: TCP
+      to:
+      - namespaceSelector: {}
+---
+# Source: test-chart/templates/all.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: full-app
+  namespace: test-namespace
+  labels:
+    app.kubernetes.io/component: pod-disruption-budget
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: full-app
+    app.kubernetes.io/part-of: test-suite
+    app.kubernetes.io/version: 0.0.6
+    helm.sh/chart: test-chart-0.0.6
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: full-app
+      app.kubernetes.io/instance: test-release
+  minAvailable: 1
+  unhealthyPodEvictionPolicy: AlwaysAllow
+---
+# Source: test-chart/templates/all.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: full-app
+  namespace: test-namespace
+  labels:
+    app.kubernetes.io/component: serviceaccount
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: full-app
+    app.kubernetes.io/part-of: test-suite
+    app.kubernetes.io/version: 0.0.6
+    helm.sh/chart: test-chart-0.0.6
+  annotations:
+    test-annotation: full-scenario
+automountServiceAccountToken: false
+---
+# Source: test-chart/templates/all.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: full-app-app-config
+  namespace: test-namespace
+  labels:
+    app.kubernetes.io/component: config
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: full-app
+    app.kubernetes.io/part-of: test-suite
+    app.kubernetes.io/version: 0.0.6
+    helm.sh/chart: test-chart-0.0.6
+data:
+  config.yaml: |
+    environment: test
+    logLevel: info
+  settings.json: |
+    {"featureFlags":{"darkMode":true}}
+---
+# Source: test-chart/templates/all.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: full-app-data
+  namespace: test-namespace
+  labels:
+    app.kubernetes.io/component: pvc
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: full-app
+    app.kubernetes.io/part-of: test-suite
+    app.kubernetes.io/version: 0.0.6
+    helm.sh/chart: test-chart-0.0.6
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Source: test-chart/templates/all.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: full-app-main
+  namespace: test-namespace
+  labels:
+    app.kubernetes.io/component: service-main
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: full-app
+    app.kubernetes.io/part-of: test-suite
+    app.kubernetes.io/version: 0.0.6
+    helm.sh/chart: test-chart-0.0.6
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: full-app
+    app.kubernetes.io/instance: test-release
+---
+# Source: test-chart/templates/all.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: full-app
+  namespace: test-namespace
+  labels:
+    app.kubernetes.io/component: deployment
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: full-app
+    app.kubernetes.io/part-of: test-suite
+    app.kubernetes.io/version: 0.0.6
+    helm.sh/chart: test-chart-0.0.6
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: full-app
+      app.kubernetes.io/instance: test-release
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: deployment
+        app.kubernetes.io/instance: test-release
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: full-app
+        app.kubernetes.io/part-of: test-suite
+        app.kubernetes.io/version: 0.0.6
+        helm.sh/chart: test-chart-0.0.6
+        test-label: full-scenario
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        fsGroup: 20000
+        runAsNonRoot: true
+        runAsUser: 20000
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: full-app
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - full-app
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      automountServiceAccountToken: false
+      containers:
+        - name: app
+          image: nginx:1.27.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+            - name: metrics
+              containerPort: 9100
+              protocol: TCP
+          env:
+            - name: TEST_ENV
+              value: full-scenario
+          volumeMounts:
+            - mountPath: /data
+              name: data
+            - mountPath: /tmp
+              name: tmp
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            appArmorProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 20000
+            seccompProfile:
+              type: RuntimeDefault
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: full-app-data
+        - emptyDir: {}
+          name: tmp
+---
+# Source: test-chart/templates/all.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: full-app
+  namespace: test-namespace
+  labels:
+    app.kubernetes.io/component: prometheus-rule
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: full-app
+    app.kubernetes.io/part-of: test-suite
+    app.kubernetes.io/version: 0.0.6
+    helm.sh/chart: test-chart-0.0.6
+spec:
+  groups:
+    - name: full-app.rules
+      rules:
+        - alert: HighErrorRate
+          annotations:
+            summary: High error rate detected
+          expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+          for: 5m
+          labels:
+            severity: warning
+---
+# Source: test-chart/templates/all.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: full-app
+  namespace: test-namespace
+  labels:
+    app.kubernetes.io/component: servicemonitor
+    app.kubernetes.io/instance: test-release
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: full-app
+    app.kubernetes.io/part-of: test-suite
+    app.kubernetes.io/version: 0.0.6
+    helm.sh/chart: test-chart-0.0.6
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: full-app
+      app.kubernetes.io/instance: test-release
+  endpoints:
+    - port: metrics
+      interval: 30s
+      scrapeTimeout: 10s

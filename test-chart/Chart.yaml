@@ -10,4 +10,3 @@ dependencies:
     repository: file://../libChart
     # To use the published OCI chart:
     # repository: oci://ghcr.io/orhayoun-eevee/libchart
-

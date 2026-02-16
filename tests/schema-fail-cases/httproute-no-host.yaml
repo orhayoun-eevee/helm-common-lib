@@ -1,0 +1,19 @@
+# Test: HTTPRoute enabled without required host
+# Expected error: host is required when HTTPRoute is enabled
+global:
+  name: test-app
+  namespace: test-namespace
+deployment:
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: nginx
+        tag: "1.25"
+network:
+  httpRoute:
+    enabled: true
+    port: 80
+    gateway:
+      name: my-gateway
+      namespace: istio-system

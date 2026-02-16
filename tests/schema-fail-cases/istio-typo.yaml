@@ -1,0 +1,17 @@
+# Test: Typo in network.istio key (lowercase 'r')
+# Expected error: additional properties 'destinationrule' not allowed
+global:
+  name: test-app
+  namespace: test-namespace
+deployment:
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: nginx
+        tag: "1.25"
+network:
+  istio:
+    destinationrule:  # Typo: should be destinationRule (camelCase)
+      enabled: true
+      host: my-service

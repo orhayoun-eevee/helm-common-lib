@@ -1,4 +1,4 @@
-# Unit tests for ServiceMonitor and PrometheusRule (from libChart), run via appChart render.
+# Unit tests for ServiceMonitor and PrometheusRule (from libChart), run via test-chart render.
 # With minimal values: 0=ServiceAccount, 1=Deployment, 2=ServiceMonitor, 3=PrometheusRule
 suite: test observability templates
 templates:
@@ -62,6 +62,37 @@ tests:
         equal:
           path: spec.endpoints[0].honorLabels
           value: true
+
+  - it: should render ServiceMonitor with custom portName
+    set:
+      global:
+        name: port-app
+        namespace: default
+      deployment:
+        replicas: 1
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: "1.25"
+      metrics:
+        enabled: true
+        serviceMonitor:
+          enabled: true
+          portName: "http-metrics"
+        prometheusRule:
+          enabled: true
+          rules: []
+    asserts:
+      - documentIndex: 2
+        equal:
+          path: kind
+          value: ServiceMonitor
+      - documentIndex: 2
+        equal:
+          path: spec.endpoints[0].port
+          value: http-metrics
 
   - it: should render ServiceMonitor with selector
     set:

@@ -1,0 +1,74 @@
+# Unit tests for Istio templates (AuthorizationPolicy + DestinationRule), run via test-chart render.
+suite: test istio templates
+templates:
+  - templates/all.yaml
+tests:
+  - it: should render AuthorizationPolicy and DestinationRule when enabled
+    set:
+      global:
+        name: istio-app
+        namespace: istio-ns
+      deployment:
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: "1.25"
+      network:
+        enabled: true
+        istio:
+          enabled: true
+          authorizationPolicy:
+            enabled: true
+            items:
+              default:
+                enabled: true
+                action: ALLOW
+                rules:
+                  - from:
+                      - source:
+                          principals:
+                            - "cluster.local/ns/istio-system/sa/ingress"
+          destinationRule:
+            enabled: true
+            host: istio-app.istio-ns.svc.cluster.local
+            trafficPolicy:
+              connectionPool:
+                tcp:
+                  maxConnections: 100
+    asserts:
+      - hasDocuments:
+          count: 4
+      - documentIndex: 2
+        equal:
+          path: kind
+          value: AuthorizationPolicy
+      - documentIndex: 2
+        equal:
+          path: metadata.name
+          value: istio-app-default
+      - documentIndex: 2
+        equal:
+          path: metadata.namespace
+          value: istio-ns
+      - documentIndex: 2
+        equal:
+          path: spec.action
+          value: ALLOW
+      - documentIndex: 3
+        equal:
+          path: kind
+          value: DestinationRule
+      - documentIndex: 3
+        equal:
+          path: metadata.name
+          value: istio-app
+      - documentIndex: 3
+        equal:
+          path: spec.host
+          value: istio-app.istio-ns.svc.cluster.local
+      - documentIndex: 3
+        equal:
+          path: spec.trafficPolicy.connectionPool.tcp.maxConnections
+          value: 100

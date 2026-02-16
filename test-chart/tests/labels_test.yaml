@@ -1,0 +1,94 @@
+suite: test labels helpers
+templates:
+  - templates/all.yaml
+tests:
+  - it: should map global.labels.partOf to app.kubernetes.io/part-of
+    set:
+      global:
+        name: test-app
+        namespace: test-namespace
+        labels:
+          partOf: media-center
+      deployment:
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: "1.25"
+    asserts:
+      - documentIndex: 0
+        equal:
+          path: metadata.labels["app.kubernetes.io/part-of"]
+          value: media-center
+      - documentIndex: 0
+        notExists:
+          path: metadata.labels.partOf
+
+  - it: should keep resource component over global.labels.component
+    set:
+      global:
+        name: test-app
+        namespace: test-namespace
+        labels:
+          component: global-component
+      deployment:
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: "1.25"
+    asserts:
+      - documentIndex: 0
+        equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: serviceaccount
+
+  - it: should use global chart name and version for helm.sh/chart label
+    set:
+      global:
+        name: test-app
+        namespace: test-namespace
+        chart:
+          name: parent-chart
+          version: 1.2.3
+      deployment:
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: "1.25"
+    asserts:
+      - documentIndex: 0
+        equal:
+          path: metadata.labels["helm.sh/chart"]
+          value: parent-chart-1.2.3
+
+  - it: should use global chart appVersion override for app.kubernetes.io/version
+    set:
+      global:
+        name: test-app
+        namespace: test-namespace
+        chart:
+          appVersion: 9.9.9
+      deployment:
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: "1.25"
+    asserts:
+      - documentIndex: 0
+        equal:
+          path: metadata.labels["app.kubernetes.io/version"]
+          value: "9.9.9"
+
+  - it: should fail when selector labels are overridden via global.labels.overrides
+    values:
+      - fixtures/selector-override.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "global.labels.overrides cannot override selector labels: app.kubernetes.io/name, app.kubernetes.io/instance"

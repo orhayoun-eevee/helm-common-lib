@@ -1,4 +1,4 @@
-# Unit tests for the Deployment template (from libChart), run via appChart render.
+# Unit tests for the Deployment template (from libChart), run via test-chart render.
 # Rendered document order: 0=ServiceAccount, 1=Deployment, 2=PodDisruptionBudget, ...
 suite: test deployment template
 templates:
