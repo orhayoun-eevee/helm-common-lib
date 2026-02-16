@@ -6,6 +6,7 @@
 # This script updates the version in all Chart.yaml files atomically:
 #   - libChart/Chart.yaml: version and appVersion
 #   - test-chart/Chart.yaml: version, appVersion, and dependency version
+#   - test-chart/Chart.lock: regenerated to stay in sync with Chart.yaml
 #
 # Usage: ./scripts/bump-version.sh <new-version>
 # Example: ./scripts/bump-version.sh 0.0.7
@@ -24,6 +25,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 LIB_CHART="$PROJECT_ROOT/libChart/Chart.yaml"
 TEST_CHART="$PROJECT_ROOT/test-chart/Chart.yaml"
+TEST_CHART_DIR="$PROJECT_ROOT/test-chart"
+TEST_CHART_LOCK="$PROJECT_ROOT/test-chart/Chart.lock"
 
 # Function to print colored output
 info() {
@@ -47,6 +50,13 @@ if [ $# -eq 0 ]; then
 fi
 
 NEW_VERSION="$1"
+
+# Check required commands
+if ! command -v helm >/dev/null 2>&1; then
+    error "helm is required to refresh test-chart/Chart.lock"
+    echo "Install Helm or run the bump from an environment that has Helm available."
+    exit 1
+fi
 
 # Validate semver format (basic check)
 if ! [[ "$NEW_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.+-]+)?$ ]]; then
@@ -89,6 +99,10 @@ else
     sed -i "s/^\(    version: \).*/\1$NEW_VERSION/" "$TEST_CHART"
 fi
 
+# Refresh lock file and vendored dependency so CI dependency build stays in sync
+info "Refreshing dependency lockfile in ${TEST_CHART_DIR}..."
+helm dependency update "${TEST_CHART_DIR}" --skip-refresh >/dev/null
+
 # Verify changes
 echo ""
 info "Verifying changes..."
@@ -98,18 +112,21 @@ LIB_NEW_APP_VERSION=$(grep '^appVersion:' "$LIB_CHART" | awk '{print $2}' | tr -
 TEST_NEW_VERSION=$(grep '^version:' "$TEST_CHART" | awk '{print $2}')
 TEST_NEW_APP_VERSION=$(grep '^appVersion:' "$TEST_CHART" | awk '{print $2}' | tr -d '"')
 TEST_DEP_VERSION=$(grep -A 3 'dependencies:' "$TEST_CHART" | grep 'version:' | awk '{print $2}')
+LOCK_DEP_VERSION=$(grep '^  version:' "$TEST_CHART_LOCK" | awk '{print $2}')
 
 if [ "$LIB_NEW_VERSION" != "$NEW_VERSION" ] || \
    [ "$LIB_NEW_APP_VERSION" != "$NEW_VERSION" ] || \
    [ "$TEST_NEW_VERSION" != "$NEW_VERSION" ] || \
    [ "$TEST_NEW_APP_VERSION" != "$NEW_VERSION" ] || \
-   [ "$TEST_DEP_VERSION" != "$NEW_VERSION" ]; then
+   [ "$TEST_DEP_VERSION" != "$NEW_VERSION" ] || \
+   [ "$LOCK_DEP_VERSION" != "$NEW_VERSION" ]; then
     error "Version mismatch after update!"
     echo "libChart version: $LIB_NEW_VERSION"
     echo "libChart appVersion: $LIB_NEW_APP_VERSION"
     echo "test-chart version: $TEST_NEW_VERSION"
     echo "test-chart appVersion: $TEST_NEW_APP_VERSION"
     echo "test-chart dependency version: $TEST_DEP_VERSION"
+    echo "test-chart lockfile dependency version: $LOCK_DEP_VERSION"
     exit 1
 fi
 
@@ -118,6 +135,7 @@ echo ""
 echo "Changes made:"
 echo "  - libChart/Chart.yaml: version=$NEW_VERSION, appVersion=\"$NEW_VERSION\""
 echo "  - test-chart/Chart.yaml: version=$NEW_VERSION, appVersion=\"$NEW_VERSION\", dependencies[0].version=$NEW_VERSION"
+echo "  - test-chart/Chart.lock: dependencies[0].version=$NEW_VERSION (regenerated)"
 echo ""
 echo "Next steps:"
 echo "  1. Review changes: git diff"

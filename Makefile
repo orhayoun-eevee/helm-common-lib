@@ -116,7 +116,7 @@ ci: test test-schema test-aggregation validate check-validations ## Run full loc
 	@echo ""
 	@echo "All CI checks passed!"
 
-bump: ## Bump chart version (requires VERSION=x.y.z)
+bump: ## Bump chart version and refresh test-chart Chart.lock (requires VERSION=x.y.z)
 	@if [ -z "$(VERSION)" ]; then \
 		echo "Error: VERSION is required. Usage: make bump VERSION=x.y.z"; \
 		exit 1; \
