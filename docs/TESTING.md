@@ -1,26 +1,30 @@
 # Testing Guide
 
-This document describes all tests used in this repository, how to run them locally, and how to extend them. The same steps run in CI (see [.github/workflows/ci.yaml](../.github/workflows/ci.yaml)).
+This document describes all tests used in this repository, how to run them locally, and how to extend them. The same steps run in CI (see [.github/workflows/on-pr.yaml](../.github/workflows/on-pr.yaml)).
 
 ## Overview
 
 | Test type | What it does | Runs in CI | Script / command |
 |-----------|--------------|------------|-------------------|
-| **Unit tests** | Assert on rendered templates (Deployment, Services, etc.) | ✅ `unit-test` job | `helm unittest appChart` |
-| **Helm lint** | Schema + chart structure validation | ✅ (inside validate.sh) | `helm lint libChart` / `helm lint appChart` |
-| **Chart-testing (ct) lint** | Lint all charts per ct config | ✅ `lint-and-validate` job | `ct lint --config ct.yaml --all` |
-| **Golden snapshot** | Compare rendered manifests to saved baseline (drift detection) | ✅ (inside validate.sh) | `./scripts/validate.sh` |
-| **Kubeconform** | Validate generated YAML against Kubernetes APIs | ✅ (inside validate.sh) | Used inside `validate.sh` |
-| **Optional: lint.sh** | Single entry: strict lint + template + validate.sh + ajv | No (local only) | `./scripts/lint.sh` |
+| **Unit tests** | Assert on rendered templates (Deployment, Services, etc.) | ✅ `unit-test` job | `helm unittest test-chart` |
+| **Aggregation test** | Verifies multi-domain template validation errors are aggregated | ✅ (inside `make ci`) | `make test-aggregation` |
+| **Helm lint** | Schema + chart structure validation | ✅ (inside validate pipeline) | `helm lint libChart` / `helm lint test-chart` |
+| **Chart-testing (ct) lint** | Lint all charts per ct config | ✅ `validate` pipeline | `ct lint --config ct.yaml --all` |
+| **Snapshot testing** | Compare rendered manifests to saved baselines (drift detection) | ✅ (inside validate pipeline) | `make snapshot-update` |
+| **Kubeconform** | Validate generated YAML against Kubernetes APIs | ✅ (inside validate pipeline) | Part of `build-workflow` validation |
 
 ## Prerequisites
 
-- **helm** (3.x)
-- **helm-unittest** plugin: `helm plugin install https://github.com/helm-unittest/helm-unittest`
-- **kubeconform**: required by `validate.sh` ([install](https://github.com/yannh/kubeconform#installation))
-- **diff**: standard on Unix/macOS
-- **chart-testing (ct)** (optional for full CI parity): [install](https://github.com/helm/chart-testing#installation), e.g. `brew install chart-testing`
-- **ajv** (optional, for standalone schema check in `lint.sh`): `npm install -g ajv-cli`
+- **Docker** -- All validation tools run inside the `helm-validate` Docker image ([install](https://docs.docker.com/get-docker/))
+- **make** -- For running tasks
+
+One-time setup:
+
+```bash
+make docker-build
+```
+
+This builds a Docker image containing all required tools (helm, helm-unittest, kubeconform, yamllint, chart-testing, checkov, kube-linter, yq). No local tool installation is needed beyond Docker and make.
 
 ## Run all tests locally (CI parity)
 
@@ -28,64 +32,64 @@ From the repository root:
 
 ```bash
 # 1. Dependencies
-helm dependency update appChart
+make deps
 
 # 2. Unit tests
-helm unittest appChart
+make test
 
-# 3. Chart-testing lint (if ct is installed)
-ct lint --config ct.yaml --all
+# 3. Validation aggregation check
+make test-aggregation
 
-# 4. Lint + golden + kubeconform
-./scripts/validate.sh
+# 4. Full validation (lint + kubeconform + snapshot check)
+make validate
 ```
 
-Or use the single-entry script (does not run ct or unittest):
+Or run the complete CI suite:
 
 ```bash
-./scripts/lint.sh
+make ci
 ```
 
-`lint.sh` runs: strict helm lint, template generation, full `validate.sh` (lint both charts, template, kubeconform, golden diff), and optional ajv schema check.
+This mirrors exactly what GitHub CI runs.
 
 ---
 
 ## 1. Unit tests (helm-unittest)
 
 - **Purpose**: Test that templates render expected structure and values (e.g. Deployment name, replicas, image).
-- **Location**: Tests live in **appChart**, not libChart, because library charts are not directly templateable. appChart includes libChart and renders `templates/all.yaml`, so unit tests assert on that output.
-- **Files**: `appChart/tests/*_test.yaml` (e.g. `deployment_test.yaml`).
+- **Location**: Tests live in **test-chart**, not libChart, because library charts are not directly templateable. test-chart includes libChart and renders `templates/all.yaml`, so unit tests assert on that output.
+- **Files**: `test-chart/tests/*_test.yaml` (e.g. `deployment_test.yaml`).
 
 ### Run
 
 ```bash
-helm dependency update appChart
-helm unittest appChart
+helm dependency update test-chart
+helm unittest test-chart
 ```
 
 Run a single test file:
 
 ```bash
-helm unittest appChart appChart/tests/deployment_test.yaml
+helm unittest test-chart test-chart/tests/deployment_test.yaml
 ```
 
 Update snapshot assertions (if you use snapshot tests):
 
 ```bash
-helm unittest appChart --update-snapshot
+helm unittest test-chart --update-snapshot
 ```
 
 ### How to extend
 
-1. **Add a new test case** in an existing file (e.g. `appChart/tests/deployment_test.yaml`):
+1. **Add a new test case** in an existing file (e.g. `test-chart/tests/deployment_test.yaml`):
    - Add a new `- it: <description>` under `tests:`.
    - Use `set:` to override values (e.g. `global.name`, `deployment.containers`).
    - Use `asserts:` with `documentIndex` (0 = first rendered doc, 1 = Deployment, etc.) and `equal`, `matchSnapshot`, or other [helm-unittest assertions](https://github.com/helm-unittest/helm-unittest/blob/master/docs/assertions.md).
 
 2. **Add a new test file** for another resource (e.g. Service, HTTPRoute):
-   - Create `appChart/tests/service_test.yaml` (or similar).
+   - Create `test-chart/tests/service_test.yaml` (or similar).
    - Set `suite:`, `templates: [templates/all.yaml]`, and a list of `tests:`.
-   - Run `helm unittest appChart` to include it.
+   - Run `helm unittest test-chart` to include it.
 
 3. **Test validation (failures)**:
    - Use `failedTemplate` assert to check that invalid values cause template/validation to fail with a specific error message. Example:
@@ -108,21 +112,21 @@ helm unittest appChart --update-snapshot
            errorMessage: "global.name"
    ```
 
-See [libChart/tests/README.md](../libChart/tests/README.md) for why tests run via appChart.
+See [libChart/tests/README.md](../libChart/tests/README.md) for why tests run via test-chart.
 
 ---
 
 ## 2. Helm lint
 
 - **Purpose**: Validates chart structure and, for libChart, runs **values.schema.json** (types, required fields, patterns). Catches many config errors before template render.
-- **Location**: `libChart/values.schema.json`, `libChart/Chart.yaml`, `appChart/Chart.yaml`.
+- **Location**: `libChart/values.schema.json`, `libChart/Chart.yaml`, `test-chart/Chart.yaml`.
 
 ### Run
 
 ```bash
 helm lint libChart
 helm lint libChart --strict   # stricter (e.g. icon recommended)
-helm dependency update appChart && helm lint appChart
+helm dependency update test-chart && helm lint test-chart
 ```
 
 ### How to extend
@@ -134,13 +138,13 @@ helm dependency update appChart && helm lint appChart
 
 ## 3. Chart-testing (ct) lint
 
-- **Purpose**: Lint all charts listed in `ct.yaml` (libChart, appChart) with a single command; can also enforce version bumps and maintainers (disabled in this repo).
+- **Purpose**: Lint all charts listed in `ct.yaml` (libChart, test-chart) with a single command; can also enforce version bumps and maintainers (disabled in this repo).
 - **Config**: `ct.yaml` at repo root.
 
 ### Run
 
 ```bash
-helm dependency update appChart
+helm dependency update test-chart
 ct lint --config ct.yaml --all
 ```
 
@@ -151,65 +155,68 @@ ct lint --config ct.yaml --all
 
 ---
 
-## 4. Golden snapshot (validate.sh)
+## 4. Snapshot Testing
 
-- **Purpose**: Render manifests with a fixed values file and compare to a committed baseline (`tests/golden.yaml`) to detect unintended changes (drift).
+- **Purpose**: Render manifests with fixed scenario files and compare to committed baselines (`tests/snapshots/*.yaml`) to detect unintended changes (drift).
 - **Locations**:
-  - **Input values**: `tests/values.test.yaml`
-  - **Baseline**: `tests/golden.yaml`
-  - **Script**: `scripts/validate.sh`
+  - **Input scenarios**: `tests/scenarios/*.yaml` (e.g., `full.yaml`, `minimal.yaml`)
+  - **Baseline snapshots**: `tests/snapshots/*.yaml`
+  - **Validation framework**: `build-workflow` (Docker-based validation)
 
-Rendering uses **appChart** with `tests/values.test.yaml`; output is validated with kubeconform and then diffed against `tests/golden.yaml`.
+Rendering uses **test-chart** with each scenario in `tests/scenarios/`; output is validated with kubeconform, Checkov, and kube-linter, then compared against `tests/snapshots/`.
 
 ### Run
 
 ```bash
-./scripts/validate.sh
+make validate
 ```
 
-If you intentionally changed templates or test values and want to accept the new output as the baseline:
+If you intentionally changed templates or scenarios and want to accept the new output as the baseline:
 
 ```bash
-./scripts/validate.sh --update
-# Then commit tests/golden.yaml
+make snapshot-update
+# Then commit tests/snapshots/
 ```
 
 ### How to extend
 
-1. **Change the baseline**: Edit `tests/values.test.yaml` (add features, new resources, etc.), run `./scripts/validate.sh --update`, review the diff in `tests/golden.yaml`, and commit.
-2. **Add another golden set** (optional): Duplicate the pattern: e.g. `tests/values.test-minimal.yaml` and a script or Make target that renders to `tests/golden-minimal.yaml` and diffs. Not required for current CI.
-3. **Kubeconform**: validate.sh skips some CRDs (ServiceMonitor, PrometheusRule, HTTPRoute, etc.) if they lack schemas. To change that, edit the `kubeconform` invocation in `scripts/validate.sh`.
+1. **Add a new scenario**: Create a new file in `tests/scenarios/` (e.g., `tests/scenarios/monitoring.yaml`) with specific configuration. Run `make snapshot-update` to generate the corresponding snapshot file.
+
+2. **Update existing scenarios**: Edit files in `tests/scenarios/` to add features or change configuration. Run `make snapshot-update`, review the diff in `tests/snapshots/`, and commit.
+
+3. **Kubeconform validation**: The validation framework handles CRD schemas automatically using external schema catalogs. Configuration is in `build-workflow/configs/`.
 
 ---
 
-## 5. Validation error testing (optional)
+## 5. Policy and Security Validation
 
-To manually test that **template validation** fails with clear errors (e.g. empty `global.name`, invalid DNS name), you can use small values files and expect a non-zero exit.
+The validation framework includes automated security and policy checks:
 
-Example values that should **fail** template validation:
+- **Checkov**: Scans for security misconfigurations (image pull policies, resource limits, etc.)
+- **kube-linter**: Enforces Kubernetes best practices (anti-affinity, liveness probes, etc.)
+- **Configuration**: `.checkov.yaml` in the repository root (kube-linter uses the framework default from `build-workflow`)
 
-- **Empty name**: `tests/values-validation-examples/empty-name.yaml`
-- **Invalid name format**: `tests/values-validation-examples/invalid-name-format.yaml`
+### Testing policy compliance
 
-Run (expect failure):
+The full validation pipeline automatically runs these checks:
 
 ```bash
-cd appChart
-helm dependency update
-helm template test . -f ../tests/values-validation-examples/empty-name.yaml
-# Expect: Error: ... global.name ...
+make validate
 ```
 
-These are **not** run in CI; they are for local and doc reference. See `tests/values-validation-examples/README.md` for details.
+To skip Checkov checks, configure them in `.checkov.yaml` at the repository root. Kube-linter uses the framework default configuration from `build-workflow/configs/kube-linter-default.yaml`. Always document why a check is skipped.
 
 ---
 
 ## CI workflow summary
 
-- **unit-test**: `helm dependency update appChart` → `helm unittest appChart`
-- **lint-and-validate**: `helm dependency update appChart` → `ct lint --config ct.yaml --all` → install kubeconform → `./scripts/validate.sh`
-
-No separate job runs `scripts/lint.sh`; that script is for local use (strict lint + validate.sh + optional ajv).
+- **unit-test**: `helm dependency update test-chart` → `helm unittest test-chart`
+- **validate**: Uses `build-workflow` Docker image to run 5-layer validation:
+  1. Syntax validation (helm lint, yamllint)
+  2. Schema validation (kubeconform)
+  3. Metadata validation (chart-testing)
+  4. Test execution (helm-unittest)
+  5. Policy validation (Checkov, kube-linter)
 
 ---
 
@@ -217,9 +224,8 @@ No separate job runs `scripts/lint.sh`; that script is for local use (strict lin
 
 | Goal | Command |
 |------|--------|
-| Run everything (CI parity) | `helm dependency update appChart && helm unittest appChart && ct lint --config ct.yaml --all && ./scripts/validate.sh` |
-| Unit tests only | `helm unittest appChart` |
-| Golden + lint + kubeconform | `./scripts/validate.sh` |
-| Update golden | `./scripts/validate.sh --update` |
-| Single-entry local check | `./scripts/lint.sh` |
-| Lint one chart | `helm lint libChart --strict` or `helm lint appChart` |
+| Run everything (CI parity) | `make ci` |
+| Unit tests only | `make test` |
+| Full validation (snapshot + lint + kubeconform + policy) | `make validate` |
+| Update snapshots | `make snapshot-update` |
+| Lint one chart | `helm lint libChart --strict` or `helm lint test-chart` |
