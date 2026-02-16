@@ -7,6 +7,7 @@
 #   - libChart/Chart.yaml: version and appVersion
 #   - test-chart/Chart.yaml: version, appVersion, and dependency version
 #   - test-chart/Chart.lock: regenerated to stay in sync with Chart.yaml
+#   - tests/snapshots/*.yaml: regenerated from tests/scenarios/*.yaml
 #
 # Usage: ./scripts/bump-version.sh <new-version>
 # Example: ./scripts/bump-version.sh 0.0.7
@@ -27,6 +28,9 @@ LIB_CHART="$PROJECT_ROOT/libChart/Chart.yaml"
 TEST_CHART="$PROJECT_ROOT/test-chart/Chart.yaml"
 TEST_CHART_DIR="$PROJECT_ROOT/test-chart"
 TEST_CHART_LOCK="$PROJECT_ROOT/test-chart/Chart.lock"
+SCENARIOS_DIR="$PROJECT_ROOT/tests/scenarios"
+SNAPSHOTS_DIR="$PROJECT_ROOT/tests/snapshots"
+KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.30.0}"
 
 # Function to print colored output
 info() {
@@ -103,6 +107,25 @@ fi
 info "Refreshing dependency lockfile in ${TEST_CHART_DIR}..."
 helm dependency update "${TEST_CHART_DIR}" --skip-refresh >/dev/null
 
+# Regenerate snapshots so expected manifests match the new chart version metadata
+info "Regenerating snapshots from ${SCENARIOS_DIR} (kube-version=${KUBERNETES_VERSION})..."
+mkdir -p "${SNAPSHOTS_DIR}"
+shopt -s nullglob
+SCENARIO_FILES=("${SCENARIOS_DIR}"/*.yaml "${SCENARIOS_DIR}"/*.yml)
+if [ "${#SCENARIO_FILES[@]}" -eq 0 ]; then
+    error "No scenario files found in ${SCENARIOS_DIR}"
+    exit 1
+fi
+for scenario in "${SCENARIO_FILES[@]}"; do
+    scenario_name=$(basename "${scenario}" .yaml)
+    scenario_name=$(basename "${scenario_name}" .yml)
+    info "Updating snapshot: ${scenario_name}"
+    helm template test-release "${TEST_CHART_DIR}" \
+        --values "${scenario}" \
+        --kube-version "${KUBERNETES_VERSION}" \
+        > "${SNAPSHOTS_DIR}/${scenario_name}.yaml"
+done
+
 # Verify changes
 echo ""
 info "Verifying changes..."
@@ -136,6 +159,7 @@ echo "Changes made:"
 echo "  - libChart/Chart.yaml: version=$NEW_VERSION, appVersion=\"$NEW_VERSION\""
 echo "  - test-chart/Chart.yaml: version=$NEW_VERSION, appVersion=\"$NEW_VERSION\", dependencies[0].version=$NEW_VERSION"
 echo "  - test-chart/Chart.lock: dependencies[0].version=$NEW_VERSION (regenerated)"
+echo "  - tests/snapshots/*.yaml: regenerated from scenarios"
 echo ""
 echo "Next steps:"
 echo "  1. Review changes: git diff"
