@@ -22,7 +22,8 @@ jobs:
       - name: Validate app credentials presence
         run: |
           if [ -z "${GH_APP_ID}" ]; then
-            echo "Missing required secret: GHCR_AUTO_APP_ID" >&2
+            echo "Missing secret GHCR_AUTO_APP_ID in this workflow context." >&2
+            echo "If this is a fork PR, GitHub does not expose secrets to pull_request workflows." >&2
             exit 1
           fi
           if [ -z "${GH_APP_PRIVATE_KEY}" ]; then
