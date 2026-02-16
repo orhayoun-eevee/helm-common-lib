@@ -5,11 +5,30 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  packages: read
+
 jobs:
+  auth:
+    name: Create GitHub App Token
+    runs-on: ubuntu-latest
+    outputs:
+      workflow_repo_token: ${{ steps.app-token.outputs.token }}
+    steps:
+      - name: Mint app installation token
+        id: app-token
+        uses: actions/create-github-app-token@a51e0de8c73aa6766449672d9297c5789d9dbf43 # v1.11.0
+        with:
+          app-id: ${{ secrets.GHCR_AUTO_APP_ID || vars.GHCR_AUTO_APP_ID }}
+          private-key: ${{ secrets.GHCR_AUTO_PKEY }}
+          owner: ${{ github.repository_owner }}
+
   # Validate libChart (library chart)
   # Library charts skip render-dependent layers.
   validate-lib:
     name: Validate libChart
+    needs: auth
     uses: orhayoun-eevee/build-workflow/.github/workflows/helm-validate.yaml@main
     with:
       chart_path: libChart
@@ -20,12 +39,16 @@ jobs:
       run_tests: false
       run_policy: false
       run_version_check: true
-    secrets: inherit
+    secrets:
+      workflow_repo_token: ${{ needs.auth.outputs.workflow_repo_token }}
 
   # Validate test-chart (test harness for libChart)
   # Full validation: syntax, schema, metadata, tests, policy
   validate-test:
     name: Validate test-chart
+    needs:
+      - auth
+      - validate-lib
     uses: orhayoun-eevee/build-workflow/.github/workflows/helm-validate.yaml@main
     with:
       chart_path: test-chart
@@ -39,5 +62,5 @@ jobs:
       run_policy: true
       target_branch: main
       run_version_check: false  # test-chart version follows libChart
-    secrets: inherit
-    needs: validate-lib
+    secrets:
+      workflow_repo_token: ${{ needs.auth.outputs.workflow_repo_token }}
