@@ -41,39 +41,51 @@ tests:
     asserts:
       - hasDocuments:
           count: 3
-      - documentIndex: 2
-        equal:
+      - documentSelector:
           path: kind
           value: GrafanaDashboard
-      - documentIndex: 2
         equal:
           path: metadata.name
           value: grafana-app-example
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: GrafanaDashboard
         equal:
           path: metadata.namespace
           value: monitor-ns
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: GrafanaDashboard
         equal:
           path: metadata.annotations.owner
           value: sre
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: GrafanaDashboard
         equal:
           path: spec.instanceSelector.matchLabels.dashboards
           value: grafana-a
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: GrafanaDashboard
         equal:
           path: spec.folder
           value: App Dashboards
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: GrafanaDashboard
         equal:
           path: spec.folderUID
           value: app-folder
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: GrafanaDashboard
         equal:
           path: spec.folderRef
           value: shared-folder
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: GrafanaDashboard
         equal:
           path: spec.allowCrossNamespaceImport
           value: true

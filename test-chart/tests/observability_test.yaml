@@ -30,35 +30,45 @@ tests:
           enabled: true
           rules: []
     asserts:
-      - documentIndex: 2
-        equal:
+      - documentSelector:
           path: kind
           value: ServiceMonitor
-      - documentIndex: 2
         equal:
           path: metadata.name
           value: sm-app
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: ServiceMonitor
         equal:
           path: metadata.namespace
           value: monitor-ns
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: ServiceMonitor
         equal:
           path: spec.endpoints[0].port
           value: metrics
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: ServiceMonitor
         equal:
           path: spec.endpoints[0].interval
           value: 15s
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: ServiceMonitor
         equal:
           path: spec.endpoints[0].scrapeTimeout
           value: 10s
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: ServiceMonitor
         equal:
           path: spec.endpoints[0].path
           value: /metrics
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: ServiceMonitor
         equal:
           path: spec.endpoints[0].honorLabels
           value: true
@@ -85,11 +95,9 @@ tests:
           enabled: true
           rules: []
     asserts:
-      - documentIndex: 2
-        equal:
+      - documentSelector:
           path: kind
           value: ServiceMonitor
-      - documentIndex: 2
         equal:
           path: spec.endpoints[0].port
           value: http-metrics
@@ -118,11 +126,9 @@ tests:
           enabled: true
           rules: []
     asserts:
-      - documentIndex: 2
-        equal:
+      - documentSelector:
           path: kind
           value: ServiceMonitor
-      - documentIndex: 2
         equal:
           path: spec.selector.matchLabels["app.kubernetes.io/name"]
           value: selector-app
@@ -156,39 +162,51 @@ tests:
                 summary: "Service is down"
                 description: "Service has been down for more than 5 minutes"
     asserts:
-      - documentIndex: 3
-        equal:
+      - documentSelector:
           path: kind
           value: PrometheusRule
-      - documentIndex: 3
         equal:
           path: metadata.name
           value: rule-app
-      - documentIndex: 3
+      - documentSelector:
+          path: kind
+          value: PrometheusRule
         equal:
           path: metadata.namespace
           value: rule-ns
-      - documentIndex: 3
+      - documentSelector:
+          path: kind
+          value: PrometheusRule
         equal:
           path: spec.groups[0].name
           value: rule-app.rules
-      - documentIndex: 3
+      - documentSelector:
+          path: kind
+          value: PrometheusRule
         equal:
           path: spec.groups[0].rules[0].alert
           value: ServiceDown
-      - documentIndex: 3
+      - documentSelector:
+          path: kind
+          value: PrometheusRule
         equal:
           path: spec.groups[0].rules[0].expr
           value: up == 0
-      - documentIndex: 3
+      - documentSelector:
+          path: kind
+          value: PrometheusRule
         equal:
           path: spec.groups[0].rules[0].for
           value: 5m
-      - documentIndex: 3
+      - documentSelector:
+          path: kind
+          value: PrometheusRule
         equal:
           path: spec.groups[0].rules[0].labels.severity
           value: critical
-      - documentIndex: 3
+      - documentSelector:
+          path: kind
+          value: PrometheusRule
         equal:
           path: spec.groups[0].rules[0].annotations.summary
           value: "Service is down"

@@ -40,35 +40,39 @@ tests:
     asserts:
       - hasDocuments:
           count: 4
-      - documentIndex: 2
-        equal:
+      - documentSelector:
           path: kind
           value: AuthorizationPolicy
-      - documentIndex: 2
         equal:
           path: metadata.name
           value: istio-app-default
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: AuthorizationPolicy
         equal:
           path: metadata.namespace
           value: istio-ns
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: AuthorizationPolicy
         equal:
           path: spec.action
           value: ALLOW
-      - documentIndex: 3
-        equal:
+      - documentSelector:
           path: kind
           value: DestinationRule
-      - documentIndex: 3
         equal:
           path: metadata.name
           value: istio-app
-      - documentIndex: 3
+      - documentSelector:
+          path: kind
+          value: DestinationRule
         equal:
           path: spec.host
           value: istio-app.istio-ns.svc.cluster.local
-      - documentIndex: 3
+      - documentSelector:
+          path: kind
+          value: DestinationRule
         equal:
           path: spec.trafficPolicy.connectionPool.tcp.maxConnections
           value: 100
