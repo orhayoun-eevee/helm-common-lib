@@ -52,7 +52,13 @@ docker-build: ## Build the validation Docker image locally
 
 deps: ## Update Helm chart dependencies
 	@echo "Updating test-chart dependencies..."
-	@$(DOCKER_RUN) -c "helm dependency update $(CHART_PATH)"
+	@if ! $(DOCKER_RUN) -c "helm dependency update $(CHART_PATH)"; then \
+		echo ""; \
+		echo "Dependency update failed."; \
+		echo "If your validation image is hosted in GHCR, authenticate Docker first:"; \
+		echo "  echo <TOKEN> | docker login ghcr.io -u <USER> --password-stdin"; \
+		exit 1; \
+	fi
 
 lint: ## Run syntax checks (yamllint + helm lint --strict)
 	@$(DOCKER_RUN) $(SCRIPTS)/validate-syntax.sh
@@ -84,24 +90,9 @@ check-validations: ## Verify all validation files are wired into orchestrator
 
 snapshot-update: deps ## Regenerate all scenario snapshots
 	@echo "Updating snapshots for all scenarios..."
-	@mkdir -p $(SNAPSHOTS_DIR)
-	@$(DOCKER_RUN) -c '\
-		shopt -s nullglob; \
-		scenarios=( $(SCENARIOS_DIR)/*.yaml ); \
-		if [ $${#scenarios[@]} -eq 0 ]; then \
-			echo "No scenarios found in $(SCENARIOS_DIR)"; \
-			exit 1; \
-		fi; \
-		for scenario in "$${scenarios[@]}"; do \
-			name=$$(basename "$$scenario" .yaml); \
-			echo "Updating snapshot: $$name"; \
-			helm template test-release $(CHART_PATH) \
-				--values "$$scenario" \
-				--kube-version $(KUBERNETES_VERSION) \
-				> $(SNAPSHOTS_DIR)/$$name.yaml; \
-		done; \
-		echo ""; \
-		echo "Snapshots updated. Review changes with: make snapshot-diff"'
+	@$(DOCKER_RUN) $(SCRIPTS)/update-snapshots.sh
+	@echo ""
+	@echo "Snapshots updated. Review changes with: make snapshot-diff"
 
 snapshot-diff: ## Show snapshot differences
 	@echo "Snapshot differences:"

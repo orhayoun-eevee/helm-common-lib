@@ -84,7 +84,7 @@ In your chart's `Chart.yaml`:
 ```yaml
 dependencies:
   - name: lib-chart
-    version: "0.0.6"
+    version: "0.0.7"
     repository: "oci://ghcr.io/orhayoun-eevee"
 ```
 
@@ -149,7 +149,7 @@ The `test-chart` in this repository uses a local file dependency to ensure it al
 ```yaml
 dependencies:
   - name: lib-chart
-    version: 0.0.6
+    version: 0.0.7
     repository: file://../libChart
 ```
 
