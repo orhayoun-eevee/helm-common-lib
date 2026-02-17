@@ -159,3 +159,14 @@ dependencies:
 - **[docs/TESTING.md](docs/TESTING.md)** -- Comprehensive testing documentation
 - **[docs/VALIDATIONS.md](docs/VALIDATIONS.md)** -- Validation rules and requirements
 - **[docs/DEPRECATIONS.md](docs/DEPRECATIONS.md)** -- Deprecation warnings and migration guides
+
+## Dependency Automation Policy
+
+`helm-common-lib` uses Renovate with scoped automerge for low-risk dependency updates:
+
+- `github-actions`: `digest`, `pin`, `pinDigest`, `patch`, `minor`
+- `helmv3` dependencies: `digest`, `pin`, `pinDigest`, `patch`, `minor`
+- `major` updates are not automerged
+
+Branch protection on `main` is expected to require passing PR validation checks before merge.
+This ensures Renovate automerge only merges changes that pass CI.
