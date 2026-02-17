@@ -1,0 +1,15 @@
+checks:
+  doNotAutoAddDefaults: false
+  include:
+    - no-liveness-probe
+    - no-readiness-probe
+    - no-rolling-update-strategy
+    - default-service-account
+    - non-isolated-pod
+    - minimum-three-replicas
+    - cluster-admin-role-binding
+    - access-to-secrets
+    - read-secret-from-env-var
+  exclude:
+    # Test harness intentionally runs a single replica to keep snapshots compact.
+    - minimum-three-replicas
