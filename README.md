@@ -47,6 +47,20 @@ The publish workflow automatically packages and pushes the chart to GHCR when yo
 
 **For the complete developer workflow, release process, troubleshooting, and Makefile reference, see [docs/WORKFLOW.md](docs/WORKFLOW.md).**
 
+## CI Workflow Triggers
+
+- `on-pr.yaml`:
+  - automatic on PRs to `main`
+  - runs `validate-lib` (library checks) then `validate-test` (full 5-layer pipeline on `test-chart`)
+- `on-tag.yaml`:
+  - automatic on `v*` tag push
+  - publishes the chart via reusable `release-chart.yaml`
+- `renovate-config.yaml`:
+  - automatic when Renovate config files change
+  - supports manual `workflow_dispatch`
+
+For full cross-repo trigger ownership and lifecycle details, see `https://github.com/orhayoun-eevee/build-workflow/blob/main/docs/workflow-trigger-matrix.md`.
+
 ## Testing and Validation
 
 ### Quick Reference
