@@ -42,31 +42,39 @@ tests:
                       group: ""
                       kind: Service
     asserts:
-      - documentIndex: 2
-        equal:
+      - documentSelector:
           path: kind
           value: HTTPRoute
-      - documentIndex: 2
         equal:
           path: metadata.name
           value: test-app-route
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: HTTPRoute
         equal:
           path: metadata.namespace
           value: test-namespace
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: HTTPRoute
         equal:
           path: spec.hostnames[0]
           value: test-app.example.com
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: HTTPRoute
         equal:
           path: spec.parentRefs[0].name
           value: my-gateway
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: HTTPRoute
         equal:
           path: spec.parentRefs[0].namespace
           value: istio-system
-      - documentIndex: 2
+      - documentSelector:
+          path: kind
+          value: HTTPRoute
         equal:
           path: spec.parentRefs[0].sectionName
           value: https
