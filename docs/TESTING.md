@@ -1,6 +1,6 @@
 # Testing Guide
 
-This document describes all tests used in this repository, how to run them locally, and how to extend them. The same steps run in CI (see [.github/workflows/on-pr.yaml](../.github/workflows/on-pr.yaml)).
+This document describes all tests used in this repository, how to run them locally, and how to extend them. The same steps run in CI (see [.github/workflows/pr-required-checks.yaml](../.github/workflows/pr-required-checks.yaml)).
 
 ## Overview
 

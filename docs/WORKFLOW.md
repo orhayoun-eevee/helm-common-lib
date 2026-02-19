@@ -212,9 +212,9 @@ Examples:
 
 Understanding the separation of concerns:
 
-### CI Workflow (`.github/workflows/on-pr.yaml`)
+### CI Workflow (`.github/workflows/pr-required-checks.yaml`)
 
-**Triggers:** Pull requests targeting main
+**Triggers:** Pull requests targeting main and merge queue (`merge_group`)
 
 **Responsibilities:**
 - Run unit tests (helm-unittest)
