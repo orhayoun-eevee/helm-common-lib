@@ -51,22 +51,13 @@ The publish workflow automatically packages and pushes the chart to GHCR when yo
 
 - `pr-required-checks.yaml`:
   - automatic on PRs to `main` and `merge_group` (`checks_requested`)
-  - always-on required status via centralized `pr-required-checks-chart.yaml` that aggregates dependency review, validation, renovate-config, scaffold drift, and CodeQL checks
-- `on-pr.yaml`:
-  - manual break-glass via `workflow_dispatch`
-  - runs `validate-lib` (library checks) then `validate-test` (full 5-layer pipeline on `test-chart`)
+  - always-on required status via centralized `pr-required-checks-chart.yaml` that aggregates dependency review, validation, renovate-config, and CodeQL checks
 - `on-tag.yaml`:
   - automatic on `v*` tag push
   - publishes the chart via reusable `release-chart.yaml` with keyless signing/attestation
 - `renovate-config.yaml`:
   - automatic on push to `main` when Renovate config files change
   - supports manual `workflow_dispatch`
-- `dependency-review.yaml`:
-  - manual break-glass via `workflow_dispatch`
-  - calls centralized reusable dependency review workflow from `build-workflow`
-- `scaffold-drift-check.yaml`:
-  - manual break-glass via `workflow_dispatch`
-  - calls centralized reusable scaffold drift workflow from `build-workflow`
 - `codeql.yaml`:
   - automatic on push path changes and weekly schedule
   - supports manual `workflow_dispatch`
@@ -195,8 +186,8 @@ dependencies:
 - `helmv3` dependencies: `digest`, `pin`, `pinDigest`, `patch`, `minor`
 - `major` updates are not automerged
 
-Branch protection on `main` is expected to require only the aggregate `required-checks` status before merge.
+Branch protection on `main` is expected to require only the aggregate `ci-required` status before merge.
 Recommended contexts:
-- `PR Required Checks / required-checks / required-checks (pull_request)`
-- `PR Required Checks / required-checks / required-checks (merge_group)`
+- `PR Required Checks / ci-required / ci-required (pull_request)`
+- `PR Required Checks / ci-required / ci-required (merge_group)`
 This ensures Renovate automerge only merges changes that pass CI.
