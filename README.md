@@ -195,5 +195,8 @@ dependencies:
 - `helmv3` dependencies: `digest`, `pin`, `pinDigest`, `patch`, `minor`
 - `major` updates are not automerged
 
-Branch protection on `main` is expected to require passing `required-checks` before merge.
+Branch protection on `main` is expected to require only the aggregate `required-checks` status before merge.
+Recommended contexts:
+- `PR Required Checks / required-checks / required-checks (pull_request)`
+- `PR Required Checks / required-checks / required-checks (merge_group)`
 This ensures Renovate automerge only merges changes that pass CI.
