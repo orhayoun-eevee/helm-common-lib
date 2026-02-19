@@ -49,12 +49,12 @@ The publish workflow automatically packages and pushes the chart to GHCR when yo
 
 ## CI Workflow Triggers
 
-- `on-pr.yaml`:
-  - automatic on PRs to `main`
-  - runs `validate-lib` (library checks) then `validate-test` (full 5-layer pipeline on `test-chart`)
 - `pr-required-checks.yaml`:
   - automatic on PRs to `main`
   - always-on required status via centralized `pr-required-checks-chart.yaml` that aggregates dependency review, validation, renovate-config, scaffold drift, and CodeQL checks
+- `on-pr.yaml`:
+  - manual via `workflow_dispatch`
+  - runs `validate-lib` (library checks) then `validate-test` (full 5-layer pipeline on `test-chart`)
 - `on-tag.yaml`:
   - automatic on `v*` tag push
   - publishes the chart via reusable `release-chart.yaml` with keyless signing/attestation
@@ -62,10 +62,14 @@ The publish workflow automatically packages and pushes the chart to GHCR when yo
   - automatic when Renovate config files change
   - supports manual `workflow_dispatch`
 - `dependency-review.yaml`:
-  - automatic on PRs to `main`
+  - manual via `workflow_dispatch`
   - calls centralized reusable dependency review workflow from `build-workflow`
+- `scaffold-drift-check.yaml`:
+  - manual via `workflow_dispatch`
+  - calls centralized reusable scaffold drift workflow from `build-workflow`
 - `codeql.yaml`:
-  - automatic on CI automation/chart path changes and weekly schedule
+  - automatic on push path changes and weekly schedule
+  - supports manual `workflow_dispatch`
   - calls centralized reusable CodeQL workflow from `build-workflow`
 
 For full cross-repo trigger ownership and lifecycle details, see `https://github.com/orhayoun-eevee/build-workflow/blob/main/docs/workflow-trigger-matrix.md`.

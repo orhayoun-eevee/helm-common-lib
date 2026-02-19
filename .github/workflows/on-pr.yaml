@@ -1,9 +1,7 @@
-name: PR Validation
+name: PR Validation (Manual)
 
 on:
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,7 +12,7 @@ jobs:
   # Library charts skip render-dependent layers.
   validate-lib:
     name: Validate libChart
-    uses: orhayoun-eevee/build-workflow/.github/workflows/helm-validate.yaml@v0.1.5
+    uses: orhayoun-eevee/build-workflow/.github/workflows/helm-validate.yaml@v0.1.6
     with:
       chart_path: libChart
       kubernetes_version: "1.30.0"
@@ -34,7 +32,7 @@ jobs:
   validate-test:
     name: Validate test-chart
     needs: validate-lib
-    uses: orhayoun-eevee/build-workflow/.github/workflows/helm-validate.yaml@v0.1.5
+    uses: orhayoun-eevee/build-workflow/.github/workflows/helm-validate.yaml@v0.1.6
     with:
       chart_path: test-chart
       kubernetes_version: "1.30.0"
