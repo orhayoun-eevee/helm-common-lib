@@ -54,10 +54,10 @@ The publish workflow automatically packages and pushes the chart to GHCR when yo
   - runs `validate-lib` (library checks) then `validate-test` (full 5-layer pipeline on `test-chart`)
 - `pr-required-checks.yaml`:
   - automatic on PRs to `main`
-  - always-on required status that aggregates dependency review, validation, renovate-config, and scaffold drift checks
+  - always-on required status via centralized `pr-required-checks-chart.yaml` that aggregates dependency review, validation, renovate-config, scaffold drift, and CodeQL checks
 - `on-tag.yaml`:
   - automatic on `v*` tag push
-  - publishes the chart via reusable `release-chart.yaml`
+  - publishes the chart via reusable `release-chart.yaml` with keyless signing/attestation
 - `renovate-config.yaml`:
   - automatic when Renovate config files change
   - supports manual `workflow_dispatch`
