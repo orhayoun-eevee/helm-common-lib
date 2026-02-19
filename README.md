@@ -50,10 +50,10 @@ The publish workflow automatically packages and pushes the chart to GHCR when yo
 ## CI Workflow Triggers
 
 - `pr-required-checks.yaml`:
-  - automatic on PRs to `main`
+  - automatic on PRs to `main` and `merge_group` (`checks_requested`)
   - always-on required status via centralized `pr-required-checks-chart.yaml` that aggregates dependency review, validation, renovate-config, scaffold drift, and CodeQL checks
 - `on-pr.yaml`:
-  - manual via `workflow_dispatch`
+  - manual break-glass via `workflow_dispatch`
   - runs `validate-lib` (library checks) then `validate-test` (full 5-layer pipeline on `test-chart`)
 - `on-tag.yaml`:
   - automatic on `v*` tag push
@@ -62,10 +62,10 @@ The publish workflow automatically packages and pushes the chart to GHCR when yo
   - automatic when Renovate config files change
   - supports manual `workflow_dispatch`
 - `dependency-review.yaml`:
-  - manual via `workflow_dispatch`
+  - manual break-glass via `workflow_dispatch`
   - calls centralized reusable dependency review workflow from `build-workflow`
 - `scaffold-drift-check.yaml`:
-  - manual via `workflow_dispatch`
+  - manual break-glass via `workflow_dispatch`
   - calls centralized reusable scaffold drift workflow from `build-workflow`
 - `codeql.yaml`:
   - automatic on push path changes and weekly schedule
