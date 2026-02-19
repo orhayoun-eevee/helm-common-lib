@@ -52,6 +52,9 @@ The publish workflow automatically packages and pushes the chart to GHCR when yo
 - `on-pr.yaml`:
   - automatic on PRs to `main`
   - runs `validate-lib` (library checks) then `validate-test` (full 5-layer pipeline on `test-chart`)
+- `pr-required-checks.yaml`:
+  - automatic on PRs to `main`
+  - always-on required status that aggregates dependency review, validation, renovate-config, and scaffold drift checks
 - `on-tag.yaml`:
   - automatic on `v*` tag push
   - publishes the chart via reusable `release-chart.yaml`
@@ -61,6 +64,9 @@ The publish workflow automatically packages and pushes the chart to GHCR when yo
 - `dependency-review.yaml`:
   - automatic on PRs to `main`
   - calls centralized reusable dependency review workflow from `build-workflow`
+- `codeql.yaml`:
+  - automatic on CI automation/chart path changes and weekly schedule
+  - calls centralized reusable CodeQL workflow from `build-workflow`
 
 For full cross-repo trigger ownership and lifecycle details, see `https://github.com/orhayoun-eevee/build-workflow/blob/main/docs/workflow-trigger-matrix.md`.
 
@@ -185,5 +191,5 @@ dependencies:
 - `helmv3` dependencies: `digest`, `pin`, `pinDigest`, `patch`, `minor`
 - `major` updates are not automerged
 
-Branch protection on `main` is expected to require passing PR validation checks before merge.
+Branch protection on `main` is expected to require passing `required-checks` before merge.
 This ensures Renovate automerge only merges changes that pass CI.
