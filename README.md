@@ -59,7 +59,7 @@ The publish workflow automatically packages and pushes the chart to GHCR when yo
   - automatic on `v*` tag push
   - publishes the chart via reusable `release-chart.yaml` with keyless signing/attestation
 - `renovate-config.yaml`:
-  - automatic when Renovate config files change
+  - automatic on push to `main` when Renovate config files change
   - supports manual `workflow_dispatch`
 - `dependency-review.yaml`:
   - manual break-glass via `workflow_dispatch`
