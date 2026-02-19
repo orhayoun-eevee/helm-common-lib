@@ -58,6 +58,9 @@ The publish workflow automatically packages and pushes the chart to GHCR when yo
 - `renovate-config.yaml`:
   - automatic when Renovate config files change
   - supports manual `workflow_dispatch`
+- `dependency-review.yaml`:
+  - automatic on PRs to `main`
+  - calls centralized reusable dependency review workflow from `build-workflow`
 
 For full cross-repo trigger ownership and lifecycle details, see `https://github.com/orhayoun-eevee/build-workflow/blob/main/docs/workflow-trigger-matrix.md`.
 
