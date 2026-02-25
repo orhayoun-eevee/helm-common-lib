@@ -118,6 +118,10 @@ This renders all libChart resources based on your values.
 
 Configure your chart via `values.yaml`. See [libChart/values.yaml](libChart/values.yaml) for the complete schema with inline documentation.
 
+Notable deployment networking option:
+- `deployment.hostNetwork` is supported.
+- If `deployment.hostNetwork: true` and `deployment.dnsPolicy` is not set, the chart renders `dnsPolicy: ClusterFirstWithHostNet`.
+
 Minimal example:
 
 ```yaml

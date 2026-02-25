@@ -27,6 +27,9 @@ deployment:
   revisionHistoryLimit: 3
   imagePullSecrets: []
   terminationGracePeriodSeconds: 30
+  # hostNetwork enables use of the node network namespace.
+  # If true and dnsPolicy is omitted, lib-chart renders ClusterFirstWithHostNet.
+  # hostNetwork: false
   podLabels: {}
   automountServiceAccountToken: false
   podSecurityContext:

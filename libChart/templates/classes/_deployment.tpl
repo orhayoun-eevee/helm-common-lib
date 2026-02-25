@@ -54,8 +54,13 @@ spec:
       topologySpreadConstraints:
         {{- toYaml .Values.deployment.topologySpreadConstraints | nindent 8 }}
       {{- end }}
+      {{- if ne .Values.deployment.hostNetwork nil }}
+      hostNetwork: {{ .Values.deployment.hostNetwork }}
+      {{- end }}
       {{- if .Values.deployment.dnsPolicy }}
       dnsPolicy: {{ .Values.deployment.dnsPolicy }}
+      {{- else if .Values.deployment.hostNetwork }}
+      dnsPolicy: ClusterFirstWithHostNet
       {{- end }}
       {{- if ne .Values.deployment.automountServiceAccountToken nil }}
       automountServiceAccountToken: {{ .Values.deployment.automountServiceAccountToken }}

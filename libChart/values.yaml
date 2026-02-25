@@ -73,6 +73,9 @@ deployment:
   # tolerations: []
   # topologySpreadConstraints controls how pods spread across topology domains. Optional.
   # topologySpreadConstraints: []
+  # hostNetwork enables use of the node network namespace. Optional.
+  # When enabled and dnsPolicy is not set, the chart renders ClusterFirstWithHostNet automatically.
+  # hostNetwork: false
   # dnsPolicy sets the DNS policy for pods (ClusterFirst, Default, None, ClusterFirstWithHostNet). Optional.
   # dnsPolicy: ClusterFirst
   # enableServiceLinks controls whether service environment variables are injected. Optional.
