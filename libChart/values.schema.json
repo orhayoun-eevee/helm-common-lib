@@ -119,6 +119,10 @@
           "minimum": 0,
           "default": 30
         },
+        "hostNetwork": {
+          "type": "boolean",
+          "description": "Use the host network namespace"
+        },
         "dnsPolicy": {
           "type": "string",
           "enum": ["ClusterFirst", "ClusterFirstWithHostNet", "Default", "None"],
