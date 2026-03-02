@@ -13,9 +13,14 @@ metadata:
   labels:
     {{- include "libChart.labelsWithComponent" (dict "root" $ "component" "network-policy") | nindent 4 }}
 spec:
+  {{- if $policy.podSelector }}
+  podSelector:
+    {{- toYaml $policy.podSelector | nindent 4 }}
+  {{- else }}
   podSelector:
     matchLabels:
       {{- include "libChart.selectorLabels" $ | nindent 6 }}
+  {{- end }}
   {{- if $policy.policyTypes }}
   policyTypes:
     {{- toYaml $policy.policyTypes | nindent 4 }}

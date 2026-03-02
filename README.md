@@ -126,6 +126,14 @@ Notable ServiceMonitor endpoint auth options:
 - `metrics.serviceMonitor.bearerTokenSecret` is supported for Secret-based bearer token auth.
 - `metrics.serviceMonitor.authorization` is supported for Prometheus Operator authorization configuration.
 
+Notable HTTPRoute hostname options:
+- Legacy `network.httpRoute.host` is supported.
+- `network.httpRoute.hosts` is supported for shared multi-host routing.
+- `network.httpRoute.routes[].hostnames` is supported for route-specific host overrides.
+
+Notable NetworkPolicy selector option:
+- `network.networkPolicy.items.<name>.podSelector` is supported to target non-primary workloads.
+
 Minimal example:
 
 ```yaml

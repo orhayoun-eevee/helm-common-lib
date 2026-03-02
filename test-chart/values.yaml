@@ -163,6 +163,10 @@ network:
   httpRoute:
     enabled: false
     host: ""
+    # Optional shared hostnames for all routes.
+    # hosts:
+    #   - app.example.com
+    hosts: null
     port: 80
     gateway:
       name: shared-platform-gateway
@@ -170,6 +174,8 @@ network:
     # Example routes:
     # - name: route
     #   enabled: true
+    #   hostnames:
+    #     - route-specific.example.com
     #   listener:
     #     sectionName: https
     #   rules:
@@ -191,6 +197,9 @@ network:
   #   items:
   #     default:
   #       enabled: true
+  #       podSelector:
+  #         matchLabels:
+  #           app.kubernetes.io/name: my-app
   #       policyTypes: [Ingress, Egress]
   #       ingress: []
   #       egress: []

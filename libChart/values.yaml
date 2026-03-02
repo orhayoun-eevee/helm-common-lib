@@ -375,8 +375,15 @@ network:
   httpRoute:
     # enabled is the feature flag to enable HTTPRoute (Gateway API + security policies).
     enabled: false
-    # host is the hostname for HTTPRoute. Required when httpRoute.enabled is true.
+    # host is the legacy hostname for HTTPRoute.
+    # Used when routes[].hostnames and httpRoute.hosts are not set.
     host: ""
+    # hosts is an optional shared hostname list for all routes.
+    # Used when routes[].hostnames is not set on a route.
+    # Example:
+    #   - app.example.com
+    #   - app.internal.example
+    hosts: null
     # port is the service port to route to.
     port: 80
     gateway:
@@ -395,6 +402,11 @@ network:
       # Main Application Route (HTTPS)
       - name: route
         enabled: true
+        # hostnames optionally override top-level httpRoute.host/httpRoute.hosts for this route.
+        # Example:
+        # hostnames:
+        #   - route-specific.example.com
+        hostnames: null
         listener:
           sectionName: https
           # port: 443  # Can be used instead of or in addition to sectionName
@@ -448,6 +460,11 @@ network:
     # Example - Single policy:
     #   main:
     #     enabled: true
+    #     # Optional: override target pods for this policy.
+    #     # If omitted, selector labels from the chart are used.
+    #     podSelector:
+    #       matchLabels:
+    #         app.kubernetes.io/name: "{global.name}"
     #     policyTypes:
     #       - Ingress
     #       - Egress
