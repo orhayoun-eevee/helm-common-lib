@@ -195,6 +195,18 @@ metrics:
     path: ""
     # honorLabels controls whether to honor labels from target. Optional.
     honorLabels: false
+    # bearerTokenSecret configures bearer token auth using a Secret reference. Optional.
+    # Example:
+    #   name: "metrics-auth"
+    #   key: "token"
+    bearerTokenSecret: null
+    # authorization configures authorization header behavior for ServiceMonitor endpoint scraping. Optional.
+    # Example:
+    #   type: "Bearer"
+    #   credentials:
+    #     name: "metrics-auth"
+    #     key: "token"
+    authorization: null
 
     # Selector for ServiceMonitor spec
     # Allows customizing which services are selected for scraping

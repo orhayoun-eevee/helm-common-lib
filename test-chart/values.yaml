@@ -98,6 +98,18 @@ metrics:
     scrapeTimeout: "5s"
     path: ""
     honorLabels: false
+    # Optional bearer token Secret ref for ServiceMonitor endpoint auth
+    # bearerTokenSecret:
+    #   name: "metrics-auth"
+    #   key: "token"
+    bearerTokenSecret: null
+    # Optional ServiceMonitor authorization block
+    # authorization:
+    #   type: "Bearer"
+    #   credentials:
+    #     name: "metrics-auth"
+    #     key: "token"
+    authorization: null
     selector: {}
     namespaceSelector: {}
     relabelings: []

@@ -122,6 +122,10 @@ Notable deployment networking option:
 - `deployment.hostNetwork` is supported.
 - If `deployment.hostNetwork: true` and `deployment.dnsPolicy` is not set, the chart renders `dnsPolicy: ClusterFirstWithHostNet`.
 
+Notable ServiceMonitor endpoint auth options:
+- `metrics.serviceMonitor.bearerTokenSecret` is supported for Secret-based bearer token auth.
+- `metrics.serviceMonitor.authorization` is supported for Prometheus Operator authorization configuration.
+
 Minimal example:
 
 ```yaml

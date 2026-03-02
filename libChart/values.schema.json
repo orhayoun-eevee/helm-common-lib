@@ -497,6 +497,27 @@
               "type": "boolean",
               "default": false
             },
+            "bearerTokenSecret": {
+              "anyOf": [
+                { "type": "null" },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["name", "key"],
+                  "properties": {
+                    "name": { "type": "string", "minLength": 1 },
+                    "key": { "type": "string", "minLength": 1 }
+                  }
+                }
+              ],
+              "description": "Secret reference for bearer token authentication",
+              "default": null
+            },
+            "authorization": {
+              "type": "object",
+              "description": "ServiceMonitor authorization configuration",
+              "additionalProperties": true
+            },
             "selector": {
               "type": "object",
               "description": "Service selector"
