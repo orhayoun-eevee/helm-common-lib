@@ -31,6 +31,14 @@ spec:
       {{- if .Values.metrics.serviceMonitor.honorLabels }}
       honorLabels: {{ .Values.metrics.serviceMonitor.honorLabels }}
       {{- end }}
+      {{- if .Values.metrics.serviceMonitor.bearerTokenSecret }}
+      bearerTokenSecret:
+        {{- toYaml .Values.metrics.serviceMonitor.bearerTokenSecret | nindent 8 }}
+      {{- end }}
+      {{- if .Values.metrics.serviceMonitor.authorization }}
+      authorization:
+        {{- toYaml .Values.metrics.serviceMonitor.authorization | nindent 8 }}
+      {{- end }}
       {{- if .Values.metrics.serviceMonitor.relabelings }}
       relabelings:
         {{- toYaml .Values.metrics.serviceMonitor.relabelings | nindent 8 }}

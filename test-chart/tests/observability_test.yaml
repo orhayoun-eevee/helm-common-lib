@@ -102,6 +102,60 @@ tests:
           path: spec.endpoints[0].port
           value: http-metrics
 
+  - it: should render ServiceMonitor bearerTokenSecret and authorization
+    set:
+      global:
+        name: auth-app
+        namespace: default
+      deployment:
+        replicas: 1
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: "1.25"
+      metrics:
+        enabled: true
+        serviceMonitor:
+          enabled: true
+          bearerTokenSecret:
+            name: metrics-auth
+            key: token
+          authorization:
+            type: Bearer
+            credentials:
+              name: metrics-auth
+              key: token
+        prometheusRule:
+          enabled: true
+          rules: []
+    asserts:
+      - documentSelector:
+          path: kind
+          value: ServiceMonitor
+        equal:
+          path: spec.endpoints[0].bearerTokenSecret.name
+          value: metrics-auth
+      - documentSelector:
+          path: kind
+          value: ServiceMonitor
+        equal:
+          path: spec.endpoints[0].bearerTokenSecret.key
+          value: token
+      - documentSelector:
+          path: kind
+          value: ServiceMonitor
+        equal:
+          path: spec.endpoints[0].authorization.type
+          value: Bearer
+      - documentSelector:
+          path: kind
+          value: ServiceMonitor
+        equal:
+          path: spec.endpoints[0].authorization.credentials.name
+          value: metrics-auth
+
   - it: should render ServiceMonitor with selector
     set:
       global:
