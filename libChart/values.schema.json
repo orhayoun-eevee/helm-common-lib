@@ -514,9 +514,15 @@
               "default": null
             },
             "authorization": {
-              "type": "object",
+              "anyOf": [
+                { "type": "null" },
+                {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              ],
               "description": "ServiceMonitor authorization configuration",
-              "additionalProperties": true
+              "default": null
             },
             "selector": {
               "type": "object",
