@@ -268,7 +268,7 @@ network:
   # Service Configuration - Multiple services support
   # Example:
   #   items:
-  #     "":                    # Empty string uses global.name as service name
+  #     main:
   #       enabled: true
   #       type: ClusterIP
   #       ports:

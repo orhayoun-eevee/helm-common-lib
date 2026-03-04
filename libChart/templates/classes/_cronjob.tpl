@@ -44,52 +44,7 @@ spec:
             {{- toYaml .Values.cronJob.podLabels | nindent 12 }}
             {{- end }}
         spec:
-          {{- if .Values.cronJob.imagePullSecrets }}
-          imagePullSecrets:
-            {{- toYaml .Values.cronJob.imagePullSecrets | nindent 12 }}
-          {{- end }}
-          {{- if ne (index .Values.cronJob "terminationGracePeriodSeconds") nil }}
-          terminationGracePeriodSeconds: {{ index .Values.cronJob "terminationGracePeriodSeconds" }}
-          {{- end }}
-          {{- if .Values.cronJob.podSecurityContext }}
-          securityContext:
-            {{- toYaml .Values.cronJob.podSecurityContext | nindent 12 }}
-          {{- end }}
-          {{- if and .Values.serviceAccount .Values.serviceAccount.name }}
-          serviceAccountName: {{ .Values.serviceAccount.name }}
-          {{- else if and .Values.serviceAccount .Values.serviceAccount.create }}
-          serviceAccountName: {{ include "libChart.name" . }}
-          {{- end }}
-          {{- if .Values.cronJob.affinity }}
-          affinity:
-            {{- toYaml .Values.cronJob.affinity | nindent 12 }}
-          {{- end }}
-          {{- if .Values.cronJob.tolerations }}
-          tolerations:
-            {{- toYaml .Values.cronJob.tolerations | nindent 12 }}
-          {{- end }}
-          {{- if .Values.cronJob.nodeSelector }}
-          nodeSelector:
-            {{- toYaml .Values.cronJob.nodeSelector | nindent 12 }}
-          {{- end }}
-          {{- if .Values.cronJob.topologySpreadConstraints }}
-          topologySpreadConstraints:
-            {{- toYaml .Values.cronJob.topologySpreadConstraints | nindent 12 }}
-          {{- end }}
-          {{- if ne .Values.cronJob.hostNetwork nil }}
-          hostNetwork: {{ .Values.cronJob.hostNetwork }}
-          {{- end }}
-          {{- if .Values.cronJob.dnsPolicy }}
-          dnsPolicy: {{ .Values.cronJob.dnsPolicy }}
-          {{- else if .Values.cronJob.hostNetwork }}
-          dnsPolicy: ClusterFirstWithHostNet
-          {{- end }}
-          {{- if ne .Values.cronJob.automountServiceAccountToken nil }}
-          automountServiceAccountToken: {{ .Values.cronJob.automountServiceAccountToken }}
-          {{- end }}
-          {{- if ne .Values.cronJob.enableServiceLinks nil }}
-          enableServiceLinks: {{ .Values.cronJob.enableServiceLinks }}
-          {{- end }}
+          {{- include "libChart.workload.podSpecCommon" (dict "root" . "cfg" .Values.cronJob) | nindent 10 }}
           restartPolicy: {{ .Values.cronJob.restartPolicy | default "OnFailure" }}
           {{- if .Values.cronJob.initContainers }}
           initContainers:

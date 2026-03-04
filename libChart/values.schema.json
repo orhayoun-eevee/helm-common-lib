@@ -189,6 +189,7 @@
             "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$": {
               "type": "object",
               "required": ["enabled", "image"],
+              "additionalProperties": false,
               "properties": {
                 "enabled": {
                   "type": "boolean",
@@ -309,6 +310,7 @@
             "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$": {
               "type": "object",
               "required": ["image"],
+              "additionalProperties": false,
               "properties": {
                 "image": {
                   "type": "object",
@@ -396,28 +398,38 @@
           "default": "Allow"
         },
         "startingDeadlineSeconds": {
-          "type": "integer",
-          "minimum": 0
+          "oneOf": [
+            { "type": "integer", "minimum": 0 },
+            { "type": "null" }
+          ]
         },
         "successfulJobsHistoryLimit": {
-          "type": "integer",
-          "minimum": 0
+          "oneOf": [
+            { "type": "integer", "minimum": 0 },
+            { "type": "null" }
+          ]
         },
         "failedJobsHistoryLimit": {
-          "type": "integer",
-          "minimum": 0
+          "oneOf": [
+            { "type": "integer", "minimum": 0 },
+            { "type": "null" }
+          ]
         },
         "jobTemplate": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
             "backoffLimit": {
-              "type": "integer",
-              "minimum": 0
+              "oneOf": [
+                { "type": "integer", "minimum": 0 },
+                { "type": "null" }
+              ]
             },
             "ttlSecondsAfterFinished": {
-              "type": "integer",
-              "minimum": 0
+              "oneOf": [
+                { "type": "integer", "minimum": 0 },
+                { "type": "null" }
+              ]
             }
           }
         },
@@ -487,6 +499,7 @@
             "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$": {
               "type": "object",
               "required": ["enabled", "image"],
+              "additionalProperties": false,
               "properties": {
                 "enabled": {
                   "type": "boolean"
@@ -545,6 +558,7 @@
             "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$": {
               "type": "object",
               "required": ["image"],
+              "additionalProperties": false,
               "properties": {
                 "image": {
                   "type": "object",

@@ -1,9 +1,10 @@
-# Test: workload.type must be a supported enum value
+# Test: typo in deployment container object key should be rejected
 global:
   name: test-app
   namespace: test-namespace
+
 workload:
-  type: ""
+  type: deployment
 deployment:
   containers:
     app:
@@ -11,3 +12,4 @@ deployment:
       image:
         repository: nginx
         tag: "1.25"
+      imagPullPolicy: Always

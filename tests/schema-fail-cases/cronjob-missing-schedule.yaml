@@ -1,10 +1,11 @@
-# Test: cronjob workload requires schedule
+# Test: cronjob schedule must be non-empty when workload.type=cronJob
 global:
   name: test-app
   namespace: test-namespace
 workload:
   type: cronJob
 cronJob:
+  schedule: ""
   containers:
     app:
       enabled: true

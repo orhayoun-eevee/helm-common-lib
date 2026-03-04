@@ -102,6 +102,7 @@ network:
 
 **What changed**: The JSON Schema (`values.schema.json`) now enforces stricter validation:
 - Added `additionalProperties: false` to all objects with known keys (deployment, network, metrics, etc.) to catch typos
+- Added `additionalProperties: false` to deployment/cronjob container and initContainer objects to catch typo keys
 - Added `minProperties: 1` to `deployment.containers` to enforce at least one container is defined
 - Added `resources` sub-schema requiring `requests` and `limits` to be objects (type-only validation)
 

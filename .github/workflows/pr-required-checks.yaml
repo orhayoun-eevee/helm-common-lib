@@ -9,13 +9,6 @@ on:
       - ready_for_review
     branches:
       - main
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
-      - 'AGENTS.md'
-      - '.gitignore'
-      - '.editorconfig'
-      - 'LICENSE'
   merge_group:
     types:
       - checks_requested
@@ -30,10 +23,11 @@ concurrency:
 jobs:
   ci-required:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    timeout-minutes: 45
     permissions:
       contents: read
       packages: read
-    uses: orhayoun-eevee/build-workflow/.github/workflows/pr-required-checks-chart.yaml@v0.1.21
+    uses: orhayoun-eevee/build-workflow/.github/workflows/pr-required-checks-chart.yaml@3a50b1646217b7f3e02feb0a7263af66a5cea2e2
     with:
       chart_kind: lib
     secrets:

@@ -2,6 +2,8 @@
 
 The helm-common-lib validates configuration values using a two-layer approach: **JSON Schema** (structural validation) and **Go templates** (business logic). Invalid values cause rendering to fail with clear error messages.
 
+Compatibility target: Kubernetes `>=1.30`.
+
 ## Validation Architecture
 
 ```
@@ -47,6 +49,7 @@ Validations are enforced either by **JSON schema** or by **templates**. Each ite
 - [schema] At least one container must be defined (minProperties: 1)
 - [schema] Container names match DNS-1123 subdomain pattern
 - [schema] Each container has `image` object with `repository` and `tag` (minLength 1)
+- [schema] Container and initContainer objects reject unknown keys (`additionalProperties: false`)
 - [schema] Container ports (when defined) are in range 1-65535
 - [schema] Resources (when defined) must have `requests` and `limits` as objects
 - [template] At least one container must be enabled (requires iteration logic)

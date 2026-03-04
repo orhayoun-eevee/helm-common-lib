@@ -58,10 +58,6 @@ The publish workflow automatically packages and pushes the chart to GHCR when yo
 - `renovate-config.yaml`:
   - automatic on push to `main` when Renovate config files change
   - supports manual `workflow_dispatch`
-- `codeql.yaml`:
-  - automatic on push path changes and weekly schedule
-  - supports manual `workflow_dispatch`
-  - calls centralized reusable CodeQL workflow from `build-workflow`
 
 For full cross-repo trigger ownership and lifecycle details, see `https://github.com/orhayoun-eevee/build-workflow/blob/main/docs/workflow-trigger-matrix.md`.
 
@@ -121,10 +117,12 @@ Configure your chart via `values.yaml`. See [libChart/values.yaml](libChart/valu
 Workload selection:
 - `workload.type` is required.
 - Supported values are `deployment` and `cronJob`.
+- Kubernetes compatibility target is `>=1.30`.
 
 Notable deployment networking option:
 - `deployment.hostNetwork` is supported.
 - If `deployment.hostNetwork: true` and `deployment.dnsPolicy` is not set, the chart renders `dnsPolicy: ClusterFirstWithHostNet`.
+- `network.services.items.<name>.ports.<port>.targetPort` is optional; if omitted, Kubernetes defaults it to `port`.
 
 Notable CronJob options:
 - `cronJob.schedule` is required when `workload.type=cronJob`.
@@ -145,6 +143,10 @@ Notable HTTPRoute hostname options:
 - Legacy `network.httpRoute.host` is supported.
 - `network.httpRoute.hosts` is supported for shared multi-host routing.
 - `network.httpRoute.routes[].hostnames` is supported for route-specific host overrides.
+- `network.httpRoute.routes[].rules` supports Helm templating via `tpl` for dynamic values.
+
+Strict schema behavior:
+- Container and initContainer objects reject unknown keys (fail-fast typo detection).
 
 Minimal example:
 

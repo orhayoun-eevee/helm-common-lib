@@ -22,8 +22,9 @@ spec:
   action: ALLOW
   {{- end }}
   {{- if $policy.rules }}
+  {{- $rules := tpl (toYaml $policy.rules) $ | fromYamlArray }}
   rules:
-    {{- toYaml $policy.rules | nindent 4 }}
+    {{- toYaml $rules | nindent 4 }}
   {{- end }}
 {{- end }}
 {{- end }}

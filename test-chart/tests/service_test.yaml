@@ -97,3 +97,37 @@ tests:
         equal:
           path: 'metadata.annotations["test.annotation"]'
           value: test-value
+
+  - it: should omit targetPort when not set
+    set:
+      global:
+        name: no-target-port-app
+        namespace: default
+      deployment:
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: "1.25"
+      network:
+        services:
+          items:
+            main:
+              enabled: true
+              type: ClusterIP
+              ports:
+                http:
+                  port: 80
+    asserts:
+      - documentIndex: 2
+        equal:
+          path: kind
+          value: Service
+      - documentIndex: 2
+        equal:
+          path: spec.ports[0].port
+          value: 80
+      - documentIndex: 2
+        notExists:
+          path: spec.ports[0].targetPort

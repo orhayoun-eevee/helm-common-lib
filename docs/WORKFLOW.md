@@ -19,6 +19,7 @@ The helm-common-lib project follows a clear separation of concerns:
 - **CI (Continuous Integration)** -- runs all tests and validations on every push/PR
 - **Publish workflow** -- packages and publishes to GHCR only after a version tag is pushed
 - **Local development** -- uses `make` targets to run the same checks as CI
+- **Compatibility target** -- Kubernetes `>=1.30`
 
 ```mermaid
 flowchart TD
@@ -103,8 +104,9 @@ make ci
 This runs:
 1. `make test` -- helm-unittest (unit tests)
 2. `make test-schema` -- schema fail-case validation
-3. `make validate` -- full 5-layer validation pipeline (syntax, schema, metadata, tests, policy)
-4. `make check-validations` -- verify all validation files are wired into orchestrator
+3. `make test-aggregation` -- template validation aggregation behavior
+4. `make validate` -- full 5-layer validation pipeline (syntax, schema, metadata, tests, policy)
+5. `make check-validations` -- verify all validation files are wired into orchestrator
 
 If this passes, CI will pass too.
 
@@ -342,19 +344,17 @@ Error: Tag version (v0.0.8) does not match chart version (0.0.6)
 
 **Fix:**
 ```bash
-# Delete the wrong tag
-git tag -d v0.0.8
-git push origin :refs/tags/v0.0.8
-
 # Bump to correct version
 make bump VERSION=0.0.8
 git commit -am "chore: bump version to 0.0.8"
 git push
 
-# Create correct tag
+# Publish a new tag that matches the bumped chart version
 git tag v0.0.8
 git push origin v0.0.8
 ```
+
+Do not rewrite existing release tags unless explicitly approved.
 
 ### Helm dependency update fails
 
