@@ -23,7 +23,15 @@ global:
     overrides: {}
 
 # ----------------------------------------------------------------------------
-# Deployment Configuration
+# Workload Selection
+# ----------------------------------------------------------------------------
+workload:
+  # type selects the workload kind to render.
+  # Supported values: deployment, cronJob
+  type: deployment
+
+# ----------------------------------------------------------------------------
+# Deployment Configuration (used when workload.type=deployment)
 # ----------------------------------------------------------------------------
 deployment:
   # replicas is the number of pod replicas.
@@ -113,6 +121,57 @@ deployment:
   initContainers: {}
 
 # ----------------------------------------------------------------------------
+# CronJob Configuration (used when workload.type=cronJob)
+# ----------------------------------------------------------------------------
+cronJob:
+  # nameOverride overrides the generated CronJob name.
+  # Effective max name length is 52 characters because Job names append a suffix.
+  nameOverride: ""
+  # schedule is the cron expression. Quote this value in consumer charts.
+  schedule: "0 * * * *"
+  # timeZone uses IANA timezone names (for Kubernetes >= 1.27).
+  # Do not use TZ/CRON_TZ in schedule; use this field instead.
+  timeZone: ""
+  suspend: false
+  # concurrencyPolicy controls overlap behavior: Allow, Forbid, Replace.
+  concurrencyPolicy: Allow
+  # Optional. If set too small, schedules can be missed.
+  startingDeadlineSeconds: null
+  successfulJobsHistoryLimit: null
+  failedJobsHistoryLimit: null
+  jobTemplate:
+    backoffLimit: null
+    ttlSecondsAfterFinished: null
+
+  imagePullSecrets: []
+  terminationGracePeriodSeconds: 30
+  podLabels: {}
+  podSecurityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  defaultContainerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+    appArmorProfile:
+      type: RuntimeDefault
+  # restartPolicy must be OnFailure or Never for Jobs/CronJobs.
+  restartPolicy: OnFailure
+  containers:
+    placeholder:
+      enabled: false
+      image:
+        repository: changeme
+        tag: changeme
+  initContainers: {}
+
+# ----------------------------------------------------------------------------
 # Feature: Persistence
 # ----------------------------------------------------------------------------
 persistence:
@@ -131,7 +190,7 @@ persistence:
   claims: {}
 
   # volumes is a list of volume definitions (nfs, hostPath, emptyDir, secret, configMap, etc).
-  # These volumes will be added to the Deployment's spec.template.spec.volumes
+  # These volumes will be added to the selected workload pod spec (Deployment or CronJob).
   # For PVC volumes, reference the claim name: {global.name}-{claimKey}
   # Example:
   # - name: config

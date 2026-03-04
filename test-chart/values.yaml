@@ -18,7 +18,14 @@ global:
     overrides: {}  # Optional - map to override metadata labels (selector labels name/instance are reserved)
 
 # ----------------------------------------------------------------------------
-# Deployment Configuration
+# Workload Selection
+# ----------------------------------------------------------------------------
+workload:
+  # Supported values: deployment, cronJob
+  type: deployment
+
+# ----------------------------------------------------------------------------
+# Deployment Configuration (used when workload.type=deployment)
 # ----------------------------------------------------------------------------
 deployment:
   replicas: 1
@@ -75,6 +82,58 @@ deployment:
           port: 8080
         initialDelaySeconds: 5
         periodSeconds: 5
+  initContainers: {}
+
+# ----------------------------------------------------------------------------
+# CronJob Configuration (used when workload.type=cronJob)
+# ----------------------------------------------------------------------------
+cronJob:
+  nameOverride: ""
+  schedule: "0 * * * *"
+  timeZone: ""
+  suspend: false
+  concurrencyPolicy: Allow
+  startingDeadlineSeconds: null
+  successfulJobsHistoryLimit: null
+  failedJobsHistoryLimit: null
+  jobTemplate:
+    backoffLimit: null
+    ttlSecondsAfterFinished: null
+  imagePullSecrets: []
+  terminationGracePeriodSeconds: 30
+  podLabels: {}
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 20000
+    fsGroup: 20000
+    seccompProfile:
+      type: RuntimeDefault
+  defaultContainerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 20000
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+    appArmorProfile:
+      type: RuntimeDefault
+  restartPolicy: OnFailure
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: changeme
+        tag: "1.0.0"
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "100m"
+        limits:
+          memory: "256Mi"
+          cpu: "200m"
   initContainers: {}
 
 # ----------------------------------------------------------------------------

@@ -1,0 +1,13 @@
+# Test: cronjob workload requires schedule
+global:
+  name: test-app
+  namespace: test-namespace
+workload:
+  type: cronJob
+cronJob:
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: busybox
+        tag: "1.36"

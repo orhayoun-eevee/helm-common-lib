@@ -16,6 +16,7 @@
 {{- define "libChart.validations" -}}
 {{- $errors := list -}}
 {{- $validators := list
+    "libChart.validation.workload"
     "libChart.validation.deployment"
     "libChart.validation.httproute"
     "libChart.validation.pdb"

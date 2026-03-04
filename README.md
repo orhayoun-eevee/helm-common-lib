@@ -118,9 +118,19 @@ This renders all libChart resources based on your values.
 
 Configure your chart via `values.yaml`. See [libChart/values.yaml](libChart/values.yaml) for the complete schema with inline documentation.
 
+Workload selection:
+- `workload.type` is required.
+- Supported values are `deployment` and `cronJob`.
+
 Notable deployment networking option:
 - `deployment.hostNetwork` is supported.
 - If `deployment.hostNetwork: true` and `deployment.dnsPolicy` is not set, the chart renders `dnsPolicy: ClusterFirstWithHostNet`.
+
+Notable CronJob options:
+- `cronJob.schedule` is required when `workload.type=cronJob`.
+- `cronJob.timeZone` is supported on Kubernetes 1.27+.
+- CronJob names are capped to 52 characters (Kubernetes CronJob/Job naming rule).
+- Do not use `TZ=`/`CRON_TZ=` inside `cronJob.schedule`; use `cronJob.timeZone`.
 
 Notable ServiceMonitor endpoint auth options:
 - `metrics.serviceMonitor.bearerTokenSecret` is supported for Secret-based bearer token auth.
@@ -137,6 +147,9 @@ Minimal example:
 global:
   name: my-service
   namespace: production
+
+workload:
+  type: deployment
 
 deployment:
   replicas: 2
@@ -162,12 +175,38 @@ network:
             targetPort: http
 ```
 
+CronJob example:
+
+```yaml
+global:
+  name: my-batch
+  namespace: production
+
+workload:
+  type: cronJob
+
+cronJob:
+  schedule: "0 * * * *"
+  timeZone: "Etc/UTC"
+  concurrencyPolicy: Forbid
+  restartPolicy: OnFailure
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: busybox
+        tag: "1.36"
+      command: ["/bin/sh", "-c"]
+      args: ["date; echo run"]
+```
+
 ### Using Individual Templates
 
 If you only need specific resources instead of `libChart.all`, you can include individual templates:
 
 ```yaml
 {{- include "libChart.classes.deployment" . -}}
+{{- include "libChart.classes.cronjob" . -}}
 {{- include "libChart.classes.service" . -}}
 ```
 

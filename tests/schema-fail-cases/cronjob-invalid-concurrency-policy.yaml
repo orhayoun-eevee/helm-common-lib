@@ -1,0 +1,15 @@
+# Test: cronjob concurrencyPolicy must be Allow, Forbid, or Replace
+global:
+  name: test-app
+  namespace: test-namespace
+workload:
+  type: cronJob
+cronJob:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Serial
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: busybox
+        tag: "1.36"

@@ -4,7 +4,11 @@
 
 {{ include "libChart.classes.configmap" . }}
 
+{{- if eq .Values.workload.type "deployment" }}
 {{ include "libChart.classes.deployment" . }}
+{{- else if eq .Values.workload.type "cronJob" }}
+{{ include "libChart.classes.cronjob" . }}
+{{- end }}
 
 {{ include "libChart.classes.poddisruptionbudget" . }}
 

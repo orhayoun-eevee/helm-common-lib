@@ -1,0 +1,15 @@
+# Test: cronjob restartPolicy must be OnFailure or Never
+global:
+  name: test-app
+  namespace: test-namespace
+workload:
+  type: cronJob
+cronJob:
+  schedule: "0 * * * *"
+  restartPolicy: Always
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: busybox
+        tag: "1.36"

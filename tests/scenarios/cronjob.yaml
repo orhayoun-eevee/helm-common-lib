@@ -1,0 +1,25 @@
+# CronJob scenario - exercises cronjob rendering path
+global:
+  name: "cron-app"
+  namespace: "test-namespace"
+
+workload:
+  type: cronJob
+
+cronJob:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  restartPolicy: OnFailure
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 1
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: busybox
+        tag: "1.36"
+      command:
+        - /bin/sh
+        - -c
+      args:
+        - date; echo "cron run"

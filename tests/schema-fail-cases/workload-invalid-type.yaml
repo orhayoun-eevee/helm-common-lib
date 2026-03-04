@@ -1,0 +1,6 @@
+# Test: workload type must be from enum
+global:
+  name: test-app
+  namespace: test-namespace
+workload:
+  type: statefulSet

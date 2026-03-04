@@ -3,7 +3,7 @@
   "title": "libChart Values Schema",
   "description": "JSON Schema validation for helm-common-lib libChart values",
   "type": "object",
-  "required": ["global"],
+  "required": ["global", "workload"],
   "additionalProperties": false,
 
   "properties": {
@@ -68,6 +68,21 @@
               }
             }
           }
+        }
+      }
+    },
+
+    "workload": {
+      "title": "Workload Selector",
+      "type": "object",
+      "description": "Select which workload template to render",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["deployment", "cronJob"],
+          "description": "Workload type to render"
         }
       }
     },
@@ -342,6 +357,232 @@
                 "securityContext": {
                   "type": "object",
                   "description": "Container security context"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "cronJob": {
+      "title": "CronJob",
+      "type": "object",
+      "description": "CronJob configuration for batch workloads",
+      "additionalProperties": false,
+      "properties": {
+        "nameOverride": {
+          "type": "string",
+          "description": "Optional CronJob name override (effective max length 52)"
+        },
+        "schedule": {
+          "type": "string",
+          "description": "Cron schedule expression",
+          "minLength": 1
+        },
+        "timeZone": {
+          "type": "string",
+          "description": "CronJob schedule timezone (Kubernetes >= 1.27)"
+        },
+        "suspend": {
+          "type": "boolean",
+          "default": false
+        },
+        "concurrencyPolicy": {
+          "type": "string",
+          "enum": ["Allow", "Forbid", "Replace"],
+          "default": "Allow"
+        },
+        "startingDeadlineSeconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "successfulJobsHistoryLimit": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failedJobsHistoryLimit": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "jobTemplate": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "backoffLimit": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "ttlSecondsAfterFinished": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "imagePullSecrets": {
+          "type": "array",
+          "description": "Image pull secrets",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string" }
+            }
+          }
+        },
+        "terminationGracePeriodSeconds": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 30
+        },
+        "hostNetwork": {
+          "type": "boolean"
+        },
+        "dnsPolicy": {
+          "type": "string",
+          "enum": ["ClusterFirst", "ClusterFirstWithHostNet", "Default", "None"]
+        },
+        "enableServiceLinks": {
+          "type": "boolean"
+        },
+        "automountServiceAccountToken": {
+          "type": "boolean"
+        },
+        "restartPolicy": {
+          "type": "string",
+          "enum": ["OnFailure", "Never"],
+          "default": "OnFailure"
+        },
+        "podLabels": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "podSecurityContext": {
+          "type": "object"
+        },
+        "defaultContainerSecurityContext": {
+          "type": "object"
+        },
+        "nodeSelector": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "affinity": {
+          "type": "object"
+        },
+        "tolerations": {
+          "type": "array"
+        },
+        "topologySpreadConstraints": {
+          "type": "array"
+        },
+        "containers": {
+          "type": "object",
+          "description": "Container definitions (at least one enabled container required)",
+          "minProperties": 1,
+          "patternProperties": {
+            "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$": {
+              "type": "object",
+              "required": ["enabled", "image"],
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "image": {
+                  "type": "object",
+                  "required": ["repository", "tag"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "repository": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "tag": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "pullPolicy": {
+                      "type": "string",
+                      "enum": ["Always", "IfNotPresent", "Never"],
+                      "default": "IfNotPresent"
+                    }
+                  }
+                },
+                "command": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "args": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "env": {
+                  "type": "array"
+                },
+                "envFrom": {
+                  "type": "array"
+                },
+                "volumeMounts": {
+                  "type": "array"
+                },
+                "resources": {
+                  "type": "object"
+                },
+                "securityContext": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "initContainers": {
+          "type": "object",
+          "description": "Init container definitions",
+          "patternProperties": {
+            "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$": {
+              "type": "object",
+              "required": ["image"],
+              "properties": {
+                "image": {
+                  "type": "object",
+                  "required": ["repository", "tag"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "repository": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "tag": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "pullPolicy": {
+                      "type": "string",
+                      "enum": ["Always", "IfNotPresent", "Never"],
+                      "default": "IfNotPresent"
+                    }
+                  }
+                },
+                "command": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "args": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "env": {
+                  "type": "array"
+                },
+                "volumeMounts": {
+                  "type": "array"
+                },
+                "resources": {
+                  "type": "object"
+                },
+                "securityContext": {
+                  "type": "object"
                 }
               }
             }
@@ -1152,5 +1393,44 @@
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "workload": {
+            "properties": {
+              "type": { "const": "deployment" }
+            },
+            "required": ["type"]
+          }
+        },
+        "required": ["workload"]
+      },
+      "then": {
+        "required": ["deployment"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "workload": {
+            "properties": {
+              "type": { "const": "cronJob" }
+            },
+            "required": ["type"]
+          }
+        },
+        "required": ["workload"]
+      },
+      "then": {
+        "required": ["cronJob"],
+        "properties": {
+          "cronJob": {
+            "required": ["schedule", "containers"]
+          }
+        }
+      }
+    }
+  ]
 }
