@@ -4,7 +4,7 @@
 
 {{ include "libChart.classes.configmap" . }}
 
-{{ include "libChart.classes.deployment" . }}
+{{ include "libChart.workload.render" . }}
 
 {{ include "libChart.classes.poddisruptionbudget" . }}
 

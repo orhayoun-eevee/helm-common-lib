@@ -24,50 +24,7 @@ spec:
         {{- toYaml .Values.deployment.podLabels | nindent 8 }}
         {{- end }}
     spec:
-      {{- if .Values.deployment.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml .Values.deployment.imagePullSecrets | nindent 8 }}
-      {{- end }}
-      {{- if .Values.deployment.terminationGracePeriodSeconds }}
-      terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
-      {{- end }}
-      {{- if .Values.deployment.podSecurityContext }}
-      securityContext:
-        {{- toYaml .Values.deployment.podSecurityContext | nindent 8 }}
-      {{- end }}
-      {{- if and .Values.serviceAccount .Values.serviceAccount.create }}
-      serviceAccountName: {{ .Values.serviceAccount.name | default (include "libChart.name" .) }}
-      {{- end }}
-      {{- if .Values.deployment.affinity }}
-      affinity:
-        {{- toYaml .Values.deployment.affinity | nindent 8 }}
-      {{- end }}
-      {{- if .Values.deployment.tolerations }}
-      tolerations:
-        {{- toYaml .Values.deployment.tolerations | nindent 8 }}
-      {{- end }}
-      {{- if .Values.deployment.nodeSelector }}
-      nodeSelector:
-        {{- toYaml .Values.deployment.nodeSelector | nindent 8 }}
-      {{- end }}
-      {{- if .Values.deployment.topologySpreadConstraints }}
-      topologySpreadConstraints:
-        {{- toYaml .Values.deployment.topologySpreadConstraints | nindent 8 }}
-      {{- end }}
-      {{- if ne .Values.deployment.hostNetwork nil }}
-      hostNetwork: {{ .Values.deployment.hostNetwork }}
-      {{- end }}
-      {{- if .Values.deployment.dnsPolicy }}
-      dnsPolicy: {{ .Values.deployment.dnsPolicy }}
-      {{- else if .Values.deployment.hostNetwork }}
-      dnsPolicy: ClusterFirstWithHostNet
-      {{- end }}
-      {{- if ne .Values.deployment.automountServiceAccountToken nil }}
-      automountServiceAccountToken: {{ .Values.deployment.automountServiceAccountToken }}
-      {{- end }}
-      {{- if ne .Values.deployment.enableServiceLinks nil }}
-      enableServiceLinks: {{ .Values.deployment.enableServiceLinks }}
-      {{- end }}
+      {{- include "libChart.workload.podSpecCommon" (dict "root" . "cfg" .Values.deployment) | nindent 6 }}
       {{- if .Values.deployment.initContainers }}
       initContainers:
         {{- $initContainers := .Values.deployment.initContainers -}}

@@ -1,0 +1,15 @@
+# Test: cronjob nameOverride exceeds 52 chars
+global:
+  name: test-app
+  namespace: test-namespace
+workload:
+  type: cronJob
+cronJob:
+  nameOverride: abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabc
+  schedule: "0 * * * *"
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: busybox
+        tag: "1.36"

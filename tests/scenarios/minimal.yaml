@@ -5,6 +5,9 @@ global:
   name: "test-app"
   namespace: "test-namespace"
 
+workload:
+  type: deployment
+
 deployment:
   replicas: 1
   containers:

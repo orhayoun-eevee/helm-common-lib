@@ -2,6 +2,8 @@
 
 The helm-common-lib validates configuration values using a two-layer approach: **JSON Schema** (structural validation) and **Go templates** (business logic). Invalid values cause rendering to fail with clear error messages.
 
+Compatibility target: Kubernetes `>=1.30`.
+
 ## Validation Architecture
 
 ```
@@ -47,9 +49,26 @@ Validations are enforced either by **JSON schema** or by **templates**. Each ite
 - [schema] At least one container must be defined (minProperties: 1)
 - [schema] Container names match DNS-1123 subdomain pattern
 - [schema] Each container has `image` object with `repository` and `tag` (minLength 1)
+- [schema] Container and initContainer objects reject unknown keys (`additionalProperties: false`)
 - [schema] Container ports (when defined) are in range 1-65535
 - [schema] Resources (when defined) must have `requests` and `limits` as objects
 - [template] At least one container must be enabled (requires iteration logic)
+- [template] `terminationGracePeriodSeconds` preserves explicit zero (`0`) values
+
+### Workload Selection and CronJob
+- [schema] `workload.type` is required and must be one of `deployment`, `cronJob`
+- [schema] When `workload.type=cronJob`, `cronJob.schedule` and `cronJob.containers` are required
+- [schema] `cronJob.nameOverride` must be DNS-1123 compliant and <= 52 chars
+- [template] `cronJob.schedule` must not include `TZ=`/`CRON_TZ=`; use `cronJob.timeZone`
+- [template] `cronJob.timeZone` requires Kubernetes >= 1.27
+- [template] `cronJob.containers` must have at least one enabled container
+- [template] Deployment-only features fail when `workload.type=cronJob`:
+  - `podDisruptionBudget.enabled`
+  - `network.services.items.*.enabled`
+  - `network.httpRoute.enabled`
+  - `metrics.serviceMonitor.enabled`
+  - `network.istio.authorizationPolicy.items.*.enabled`
+  - `network.istio.destinationRule.enabled`
 
 ### Networking - HTTPRoute
 - [schema] When HTTPRoute is enabled: host, port, gateway.name, and gateway.namespace are required and non-empty (via `if/then/else`)
@@ -209,9 +228,11 @@ Validations are split between JSON Schema and Go templates:
 - Uses `additionalProperties: false` on known-key objects to prevent typos and enforce camelCase naming
 
 **Go Templates** (`libChart/templates/helpers/validations/`):
-- **Orchestrator** — `_validations.tpl`: defines `libChart.validations`, which includes deployment and PDB validations
+- **Orchestrator** — `_validations.tpl`: defines `libChart.validations`, which includes workload, deployment, HTTPRoute, and PDB validations
 - **Domain files**:
+  - `_workload.tpl` — workload type constraints, cronjob-specific constraints, and cross-feature compatibility rules
   - `_deployment.tpl` — at least one enabled container (iteration logic)
+  - `_httproute.tpl` — host/hosts/route hostnames and route synthesis business rules
   - `_pdb.tpl` — minAvailable and maxUnavailable mutually exclusive (zero-value awareness)
 
 **Kubernetes Pass-Through Objects**: Some schema fields (`podSecurityContext`, `securityContext`, `resources.requests`, `resources.limits`, `livenessProbe`, `readinessProbe`, `startupProbe`, `lifecycle`) are typed as `"type": "object"` with NO `additionalProperties: false`. This allows users to pass any valid Kubernetes API field. The structure (e.g., `resources` must have `requests`/`limits` as objects) is validated, but the contents are passed through to kubeconform and ultimately the Kubernetes API server.

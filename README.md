@@ -35,12 +35,12 @@ git push
 
 ```bash
 # Bump version in all Chart.yaml files
-make bump VERSION=0.0.7
+make bump VERSION=0.0.8
 
 # Commit and tag
-git commit -am "chore: bump version to 0.0.7"
+git commit -am "chore: bump version to 0.0.8"
 git push
-git tag v0.0.7 && git push origin v0.0.7
+git tag v0.0.8 && git push origin v0.0.8
 ```
 
 The publish workflow automatically packages and pushes the chart to GHCR when you push a version tag.
@@ -58,10 +58,6 @@ The publish workflow automatically packages and pushes the chart to GHCR when yo
 - `renovate-config.yaml`:
   - automatic on push to `main` when Renovate config files change
   - supports manual `workflow_dispatch`
-- `codeql.yaml`:
-  - automatic on push path changes and weekly schedule
-  - supports manual `workflow_dispatch`
-  - calls centralized reusable CodeQL workflow from `build-workflow`
 
 For full cross-repo trigger ownership and lifecycle details, see `https://github.com/orhayoun-eevee/build-workflow/blob/main/docs/workflow-trigger-matrix.md`.
 
@@ -102,7 +98,7 @@ In your chart's `Chart.yaml`:
 ```yaml
 dependencies:
   - name: lib-chart
-    version: "0.0.7"
+    version: "0.0.8"
     repository: "oci://ghcr.io/orhayoun-eevee"
 ```
 
@@ -118,9 +114,26 @@ This renders all libChart resources based on your values.
 
 Configure your chart via `values.yaml`. See [libChart/values.yaml](libChart/values.yaml) for the complete schema with inline documentation.
 
+Workload selection:
+- `workload.type` is required.
+- Supported values are `deployment` and `cronJob`.
+- Kubernetes compatibility target is `>=1.30`.
+
 Notable deployment networking option:
 - `deployment.hostNetwork` is supported.
 - If `deployment.hostNetwork: true` and `deployment.dnsPolicy` is not set, the chart renders `dnsPolicy: ClusterFirstWithHostNet`.
+- `network.services.items.<name>.ports.<port>.targetPort` is optional; if omitted, Kubernetes defaults it to `port`.
+
+Notable CronJob options:
+- `cronJob.schedule` is required when `workload.type=cronJob`.
+- `cronJob.timeZone` is supported on Kubernetes 1.27+.
+- `cronJob.nameOverride` must be DNS-1123 compliant and <= 52 characters (Kubernetes CronJob/Job naming rule).
+- Do not use `TZ=`/`CRON_TZ=` inside `cronJob.schedule`; use `cronJob.timeZone`.
+- In `workload.type=cronJob` mode, deployment-oriented features fail validation (`podDisruptionBudget`, service/httpRoute routing, ServiceMonitor, Istio routing resources).
+
+Service account behavior:
+- If `serviceAccount.name` is set, workloads bind to that name even when `serviceAccount.create=false` (use existing ServiceAccount).
+- If `serviceAccount.name` is empty and `serviceAccount.create=true`, chart name is used.
 
 Notable ServiceMonitor endpoint auth options:
 - `metrics.serviceMonitor.bearerTokenSecret` is supported for Secret-based bearer token auth.
@@ -130,6 +143,10 @@ Notable HTTPRoute hostname options:
 - Legacy `network.httpRoute.host` is supported.
 - `network.httpRoute.hosts` is supported for shared multi-host routing.
 - `network.httpRoute.routes[].hostnames` is supported for route-specific host overrides.
+- `network.httpRoute.routes[].rules` supports Helm templating via `tpl` for dynamic values.
+
+Strict schema behavior:
+- Container and initContainer objects reject unknown keys (fail-fast typo detection).
 
 Minimal example:
 
@@ -137,6 +154,9 @@ Minimal example:
 global:
   name: my-service
   namespace: production
+
+workload:
+  type: deployment
 
 deployment:
   replicas: 2
@@ -162,12 +182,38 @@ network:
             targetPort: http
 ```
 
+CronJob example:
+
+```yaml
+global:
+  name: my-batch
+  namespace: production
+
+workload:
+  type: cronJob
+
+cronJob:
+  schedule: "0 * * * *"
+  timeZone: "Etc/UTC"
+  concurrencyPolicy: Forbid
+  restartPolicy: OnFailure
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: busybox
+        tag: "1.36"
+      command: ["/bin/sh", "-c"]
+      args: ["date; echo run"]
+```
+
 ### Using Individual Templates
 
 If you only need specific resources instead of `libChart.all`, you can include individual templates:
 
 ```yaml
 {{- include "libChart.classes.deployment" . -}}
+{{- include "libChart.classes.cronjob" . -}}
 {{- include "libChart.classes.service" . -}}
 ```
 
@@ -180,7 +226,7 @@ The `test-chart` in this repository uses a local file dependency to ensure it al
 ```yaml
 dependencies:
   - name: lib-chart
-    version: 0.0.7
+    version: 0.0.8
     repository: file://../libChart
 ```
 

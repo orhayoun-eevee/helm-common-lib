@@ -21,9 +21,12 @@ spec:
   ports:
     {{- range $portName := (keys $service.ports | sortAlpha) }}
     {{- $port := index $service.ports $portName }}
+    {{- $targetPort := $port.targetPort | toString }}
     - name: {{ $portName }}
       port: {{ $port.port }}
+      {{- if and (ne $targetPort "") (ne $targetPort "<nil>") (ne $targetPort "<no value>") }}
       targetPort: {{ $port.targetPort }}
+      {{- end }}
       protocol: {{ $port.protocol | default "TCP" }}
     {{- end }}
   selector:

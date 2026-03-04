@@ -1,6 +1,8 @@
 global:
   name: test-app
   namespace: test-namespace
+workload:
+  type: deployment
 deployment:
   containers:
     app:

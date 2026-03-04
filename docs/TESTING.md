@@ -12,6 +12,7 @@ This document describes all tests used in this repository, how to run them local
 | **Chart-testing (ct) lint** | Lint all charts per ct config | ✅ `validate` pipeline | `ct lint --config ct.yaml --all` |
 | **Snapshot testing** | Compare rendered manifests to saved baselines (drift detection) | ✅ (inside validate pipeline) | `make snapshot-update` |
 | **Kubeconform** | Validate generated YAML against Kubernetes APIs | ✅ (inside validate pipeline) | Part of `build-workflow` validation |
+| **Schema fail-cases** | Ensure intentionally invalid values are rejected by schema | ✅ (inside `make ci`) | `make test-schema` |
 
 ## Prerequisites
 
@@ -113,6 +114,10 @@ helm unittest test-chart --update-snapshot
    ```
 
 See [libChart/tests/README.md](../libChart/tests/README.md) for why tests run via test-chart.
+
+CronJob-focused coverage to keep:
+- `test-chart/tests/cronjob_test.yaml`: workload rendering, DNS policy fallback, name truncation, existing ServiceAccount binding, zero-value termination grace period.
+- `tests/schema-fail-cases/cronjob-*.yaml`: cronjob enum/required/name constraints.
 
 ---
 

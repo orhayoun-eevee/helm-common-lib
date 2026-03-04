@@ -3,6 +3,7 @@
 # values.schema.json and tested via automated schema fail-case tests (make test-schema).
 # These tests cover only what schema cannot express:
 #   - deployment: at least one enabled container (iteration logic)
+#   - cronJob: at least one enabled container + schedule/timezone guards
 #   - PDB: mutual exclusivity with zero-value awareness (index + ne nil)
 suite: test validation failures
 templates:
@@ -86,3 +87,83 @@ tests:
 
   # Aggregated multi-error output is validated by scripts/test-validation-aggregation.sh.
   # helm-unittest failedTemplate assertions are exact-match and can be brittle for multiline errors.
+
+  # ---- CronJob ----
+  - it: should fail when cronjob has no enabled containers
+    set:
+      workload:
+        type: cronJob
+      cronJob:
+        schedule: "0 * * * *"
+        containers:
+          app:
+            enabled: false
+            image:
+              repository: busybox
+              tag: "1.36"
+    asserts:
+      - failedTemplate:
+          errorMessage: "cronJob.containers must have at least one enabled container when workload.type=cronJob"
+
+  - it: should fail when cronjob schedule uses CRON_TZ
+    set:
+      workload:
+        type: cronJob
+      cronJob:
+        schedule: "CRON_TZ=UTC 0 * * * *"
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: busybox
+              tag: "1.36"
+    asserts:
+      - failedTemplate:
+          errorMessage: "cronJob.schedule must not use TZ/CRON_TZ; use cronJob.timeZone instead"
+
+  - it: should fail when PDB is enabled for cronjob workload
+    set:
+      workload:
+        type: cronJob
+      podDisruptionBudget:
+        enabled: true
+        minAvailable: 1
+        maxUnavailable: null
+      cronJob:
+        schedule: "0 * * * *"
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: busybox
+              tag: "1.36"
+    asserts:
+      - failedTemplate:
+          errorMessage: "podDisruptionBudget.enabled is only supported when workload.type=deployment"
+
+  - it: should fail when service is enabled for cronjob workload
+    set:
+      workload:
+        type: cronJob
+      network:
+        services:
+          items:
+            main:
+              enabled: true
+              type: ClusterIP
+              ports:
+                http:
+                  port: 80
+                  targetPort: 8080
+                  protocol: TCP
+      cronJob:
+        schedule: "0 * * * *"
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: busybox
+              tag: "1.36"
+    asserts:
+      - failedTemplate:
+          errorMessage: "network.services.items.*.enabled is only supported when workload.type=deployment"

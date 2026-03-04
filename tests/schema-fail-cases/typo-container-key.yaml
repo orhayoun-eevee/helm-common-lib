@@ -1,5 +1,4 @@
-# Test: Typo in deployment object key
-# Expected error: additional properties 'replicass' not allowed
+# Test: typo in deployment container object key should be rejected
 global:
   name: test-app
   namespace: test-namespace
@@ -7,10 +6,10 @@ global:
 workload:
   type: deployment
 deployment:
-  replicass: 3  # Typo: should be 'replicas'
   containers:
     app:
       enabled: true
       image:
         repository: nginx
         tag: "1.25"
+      imagPullPolicy: Always

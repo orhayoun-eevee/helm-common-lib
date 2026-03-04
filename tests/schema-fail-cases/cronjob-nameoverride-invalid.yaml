@@ -1,0 +1,15 @@
+# Test: cronjob nameOverride must be DNS-1123 compliant
+global:
+  name: test-app
+  namespace: test-namespace
+workload:
+  type: cronJob
+cronJob:
+  nameOverride: "Invalid_Cron_Name"
+  schedule: "0 * * * *"
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: busybox
+        tag: "1.36"

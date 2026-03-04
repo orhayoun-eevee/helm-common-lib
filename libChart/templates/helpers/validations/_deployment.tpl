@@ -9,6 +9,9 @@
 */ -}}
 {{- define "libChart.validation.deployment" -}}
 {{- $errors := list -}}
+{{- if ne .Values.workload.type "deployment" }}
+  {{- join "\n" $errors -}}
+{{- else -}}
 {{- $dep := .Values.deployment | default dict }}
 {{- $containers := $dep.containers | default dict }}
 {{- $hasEnabled := false }}
@@ -20,4 +23,5 @@
   {{- $errors = append $errors "deployment.containers must have at least one enabled container" -}}
 {{- end }}
 {{- join "\n" $errors -}}
+{{- end -}}
 {{- end -}}

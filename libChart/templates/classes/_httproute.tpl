@@ -39,31 +39,17 @@ spec:
     {{- toYaml $routeHostnames | nindent 4 }}
   rules:
     {{- if $route.rules }}
-    {{- range $route.rules }}
-    - {{- if .matches }}
-      matches:
-        {{- toYaml .matches | nindent 8 }}
-      {{- end }}
-      {{- if .backendRefs }}
-      backendRefs:
-        {{- toYaml .backendRefs | nindent 8 }}
-      {{- end }}
-      {{- if .filters }}
-      filters:
-        {{- toYaml .filters | nindent 8 }}
-      {{- end }}
-    {{- end }}
+    {{- $rules := tpl (toYaml $route.rules) $ | fromYamlArray }}
+    {{- toYaml $rules | nindent 4 }}
     {{- else if $route.matches }}
-    - matches:
-        {{- toYaml $route.matches | nindent 8 }}
-      {{- if $route.backendRefs }}
-      backendRefs:
-        {{- toYaml $route.backendRefs | nindent 8 }}
-      {{- end }}
-      {{- if $route.filters }}
-      filters:
-        {{- toYaml $route.filters | nindent 8 }}
-      {{- end }}
+    {{- $rule := dict "matches" (tpl (toYaml $route.matches) $ | fromYamlArray) }}
+    {{- if $route.backendRefs }}
+      {{- $rule = set $rule "backendRefs" (tpl (toYaml $route.backendRefs) $ | fromYamlArray) }}
+    {{- end }}
+    {{- if $route.filters }}
+      {{- $rule = set $rule "filters" (tpl (toYaml $route.filters) $ | fromYamlArray) }}
+    {{- end }}
+    {{- toYaml (list $rule) | nindent 4 }}
     {{- end }}
 {{- end }}
 {{- end }}

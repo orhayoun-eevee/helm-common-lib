@@ -4,6 +4,8 @@ global:
   labels:
     overrides:
       app.kubernetes.io/name: custom-name
+workload:
+  type: deployment
 deployment:
   containers:
     app:

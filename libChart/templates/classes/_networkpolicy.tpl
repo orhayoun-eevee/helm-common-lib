@@ -21,12 +21,14 @@ spec:
     {{- toYaml $policy.policyTypes | nindent 4 }}
   {{- end }}
   {{- if $policy.ingress }}
+  {{- $ingress := tpl (toYaml $policy.ingress) $ | fromYamlArray }}
   ingress:
-    {{- toYaml $policy.ingress | nindent 4 }}
+    {{- toYaml $ingress | nindent 4 }}
   {{- end }}
   {{- if $policy.egress }}
+  {{- $egress := tpl (toYaml $policy.egress) $ | fromYamlArray }}
   egress:
-    {{- toYaml $policy.egress | nindent 4 }}
+    {{- toYaml $egress | nindent 4 }}
   {{- end }}
 {{- end }}
 {{- end }}
