@@ -21,5 +21,4 @@ concurrency:
 
 jobs:
   validate:
-    timeout-minutes: 15
-    uses: orhayoun-eevee/build-workflow/.github/workflows/renovate-config.yaml@3a50b1646217b7f3e02feb0a7263af66a5cea2e2
+    uses: orhayoun-eevee/build-workflow/.github/workflows/renovate-config.yaml@v0.1.21
