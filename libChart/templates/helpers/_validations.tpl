@@ -17,6 +17,7 @@
 {{- $errors := list -}}
 {{- $validators := list
     "libChart.validation.deployment"
+    "libChart.validation.httproute"
     "libChart.validation.pdb"
 -}}
 {{- range $v := $validators }}

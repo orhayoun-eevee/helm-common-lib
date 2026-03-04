@@ -1,0 +1,29 @@
+# Test: HTTPRoute enabled with route.hostnames explicitly set to empty
+# Expected error: route hostnames must not be empty when set
+global:
+  name: test-app
+  namespace: test-namespace
+deployment:
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: nginx
+        tag: "1.25"
+network:
+  httpRoute:
+    enabled: true
+    host: test-app.example.com
+    port: 80
+    gateway:
+      name: my-gateway
+      namespace: istio-system
+    routes:
+      - name: route
+        enabled: true
+        hostnames: []
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /

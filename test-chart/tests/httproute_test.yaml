@@ -78,3 +78,117 @@ tests:
         equal:
           path: spec.parentRefs[0].sectionName
           value: https
+
+  - it: should render HTTPRoute using shared hosts list
+    set:
+      global:
+        name: multi-host-app
+        namespace: test-namespace
+      deployment:
+        replicas: 1
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: "1.25"
+      network:
+        httpRoute:
+          enabled: true
+          hosts:
+            - app.example.com
+            - app.internal.example
+          port: 80
+          gateway:
+            name: my-gateway
+            namespace: istio-system
+          routes:
+            - name: route
+              enabled: true
+              listener:
+                sectionName: https
+              rules:
+                - matches:
+                    - path:
+                        type: PathPrefix
+                        value: /
+                  backendRefs:
+                    - name: multi-host-app
+                      port: 80
+    asserts:
+      - documentSelector:
+          path: metadata.name
+          value: multi-host-app-route
+        equal:
+          path: spec.hostnames[0]
+          value: app.example.com
+      - documentSelector:
+          path: metadata.name
+          value: multi-host-app-route
+        equal:
+          path: spec.hostnames[1]
+          value: app.internal.example
+
+  - it: should prioritize route hostnames over top-level host settings
+    set:
+      global:
+        name: route-host-app
+        namespace: test-namespace
+      deployment:
+        replicas: 1
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: "1.25"
+      network:
+        httpRoute:
+          enabled: true
+          host: legacy.example.com
+          hosts:
+            - shared.example.com
+          port: 80
+          gateway:
+            name: my-gateway
+            namespace: istio-system
+          routes:
+            - name: main
+              enabled: true
+              listener:
+                sectionName: https
+              rules:
+                - matches:
+                    - path:
+                        type: PathPrefix
+                        value: /
+                  backendRefs:
+                    - name: route-host-app
+                      port: 80
+            - name: configurator
+              enabled: true
+              hostnames:
+                - configurator.example.com
+              listener:
+                sectionName: https
+              rules:
+                - matches:
+                    - path:
+                        type: PathPrefix
+                        value: /
+                  backendRefs:
+                    - name: route-host-app
+                      port: 80
+    asserts:
+      - documentSelector:
+          path: metadata.name
+          value: route-host-app-main
+        equal:
+          path: spec.hostnames[0]
+          value: shared.example.com
+      - documentSelector:
+          path: metadata.name
+          value: route-host-app-configurator
+        equal:
+          path: spec.hostnames[0]
+          value: configurator.example.com
