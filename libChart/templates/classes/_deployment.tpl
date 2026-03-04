@@ -28,15 +28,17 @@ spec:
       imagePullSecrets:
         {{- toYaml .Values.deployment.imagePullSecrets | nindent 8 }}
       {{- end }}
-      {{- if .Values.deployment.terminationGracePeriodSeconds }}
-      terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
+      {{- if ne (index .Values.deployment "terminationGracePeriodSeconds") nil }}
+      terminationGracePeriodSeconds: {{ index .Values.deployment "terminationGracePeriodSeconds" }}
       {{- end }}
       {{- if .Values.deployment.podSecurityContext }}
       securityContext:
         {{- toYaml .Values.deployment.podSecurityContext | nindent 8 }}
       {{- end }}
-      {{- if and .Values.serviceAccount .Values.serviceAccount.create }}
-      serviceAccountName: {{ .Values.serviceAccount.name | default (include "libChart.name" .) }}
+      {{- if and .Values.serviceAccount .Values.serviceAccount.name }}
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      {{- else if and .Values.serviceAccount .Values.serviceAccount.create }}
+      serviceAccountName: {{ include "libChart.name" . }}
       {{- end }}
       {{- if .Values.deployment.affinity }}
       affinity:

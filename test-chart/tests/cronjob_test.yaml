@@ -89,3 +89,57 @@ tests:
         equal:
           path: metadata.name
           value: abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz
+
+  - it: should set serviceAccountName from explicit existing service account when create is false
+    set:
+      global:
+        name: cron-existing-sa
+        namespace: default
+      serviceAccount:
+        create: false
+        name: existing-cron-sa
+      workload:
+        type: cronJob
+      cronJob:
+        schedule: "0 * * * *"
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: busybox
+              tag: "1.36"
+            command: ["/bin/sh", "-c"]
+            args: ["echo test"]
+    asserts:
+      - documentIndex: 0
+        equal:
+          path: kind
+          value: CronJob
+      - documentIndex: 0
+        equal:
+          path: spec.jobTemplate.spec.template.spec.serviceAccountName
+          value: existing-cron-sa
+
+  - it: should preserve explicit terminationGracePeriodSeconds zero for cronjob
+    set:
+      global:
+        name: cron-zero-grace
+        namespace: default
+      workload:
+        type: cronJob
+      cronJob:
+        schedule: "0 * * * *"
+        terminationGracePeriodSeconds: 0
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: busybox
+              tag: "1.36"
+            command: ["/bin/sh", "-c"]
+            args: ["echo test"]
+    asserts:
+      - documentIndex: 1
+        equal:
+          path: spec.jobTemplate.spec.template.spec.terminationGracePeriodSeconds
+          value: 0

@@ -88,6 +88,7 @@ deployment:
 # CronJob Configuration (used when workload.type=cronJob)
 # ----------------------------------------------------------------------------
 cronJob:
+  # Must be DNS-1123 compliant and max 52 characters.
   nameOverride: ""
   schedule: "0 * * * *"
   timeZone: ""
@@ -121,6 +122,8 @@ cronJob:
     appArmorProfile:
       type: RuntimeDefault
   restartPolicy: OnFailure
+  # In cronJob mode, deployment-style features below fail validation if enabled:
+  # podDisruptionBudget, network.services/httpRoute, metrics.serviceMonitor, istio routing.
   containers:
     app:
       enabled: true
@@ -204,6 +207,7 @@ serviceAccount:
   create: true
   automount: false
   annotations: {}
+  # If set with create=false, workloads bind to this existing ServiceAccount.
   name: ""
 
 # ----------------------------------------------------------------------------

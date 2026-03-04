@@ -373,7 +373,9 @@
       "properties": {
         "nameOverride": {
           "type": "string",
-          "description": "Optional CronJob name override (effective max length 52)"
+          "description": "Optional CronJob name override (effective max length 52, DNS-1123)",
+          "maxLength": 52,
+          "pattern": "^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
         },
         "schedule": {
           "type": "string",

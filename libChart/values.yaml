@@ -125,7 +125,7 @@ deployment:
 # ----------------------------------------------------------------------------
 cronJob:
   # nameOverride overrides the generated CronJob name.
-  # Effective max name length is 52 characters because Job names append a suffix.
+  # Must be DNS-1123 compliant and max 52 characters (Job names append a suffix).
   nameOverride: ""
   # schedule is the cron expression. Quote this value in consumer charts.
   schedule: "0 * * * *"
@@ -163,6 +163,11 @@ cronJob:
       type: RuntimeDefault
   # restartPolicy must be OnFailure or Never for Jobs/CronJobs.
   restartPolicy: OnFailure
+  # Note: when workload.type=cronJob, deployment-oriented features fail validation:
+  # - podDisruptionBudget.enabled
+  # - network.services/items, network.httpRoute
+  # - metrics.serviceMonitor
+  # - network.istio.authorizationPolicy/items and destinationRule
   containers:
     placeholder:
       enabled: false
@@ -388,7 +393,9 @@ serviceAccount:
   automount: false
   # annotations are service account annotations.
   annotations: {}
-  # name is the service account name (defaults to chart name if empty).
+  # name is the service account name.
+  # If set, workloads bind to this name even when create=false (use existing ServiceAccount).
+  # If empty and create=true, chart name is used.
   name: ""
 
 # ----------------------------------------------------------------------------

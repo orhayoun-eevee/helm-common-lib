@@ -134,3 +134,47 @@ tests:
         equal:
           path: spec.template.spec.dnsPolicy
           value: None
+
+  - it: should set serviceAccountName from explicit existing service account when create is false
+    set:
+      global:
+        name: existing-sa-app
+        namespace: default
+      serviceAccount:
+        create: false
+        name: precreated-service-account
+      deployment:
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: latest
+    asserts:
+      - documentIndex: 0
+        equal:
+          path: kind
+          value: Deployment
+      - documentIndex: 0
+        equal:
+          path: spec.template.spec.serviceAccountName
+          value: precreated-service-account
+
+  - it: should preserve explicit terminationGracePeriodSeconds zero
+    set:
+      global:
+        name: zero-grace-app
+        namespace: default
+      deployment:
+        terminationGracePeriodSeconds: 0
+        containers:
+          app:
+            enabled: true
+            image:
+              repository: nginx
+              tag: latest
+    asserts:
+      - documentIndex: 1
+        equal:
+          path: spec.template.spec.terminationGracePeriodSeconds
+          value: 0

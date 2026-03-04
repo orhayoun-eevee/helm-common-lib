@@ -129,8 +129,13 @@ Notable deployment networking option:
 Notable CronJob options:
 - `cronJob.schedule` is required when `workload.type=cronJob`.
 - `cronJob.timeZone` is supported on Kubernetes 1.27+.
-- CronJob names are capped to 52 characters (Kubernetes CronJob/Job naming rule).
+- `cronJob.nameOverride` must be DNS-1123 compliant and <= 52 characters (Kubernetes CronJob/Job naming rule).
 - Do not use `TZ=`/`CRON_TZ=` inside `cronJob.schedule`; use `cronJob.timeZone`.
+- In `workload.type=cronJob` mode, deployment-oriented features fail validation (`podDisruptionBudget`, service/httpRoute routing, ServiceMonitor, Istio routing resources).
+
+Service account behavior:
+- If `serviceAccount.name` is set, workloads bind to that name even when `serviceAccount.create=false` (use existing ServiceAccount).
+- If `serviceAccount.name` is empty and `serviceAccount.create=true`, chart name is used.
 
 Notable ServiceMonitor endpoint auth options:
 - `metrics.serviceMonitor.bearerTokenSecret` is supported for Secret-based bearer token auth.

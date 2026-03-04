@@ -48,15 +48,17 @@ spec:
           imagePullSecrets:
             {{- toYaml .Values.cronJob.imagePullSecrets | nindent 12 }}
           {{- end }}
-          {{- if .Values.cronJob.terminationGracePeriodSeconds }}
-          terminationGracePeriodSeconds: {{ .Values.cronJob.terminationGracePeriodSeconds }}
+          {{- if ne (index .Values.cronJob "terminationGracePeriodSeconds") nil }}
+          terminationGracePeriodSeconds: {{ index .Values.cronJob "terminationGracePeriodSeconds" }}
           {{- end }}
           {{- if .Values.cronJob.podSecurityContext }}
           securityContext:
             {{- toYaml .Values.cronJob.podSecurityContext | nindent 12 }}
           {{- end }}
-          {{- if and .Values.serviceAccount .Values.serviceAccount.create }}
-          serviceAccountName: {{ .Values.serviceAccount.name | default (include "libChart.name" .) }}
+          {{- if and .Values.serviceAccount .Values.serviceAccount.name }}
+          serviceAccountName: {{ .Values.serviceAccount.name }}
+          {{- else if and .Values.serviceAccount .Values.serviceAccount.create }}
+          serviceAccountName: {{ include "libChart.name" . }}
           {{- end }}
           {{- if .Values.cronJob.affinity }}
           affinity:
