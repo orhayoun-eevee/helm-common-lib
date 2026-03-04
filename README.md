@@ -35,12 +35,12 @@ git push
 
 ```bash
 # Bump version in all Chart.yaml files
-make bump VERSION=0.0.7
+make bump VERSION=0.0.8
 
 # Commit and tag
-git commit -am "chore: bump version to 0.0.7"
+git commit -am "chore: bump version to 0.0.8"
 git push
-git tag v0.0.7 && git push origin v0.0.7
+git tag v0.0.8 && git push origin v0.0.8
 ```
 
 The publish workflow automatically packages and pushes the chart to GHCR when you push a version tag.
@@ -102,7 +102,7 @@ In your chart's `Chart.yaml`:
 ```yaml
 dependencies:
   - name: lib-chart
-    version: "0.0.7"
+    version: "0.0.8"
     repository: "oci://ghcr.io/orhayoun-eevee"
 ```
 
@@ -224,7 +224,7 @@ The `test-chart` in this repository uses a local file dependency to ensure it al
 ```yaml
 dependencies:
   - name: lib-chart
-    version: 0.0.7
+    version: 0.0.8
     repository: file://../libChart
 ```
 

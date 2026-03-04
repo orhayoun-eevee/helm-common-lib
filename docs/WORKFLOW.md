@@ -147,7 +147,7 @@ git pull
 Use the bump script to update all version fields atomically:
 
 ```bash
-make bump VERSION=0.0.7
+make bump VERSION=0.0.8
 ```
 
 This updates:
@@ -155,7 +155,7 @@ This updates:
 - `test-chart/Chart.yaml` -- `version`, `appVersion`, and `dependencies[0].version`
 
 The script validates:
-- VERSION follows semver format (e.g., `0.0.7`, `1.2.3`, `1.0.0-alpha.1`)
+- VERSION follows semver format (e.g., `0.0.8`, `1.2.3`, `1.0.0-alpha.1`)
 - New version differs from current version
 
 #### Step 3: Review the version bump
@@ -170,7 +170,7 @@ You should see version changes in both Chart.yaml files.
 
 ```bash
 git add .
-git commit -m "chore: bump version to 0.0.7"
+git commit -m "chore: bump version to 0.0.8"
 git push
 ```
 
@@ -179,11 +179,11 @@ Wait for CI to pass on this commit.
 #### Step 5: Create and push the tag
 
 ```bash
-git tag v0.0.7
-git push origin v0.0.7
+git tag v0.0.8
+git push origin v0.0.8
 ```
 
-**Important:** The tag must have a `v` prefix and match the version in Chart.yaml (e.g., tag `v0.0.7` for version `0.0.7`).
+**Important:** The tag must have a `v` prefix and match the version in Chart.yaml (e.g., tag `v0.0.8` for version `0.0.8`).
 
 #### Step 6: Publish workflow runs automatically
 
@@ -203,7 +203,7 @@ Follow semantic versioning (semver):
 - **Major** (X.0.0) -- breaking changes
 
 Examples:
-- `0.0.7` -- patch release
+- `0.0.8` -- patch release
 - `0.1.0` -- minor release with new features
 - `1.0.0` -- first stable release
 - `1.0.0-alpha.1` -- pre-release version
@@ -227,7 +227,7 @@ Understanding the separation of concerns:
 
 ### Publish Workflow (`.github/workflows/on-tag.yaml`)
 
-**Triggers:** Git tags matching `v*` (e.g., `v0.0.7`)
+**Triggers:** Git tags matching `v*` (e.g., `v0.0.8`)
 
 **Responsibilities:**
 - Verify tag matches chart version
@@ -283,10 +283,10 @@ make pre-push
 
 **Creating a release:**
 ```bash
-make bump VERSION=0.0.7
-git commit -am "chore: bump version to 0.0.7"
+make bump VERSION=0.0.8
+git commit -am "chore: bump version to 0.0.8"
 git push
-git tag v0.0.7 && git push origin v0.0.7
+git tag v0.0.8 && git push origin v0.0.8
 ```
 
 ## Troubleshooting
@@ -335,7 +335,7 @@ git push --force-with-lease
 
 **Error:**
 ```
-Error: Tag version (v0.0.7) does not match chart version (0.0.6)
+Error: Tag version (v0.0.8) does not match chart version (0.0.6)
 ```
 
 **Cause:** Git tag doesn't match the version in `libChart/Chart.yaml`
@@ -343,17 +343,17 @@ Error: Tag version (v0.0.7) does not match chart version (0.0.6)
 **Fix:**
 ```bash
 # Delete the wrong tag
-git tag -d v0.0.7
-git push origin :refs/tags/v0.0.7
+git tag -d v0.0.8
+git push origin :refs/tags/v0.0.8
 
 # Bump to correct version
-make bump VERSION=0.0.7
-git commit -am "chore: bump version to 0.0.7"
+make bump VERSION=0.0.8
+git commit -am "chore: bump version to 0.0.8"
 git push
 
 # Create correct tag
-git tag v0.0.7
-git push origin v0.0.7
+git tag v0.0.8
+git push origin v0.0.8
 ```
 
 ### Helm dependency update fails
