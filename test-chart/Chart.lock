@@ -1,6 +1,6 @@
 dependencies:
 - name: lib-chart
   repository: file://../libChart
-  version: 0.0.10
-digest: sha256:2cd96476cc58c32e84db0665b69f99bf0f78a5b1f7a896aecae25873d30b4aa4
-generated: "2026-03-02T16:57:51.537561+02:00"
+  version: 0.0.11
+digest: sha256:9de834d35707e4545ae43f720bd4d8783a6642b3b10f2afad65793d27778a55b
+generated: "2026-03-02T18:33:30.204318+02:00"

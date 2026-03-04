@@ -1,0 +1,28 @@
+# Test: HTTPRoute enabled with explicitly empty hosts list and no fallback hostname source
+# Expected error: at least one hostname source is required
+global:
+  name: test-app
+  namespace: test-namespace
+deployment:
+  containers:
+    app:
+      enabled: true
+      image:
+        repository: nginx
+        tag: "1.25"
+network:
+  httpRoute:
+    enabled: true
+    hosts: []
+    port: 80
+    gateway:
+      name: my-gateway
+      namespace: istio-system
+    routes:
+      - name: route
+        enabled: true
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
