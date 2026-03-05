@@ -434,6 +434,12 @@
                 { "type": "integer", "minimum": 0 },
                 { "type": "null" }
               ]
+            },
+            "activeDeadlineSeconds": {
+              "oneOf": [
+                { "type": "integer", "minimum": 0 },
+                { "type": "null" }
+              ]
             }
           }
         },

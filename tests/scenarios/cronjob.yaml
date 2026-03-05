@@ -11,6 +11,8 @@ workload:
     restartPolicy: OnFailure
     successfulJobsHistoryLimit: 2
     failedJobsHistoryLimit: 1
+    jobTemplate:
+      activeDeadlineSeconds: 600
     containers:
       app:
         enabled: true
