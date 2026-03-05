@@ -11,8 +11,8 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: full-app
     app.kubernetes.io/part-of: test-suite
-    app.kubernetes.io/version: 0.0.12
-    helm.sh/chart: test-chart-0.0.12
+    app.kubernetes.io/version: 0.0.13
+    helm.sh/chart: test-chart-0.0.13
 spec:
   podSelector:
     matchLabels:
@@ -48,8 +48,8 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: full-app
     app.kubernetes.io/part-of: test-suite
-    app.kubernetes.io/version: 0.0.12
-    helm.sh/chart: test-chart-0.0.12
+    app.kubernetes.io/version: 0.0.13
+    helm.sh/chart: test-chart-0.0.13
 spec:
   selector:
     matchLabels:
@@ -70,8 +70,8 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: full-app
     app.kubernetes.io/part-of: test-suite
-    app.kubernetes.io/version: 0.0.12
-    helm.sh/chart: test-chart-0.0.12
+    app.kubernetes.io/version: 0.0.13
+    helm.sh/chart: test-chart-0.0.13
   annotations:
     test-annotation: full-scenario
 automountServiceAccountToken: false
@@ -88,8 +88,8 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: full-app
     app.kubernetes.io/part-of: test-suite
-    app.kubernetes.io/version: 0.0.12
-    helm.sh/chart: test-chart-0.0.12
+    app.kubernetes.io/version: 0.0.13
+    helm.sh/chart: test-chart-0.0.13
 data:
   config.yaml: |
     environment: test
@@ -109,8 +109,8 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: full-app
     app.kubernetes.io/part-of: test-suite
-    app.kubernetes.io/version: 0.0.12
-    helm.sh/chart: test-chart-0.0.12
+    app.kubernetes.io/version: 0.0.13
+    helm.sh/chart: test-chart-0.0.13
 spec:
   accessModes:
     - ReadWriteOnce
@@ -131,8 +131,8 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: full-app
     app.kubernetes.io/part-of: test-suite
-    app.kubernetes.io/version: 0.0.12
-    helm.sh/chart: test-chart-0.0.12
+    app.kubernetes.io/version: 0.0.13
+    helm.sh/chart: test-chart-0.0.13
 spec:
   type: ClusterIP
   ports:
@@ -156,8 +156,8 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: full-app
     app.kubernetes.io/part-of: test-suite
-    app.kubernetes.io/version: 0.0.12
-    helm.sh/chart: test-chart-0.0.12
+    app.kubernetes.io/version: 0.0.13
+    helm.sh/chart: test-chart-0.0.13
 spec:
   replicas: 2
   revisionHistoryLimit: 3
@@ -175,8 +175,8 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: full-app
         app.kubernetes.io/part-of: test-suite
-        app.kubernetes.io/version: 0.0.12
-        helm.sh/chart: test-chart-0.0.12
+        app.kubernetes.io/version: 0.0.13
+        helm.sh/chart: test-chart-0.0.13
         test-label: full-scenario
     spec:
       
@@ -270,8 +270,8 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: full-app
     app.kubernetes.io/part-of: test-suite
-    app.kubernetes.io/version: 0.0.12
-    helm.sh/chart: test-chart-0.0.12
+    app.kubernetes.io/version: 0.0.13
+    helm.sh/chart: test-chart-0.0.13
 spec:
   groups:
     - name: full-app.rules
@@ -296,8 +296,8 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: full-app
     app.kubernetes.io/part-of: test-suite
-    app.kubernetes.io/version: 0.0.12
-    helm.sh/chart: test-chart-0.0.12
+    app.kubernetes.io/version: 0.0.13
+    helm.sh/chart: test-chart-0.0.13
 spec:
   selector:
     matchLabels:

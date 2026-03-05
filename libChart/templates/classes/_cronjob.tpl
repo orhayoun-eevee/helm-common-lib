@@ -39,6 +39,9 @@ spec:
       {{- if and $spec.jobTemplate (ne $spec.jobTemplate.ttlSecondsAfterFinished nil) }}
       ttlSecondsAfterFinished: {{ $spec.jobTemplate.ttlSecondsAfterFinished }}
       {{- end }}
+      {{- if and $spec.jobTemplate (ne $spec.jobTemplate.activeDeadlineSeconds nil) }}
+      activeDeadlineSeconds: {{ $spec.jobTemplate.activeDeadlineSeconds }}
+      {{- end }}
       template:
         metadata:
           labels:

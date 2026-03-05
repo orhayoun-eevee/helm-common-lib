@@ -10,8 +10,8 @@ metadata:
     app.kubernetes.io/instance: test-release
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: cron-app
-    app.kubernetes.io/version: 0.0.12
-    helm.sh/chart: test-chart-0.0.12
+    app.kubernetes.io/version: 0.0.13
+    helm.sh/chart: test-chart-0.0.13
 automountServiceAccountToken: false
 ---
 # Source: test-chart/templates/all.yaml
@@ -25,8 +25,8 @@ metadata:
     app.kubernetes.io/instance: test-release
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: cron-app
-    app.kubernetes.io/version: 0.0.12
-    helm.sh/chart: test-chart-0.0.12
+    app.kubernetes.io/version: 0.0.13
+    helm.sh/chart: test-chart-0.0.13
 spec:
   schedule: "0 * * * *"
   concurrencyPolicy: Forbid
@@ -34,6 +34,7 @@ spec:
   failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
+      activeDeadlineSeconds: 600
       template:
         metadata:
           labels:
@@ -41,8 +42,8 @@ spec:
             app.kubernetes.io/instance: test-release
             app.kubernetes.io/managed-by: Helm
             app.kubernetes.io/name: cron-app
-            app.kubernetes.io/version: 0.0.12
-            helm.sh/chart: test-chart-0.0.12
+            app.kubernetes.io/version: 0.0.13
+            helm.sh/chart: test-chart-0.0.13
         spec:
           
           terminationGracePeriodSeconds: 30

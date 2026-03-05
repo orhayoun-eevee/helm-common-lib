@@ -13,6 +13,8 @@ tests:
           schedule: "*/15 * * * *"
           concurrencyPolicy: Forbid
           restartPolicy: OnFailure
+          jobTemplate:
+            activeDeadlineSeconds: 600
           containers:
             app:
               enabled: true
@@ -38,6 +40,10 @@ tests:
         equal:
           path: spec.jobTemplate.spec.template.spec.restartPolicy
           value: OnFailure
+      - documentIndex: 1
+        equal:
+          path: spec.jobTemplate.spec.activeDeadlineSeconds
+          value: 600
 
   - it: should render hostNetwork dnsPolicy fallback for CronJob
     set:

@@ -32,6 +32,15 @@ workload:
   # spec contains workload-type-specific settings.
   # For workload.type=deployment use Deployment keys (replicas/strategy/containers/...).
   # For workload.type=cronJob use CronJob keys (schedule/concurrencyPolicy/restartPolicy/containers/...).
+  # CronJob-specific examples:
+  # schedule: "0 * * * *"
+  # concurrencyPolicy: Forbid
+  # successfulJobsHistoryLimit: 3
+  # failedJobsHistoryLimit: 1
+  # jobTemplate:
+  #   backoffLimit: 1
+  #   ttlSecondsAfterFinished: 86400
+  #   activeDeadlineSeconds: 600
   spec:
     # ----------------------------------------------------------------------------
     # Deployment defaults (used when workload.type=deployment)
