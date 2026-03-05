@@ -6,12 +6,12 @@ global:
 
 workload:
   type: deployment
-deployment:
-  strategy:
-    type: BlueGreen
-  containers:
-    app:
-      enabled: true
-      image:
-        repository: nginx
-        tag: "1.25"
+  spec:
+    strategy:
+      type: BlueGreen
+    containers:
+      app:
+        enabled: true
+        image:
+          repository: nginx
+          tag: "1.25"

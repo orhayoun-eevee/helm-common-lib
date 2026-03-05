@@ -2,8 +2,8 @@
 # Structural checks (types, patterns, conditional-required, minProperties) are enforced by
 # values.schema.json and tested via automated schema fail-case tests (make test-schema).
 # These tests cover only what schema cannot express:
-#   - deployment: at least one enabled container (iteration logic)
-#   - cronJob: at least one enabled container + schedule/timezone guards
+#   - workload.spec (deployment): at least one enabled container (iteration logic)
+#   - workload.spec (cronJob): at least one enabled container + schedule/timezone guards
 #   - PDB: mutual exclusivity with zero-value awareness (index + ne nil)
 suite: test validation failures
 templates:
@@ -17,7 +17,7 @@ tests:
       - fixtures/no-enabled-containers.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "deployment.containers must have at least one enabled container"
+          errorMessage: "workload.spec.containers must have at least one enabled container for workload.type=deployment"
 
   # ---- PDB ----
   - it: should fail when PDB has both minAvailable and maxUnavailable set
@@ -93,50 +93,50 @@ tests:
     set:
       workload:
         type: cronJob
-      cronJob:
-        schedule: "0 * * * *"
-        containers:
-          app:
-            enabled: false
-            image:
-              repository: busybox
-              tag: "1.36"
+        spec:
+          schedule: "0 * * * *"
+          containers:
+            app:
+              enabled: false
+              image:
+                repository: busybox
+                tag: "1.36"
     asserts:
       - failedTemplate:
-          errorMessage: "cronJob.containers must have at least one enabled container when workload.type=cronJob"
+          errorMessage: "workload.spec.containers must have at least one enabled container when workload.type=cronJob"
 
   - it: should fail when cronjob schedule uses CRON_TZ
     set:
       workload:
         type: cronJob
-      cronJob:
-        schedule: "CRON_TZ=UTC 0 * * * *"
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: busybox
-              tag: "1.36"
+        spec:
+          schedule: "CRON_TZ=UTC 0 * * * *"
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: busybox
+                tag: "1.36"
     asserts:
       - failedTemplate:
-          errorMessage: "cronJob.schedule must not use TZ/CRON_TZ; use cronJob.timeZone instead"
+          errorMessage: "workload.spec.schedule must not use TZ/CRON_TZ; use workload.spec.timeZone instead"
 
   - it: should fail when PDB is enabled for cronjob workload
     set:
       workload:
         type: cronJob
+        spec:
+          schedule: "0 * * * *"
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: busybox
+                tag: "1.36"
       podDisruptionBudget:
         enabled: true
         minAvailable: 1
         maxUnavailable: null
-      cronJob:
-        schedule: "0 * * * *"
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: busybox
-              tag: "1.36"
     asserts:
       - failedTemplate:
           errorMessage: "podDisruptionBudget.enabled is only supported when workload.type=deployment"
@@ -145,6 +145,14 @@ tests:
     set:
       workload:
         type: cronJob
+        spec:
+          schedule: "0 * * * *"
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: busybox
+                tag: "1.36"
       network:
         services:
           items:
@@ -156,14 +164,6 @@ tests:
                   port: 80
                   targetPort: 8080
                   protocol: TCP
-      cronJob:
-        schedule: "0 * * * *"
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: busybox
-              tag: "1.36"
     asserts:
       - failedTemplate:
           errorMessage: "network.services.items.*.enabled is only supported when workload.type=deployment"

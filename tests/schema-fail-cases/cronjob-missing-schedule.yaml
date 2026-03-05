@@ -4,11 +4,11 @@ global:
   namespace: test-namespace
 workload:
   type: cronJob
-cronJob:
-  schedule: ""
-  containers:
-    app:
-      enabled: true
-      image:
-        repository: busybox
-        tag: "1.36"
+  spec:
+    schedule: ""
+    containers:
+      app:
+        enabled: true
+        image:
+          repository: busybox
+          tag: "1.36"

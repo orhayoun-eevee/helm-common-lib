@@ -10,8 +10,8 @@ metadata:
     app.kubernetes.io/instance: test-release
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: cron-app
-    app.kubernetes.io/version: 0.0.9
-    helm.sh/chart: test-chart-0.0.9
+    app.kubernetes.io/version: 0.0.12
+    helm.sh/chart: test-chart-0.0.12
 automountServiceAccountToken: false
 ---
 # Source: test-chart/templates/all.yaml
@@ -25,11 +25,10 @@ metadata:
     app.kubernetes.io/instance: test-release
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: cron-app
-    app.kubernetes.io/version: 0.0.9
-    helm.sh/chart: test-chart-0.0.9
+    app.kubernetes.io/version: 0.0.12
+    helm.sh/chart: test-chart-0.0.12
 spec:
   schedule: "0 * * * *"
-  suspend: false
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 1
@@ -42,8 +41,8 @@ spec:
             app.kubernetes.io/instance: test-release
             app.kubernetes.io/managed-by: Helm
             app.kubernetes.io/name: cron-app
-            app.kubernetes.io/version: 0.0.9
-            helm.sh/chart: test-chart-0.0.9
+            app.kubernetes.io/version: 0.0.12
+            helm.sh/chart: test-chart-0.0.12
         spec:
           
           terminationGracePeriodSeconds: 30
@@ -54,6 +53,7 @@ spec:
             seccompProfile:
               type: RuntimeDefault
           serviceAccountName: cron-app
+          automountServiceAccountToken: false
           restartPolicy: OnFailure
           containers:
             - name: app

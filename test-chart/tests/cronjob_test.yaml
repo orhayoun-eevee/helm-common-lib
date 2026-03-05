@@ -9,18 +9,18 @@ tests:
         namespace: test-namespace
       workload:
         type: cronJob
-      cronJob:
-        schedule: "*/15 * * * *"
-        concurrencyPolicy: Forbid
-        restartPolicy: OnFailure
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: busybox
-              tag: "1.36"
-            command: ["/bin/sh", "-c"]
-            args: ["echo test"]
+        spec:
+          schedule: "*/15 * * * *"
+          concurrencyPolicy: Forbid
+          restartPolicy: OnFailure
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: busybox
+                tag: "1.36"
+              command: ["/bin/sh", "-c"]
+              args: ["echo test"]
     asserts:
       - documentIndex: 1
         equal:
@@ -46,17 +46,17 @@ tests:
         namespace: default
       workload:
         type: cronJob
-      cronJob:
-        schedule: "0 * * * *"
-        hostNetwork: true
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: busybox
-              tag: "1.36"
-            command: ["/bin/sh", "-c"]
-            args: ["echo test"]
+        spec:
+          schedule: "0 * * * *"
+          hostNetwork: true
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: busybox
+                tag: "1.36"
+              command: ["/bin/sh", "-c"]
+              args: ["echo test"]
     asserts:
       - documentIndex: 1
         equal:
@@ -74,16 +74,16 @@ tests:
         namespace: default
       workload:
         type: cronJob
-      cronJob:
-        schedule: "0 * * * *"
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: busybox
-              tag: "1.36"
-            command: ["/bin/sh", "-c"]
-            args: ["echo test"]
+        spec:
+          schedule: "0 * * * *"
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: busybox
+                tag: "1.36"
+              command: ["/bin/sh", "-c"]
+              args: ["echo test"]
     asserts:
       - documentIndex: 1
         equal:
@@ -100,16 +100,16 @@ tests:
         name: existing-cron-sa
       workload:
         type: cronJob
-      cronJob:
-        schedule: "0 * * * *"
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: busybox
-              tag: "1.36"
-            command: ["/bin/sh", "-c"]
-            args: ["echo test"]
+        spec:
+          schedule: "0 * * * *"
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: busybox
+                tag: "1.36"
+              command: ["/bin/sh", "-c"]
+              args: ["echo test"]
     asserts:
       - documentIndex: 0
         equal:
@@ -127,17 +127,17 @@ tests:
         namespace: default
       workload:
         type: cronJob
-      cronJob:
-        schedule: "0 * * * *"
-        terminationGracePeriodSeconds: 0
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: busybox
-              tag: "1.36"
-            command: ["/bin/sh", "-c"]
-            args: ["echo test"]
+        spec:
+          schedule: "0 * * * *"
+          terminationGracePeriodSeconds: 0
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: busybox
+                tag: "1.36"
+              command: ["/bin/sh", "-c"]
+              args: ["echo test"]
     asserts:
       - documentIndex: 1
         equal:

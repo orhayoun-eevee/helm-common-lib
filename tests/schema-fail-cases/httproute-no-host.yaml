@@ -6,17 +6,17 @@ global:
 
 workload:
   type: deployment
-deployment:
-  containers:
-    app:
-      enabled: true
-      image:
-        repository: nginx
-        tag: "1.25"
+  spec:
+    containers:
+      app:
+        enabled: true
+        image:
+          repository: nginx
+          tag: "1.25"
 network:
-  httpRoute:
-    enabled: true
-    port: 80
-    gateway:
-      name: my-gateway
-      namespace: istio-system
+    httpRoute:
+      enabled: true
+      port: 80
+      gateway:
+        name: my-gateway
+        namespace: istio-system

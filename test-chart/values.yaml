@@ -23,121 +23,62 @@ global:
 workload:
   # Supported values: deployment, cronJob
   type: deployment
-
-# ----------------------------------------------------------------------------
-# Deployment Configuration (used when workload.type=deployment)
-# ----------------------------------------------------------------------------
-deployment:
-  replicas: 1
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 3
-  imagePullSecrets: []
-  terminationGracePeriodSeconds: 30
-  # hostNetwork enables use of the node network namespace.
-  # If true and dnsPolicy is omitted, lib-chart renders ClusterFirstWithHostNet.
-  # hostNetwork: false
-  podLabels: {}
-  automountServiceAccountToken: false
-  podSecurityContext:
-    runAsNonRoot: true
-    runAsUser: 20000  # High UID to avoid host conflicts (CKV_K8S_40)
-    fsGroup: 20000
-    seccompProfile:
-      type: RuntimeDefault
-  defaultContainerSecurityContext:
-    allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: true
-    runAsNonRoot: true
-    runAsUser: 20000  # High UID to avoid host conflicts (CKV_K8S_40)
-    capabilities:
-      drop:
-        - ALL
-    seccompProfile:
-      type: RuntimeDefault
-    appArmorProfile:
-      type: RuntimeDefault
-  containers:  # REQUIRED - must be defined by application chart
-    app:
-      enabled: true
-      image:
-        repository: changeme   # override when installing
-        tag: "1.0.0"
-      resources:
-        requests:
-          memory: "128Mi"
-          cpu: "100m"
-        limits:
-          memory: "256Mi"
-          cpu: "200m"
-      livenessProbe:
-        httpGet:
-          path: /healthz
-          port: 8080
-        initialDelaySeconds: 30
-        periodSeconds: 10
-      readinessProbe:
-        httpGet:
-          path: /ready
-          port: 8080
-        initialDelaySeconds: 5
-        periodSeconds: 5
-  initContainers: {}
-
-# ----------------------------------------------------------------------------
-# CronJob Configuration (used when workload.type=cronJob)
-# ----------------------------------------------------------------------------
-cronJob:
-  # Must be DNS-1123 compliant and max 52 characters.
-  nameOverride: ""
-  schedule: "0 * * * *"
-  timeZone: ""
-  suspend: false
-  concurrencyPolicy: Allow
-  startingDeadlineSeconds: null
-  successfulJobsHistoryLimit: null
-  failedJobsHistoryLimit: null
-  jobTemplate:
-    backoffLimit: null
-    ttlSecondsAfterFinished: null
-  imagePullSecrets: []
-  terminationGracePeriodSeconds: 30
-  podLabels: {}
-  podSecurityContext:
-    runAsNonRoot: true
-    runAsUser: 20000
-    fsGroup: 20000
-    seccompProfile:
-      type: RuntimeDefault
-  defaultContainerSecurityContext:
-    allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: true
-    runAsNonRoot: true
-    runAsUser: 20000
-    capabilities:
-      drop:
-        - ALL
-    seccompProfile:
-      type: RuntimeDefault
-    appArmorProfile:
-      type: RuntimeDefault
-  restartPolicy: OnFailure
-  # In cronJob mode, deployment-style features below fail validation if enabled:
-  # podDisruptionBudget, network.services/httpRoute, metrics.serviceMonitor, istio routing.
-  containers:
-    app:
-      enabled: true
-      image:
-        repository: changeme
-        tag: "1.0.0"
-      resources:
-        requests:
-          memory: "128Mi"
-          cpu: "100m"
-        limits:
-          memory: "256Mi"
-          cpu: "200m"
-  initContainers: {}
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+    revisionHistoryLimit: 3
+    imagePullSecrets: []
+    terminationGracePeriodSeconds: 30
+    # hostNetwork enables use of the node network namespace.
+    # If true and dnsPolicy is omitted, lib-chart renders ClusterFirstWithHostNet.
+    # hostNetwork: false
+    podLabels: {}
+    automountServiceAccountToken: false
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 20000  # High UID to avoid host conflicts (CKV_K8S_40)
+      fsGroup: 20000
+      seccompProfile:
+        type: RuntimeDefault
+    defaultContainerSecurityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 20000  # High UID to avoid host conflicts (CKV_K8S_40)
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+      appArmorProfile:
+        type: RuntimeDefault
+    containers:  # REQUIRED - must be defined by application chart
+      app:
+        enabled: true
+        image:
+          repository: changeme   # override when installing
+          tag: "1.0.0"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+    initContainers: {}
 
 # ----------------------------------------------------------------------------
 # Feature: Persistence

@@ -57,11 +57,11 @@ Validations are enforced either by **JSON schema** or by **templates**. Each ite
 
 ### Workload Selection and CronJob
 - [schema] `workload.type` is required and must be one of `deployment`, `cronJob`
-- [schema] When `workload.type=cronJob`, `cronJob.schedule` and `cronJob.containers` are required
-- [schema] `cronJob.nameOverride` must be DNS-1123 compliant and <= 52 chars
-- [template] `cronJob.schedule` must not include `TZ=`/`CRON_TZ=`; use `cronJob.timeZone`
-- [template] `cronJob.timeZone` requires Kubernetes >= 1.27
-- [template] `cronJob.containers` must have at least one enabled container
+- [schema] When `workload.type=cronJob`, `workload.spec.schedule` and `workload.spec.containers` are required
+- [schema] `workload.spec.nameOverride` must be DNS-1123 compliant and <= 52 chars
+- [template] `workload.spec.schedule` must not include `TZ=`/`CRON_TZ=`; use `workload.spec.timeZone`
+- [template] `workload.spec.timeZone` requires Kubernetes >= 1.27
+- [template] `workload.spec.containers` must have at least one enabled container
 - [template] Deployment-only features fail when `workload.type=cronJob`:
   - `podDisruptionBudget.enabled`
   - `network.services.items.*.enabled`
@@ -114,7 +114,7 @@ When a value fails template validation:
 ```bash
 helm template my-release ./my-chart -f values.yaml
 # Error: execution error at (libChart/templates/helpers/_validations.tpl:XX:YY):
-#   deployment.containers must have at least one enabled container
+#   workload.spec.containers must have at least one enabled container
 ```
 
 > **Tip:** All validation rules and fixes are documented in this file. Search for the error message text to find the corresponding "Fix" section.
@@ -152,18 +152,20 @@ global:
 
 **Error:**
 ```
-deployment.containers must have at least one enabled container
+workload.spec.containers must have at least one enabled container
 ```
 
 **Fix:**
 ```yaml
-deployment:
-  containers:
-    app:
-      enabled: true  # At least one container must be enabled
-      image:
-        repository: "nginx"
-        tag: "1.25"
+workload:
+  type: deployment
+  spec:
+    containers:
+      app:
+        enabled: true  # At least one container must be enabled
+        image:
+          repository: "nginx"
+          tag: "1.25"
 ```
 
 ### PDB Mutual Exclusivity

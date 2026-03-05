@@ -1,54 +1,57 @@
 {{- define "libChart.classes.cronjob" -}}
-{{- if and .Values.cronJob .Values.cronJob.containers }}
+{{- $root := .root | default . -}}
+{{- $ctx := .ctx | default dict -}}
+{{- $spec := $ctx.spec | default $root.Values.workload.spec | default dict -}}
+{{- if $spec.containers }}
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "libChart.cronjobName" . }}
-  namespace: {{ .Values.global.namespace | default "default" }}
+  name: {{ include "libChart.cronjobName" (dict "root" $root "spec" $spec) }}
+  namespace: {{ $root.Values.global.namespace | default "default" }}
   labels:
-    {{- include "libChart.labelsWithComponent" (dict "root" . "component" "cronjob") | nindent 4 }}
+    {{- include "libChart.labelsWithComponent" (dict "root" $root "component" "cronjob") | nindent 4 }}
 spec:
-  schedule: {{ .Values.cronJob.schedule | quote }}
-  {{- if .Values.cronJob.timeZone }}
-  timeZone: {{ .Values.cronJob.timeZone | quote }}
+  schedule: {{ $spec.schedule | quote }}
+  {{- if $spec.timeZone }}
+  timeZone: {{ $spec.timeZone | quote }}
   {{- end }}
-  {{- if ne .Values.cronJob.suspend nil }}
-  suspend: {{ .Values.cronJob.suspend }}
+  {{- if ne $spec.suspend nil }}
+  suspend: {{ $spec.suspend }}
   {{- end }}
-  {{- if .Values.cronJob.concurrencyPolicy }}
-  concurrencyPolicy: {{ .Values.cronJob.concurrencyPolicy }}
+  {{- if $spec.concurrencyPolicy }}
+  concurrencyPolicy: {{ $spec.concurrencyPolicy }}
   {{- end }}
-  {{- if ne .Values.cronJob.startingDeadlineSeconds nil }}
-  startingDeadlineSeconds: {{ .Values.cronJob.startingDeadlineSeconds }}
+  {{- if ne $spec.startingDeadlineSeconds nil }}
+  startingDeadlineSeconds: {{ $spec.startingDeadlineSeconds }}
   {{- end }}
-  {{- if ne .Values.cronJob.successfulJobsHistoryLimit nil }}
-  successfulJobsHistoryLimit: {{ .Values.cronJob.successfulJobsHistoryLimit }}
+  {{- if ne $spec.successfulJobsHistoryLimit nil }}
+  successfulJobsHistoryLimit: {{ $spec.successfulJobsHistoryLimit }}
   {{- end }}
-  {{- if ne .Values.cronJob.failedJobsHistoryLimit nil }}
-  failedJobsHistoryLimit: {{ .Values.cronJob.failedJobsHistoryLimit }}
+  {{- if ne $spec.failedJobsHistoryLimit nil }}
+  failedJobsHistoryLimit: {{ $spec.failedJobsHistoryLimit }}
   {{- end }}
   jobTemplate:
     spec:
-      {{- if and .Values.cronJob.jobTemplate (ne .Values.cronJob.jobTemplate.backoffLimit nil) }}
-      backoffLimit: {{ .Values.cronJob.jobTemplate.backoffLimit }}
+      {{- if and $spec.jobTemplate (ne $spec.jobTemplate.backoffLimit nil) }}
+      backoffLimit: {{ $spec.jobTemplate.backoffLimit }}
       {{- end }}
-      {{- if and .Values.cronJob.jobTemplate (ne .Values.cronJob.jobTemplate.ttlSecondsAfterFinished nil) }}
-      ttlSecondsAfterFinished: {{ .Values.cronJob.jobTemplate.ttlSecondsAfterFinished }}
+      {{- if and $spec.jobTemplate (ne $spec.jobTemplate.ttlSecondsAfterFinished nil) }}
+      ttlSecondsAfterFinished: {{ $spec.jobTemplate.ttlSecondsAfterFinished }}
       {{- end }}
       template:
         metadata:
           labels:
-            {{- include "libChart.labelsWithComponent" (dict "root" . "component" "cronjob") | nindent 12 }}
-            {{- if .Values.cronJob.podLabels }}
-            {{- toYaml .Values.cronJob.podLabels | nindent 12 }}
+            {{- include "libChart.labelsWithComponent" (dict "root" $root "component" "cronjob") | nindent 12 }}
+            {{- if $spec.podLabels }}
+            {{- toYaml $spec.podLabels | nindent 12 }}
             {{- end }}
         spec:
-          {{- include "libChart.workload.podSpecCommon" (dict "root" . "cfg" .Values.cronJob) | nindent 10 }}
-          restartPolicy: {{ .Values.cronJob.restartPolicy | default "OnFailure" }}
-          {{- if .Values.cronJob.initContainers }}
+          {{- include "libChart.workload.podSpecCommon" (dict "root" $root "spec" $spec) | nindent 10 }}
+          restartPolicy: {{ $spec.restartPolicy | default "OnFailure" }}
+          {{- if $spec.initContainers }}
           initContainers:
-            {{- $initContainers := .Values.cronJob.initContainers -}}
+            {{- $initContainers := $spec.initContainers -}}
             {{- range $name := (keys $initContainers | sortAlpha) }}
             {{- $container := index $initContainers $name }}
             - name: {{ $name }}
@@ -81,14 +84,14 @@ spec:
               {{- if $container.securityContext }}
               securityContext:
                 {{- toYaml $container.securityContext | nindent 16 }}
-              {{- else if $.Values.cronJob.defaultContainerSecurityContext }}
+              {{- else if $spec.defaultContainerSecurityContext }}
               securityContext:
-                {{- toYaml $.Values.cronJob.defaultContainerSecurityContext | nindent 16 }}
+                {{- toYaml $spec.defaultContainerSecurityContext | nindent 16 }}
               {{- end }}
             {{- end }}
           {{- end }}
           containers:
-            {{- $containers := .Values.cronJob.containers -}}
+            {{- $containers := $spec.containers -}}
             {{- range $name := (keys $containers | sortAlpha) }}
             {{- $container := index $containers $name }}
             {{- if $container.enabled }}
@@ -126,15 +129,15 @@ spec:
               {{- if $container.securityContext }}
               securityContext:
                 {{- toYaml $container.securityContext | nindent 16 }}
-              {{- else if $.Values.cronJob.defaultContainerSecurityContext }}
+              {{- else if $spec.defaultContainerSecurityContext }}
               securityContext:
-                {{- toYaml $.Values.cronJob.defaultContainerSecurityContext | nindent 16 }}
+                {{- toYaml $spec.defaultContainerSecurityContext | nindent 16 }}
               {{- end }}
             {{- end }}
             {{- end }}
-          {{- if .Values.persistence.volumes }}
+          {{- if $root.Values.persistence.volumes }}
           volumes:
-            {{- toYaml .Values.persistence.volumes | nindent 12 }}
+            {{- toYaml $root.Values.persistence.volumes | nindent 12 }}
           {{- end }}
 {{- end }}
 {{- end -}}

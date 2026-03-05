@@ -6,27 +6,27 @@ global:
 
 workload:
   type: deployment
-deployment:
-  containers:
-    app:
-      enabled: true
-      image:
-        repository: nginx
-        tag: "1.25"
-network:
-  httpRoute:
-    enabled: true
-    host: test-app.example.com
-    port: 80
-    gateway:
-      name: my-gateway
-      namespace: istio-system
-    routes:
-      - name: route
+  spec:
+    containers:
+      app:
         enabled: true
-        hostnames: []
-        rules:
-          - matches:
-              - path:
-                  type: PathPrefix
-                  value: /
+        image:
+          repository: nginx
+          tag: "1.25"
+network:
+    httpRoute:
+      enabled: true
+      host: test-app.example.com
+      port: 80
+      gateway:
+        name: my-gateway
+        namespace: istio-system
+      routes:
+        - name: route
+          enabled: true
+          hostnames: []
+          rules:
+            - matches:
+                - path:
+                    type: PathPrefix
+                    value: /

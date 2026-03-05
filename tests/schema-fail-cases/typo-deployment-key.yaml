@@ -6,11 +6,11 @@ global:
 
 workload:
   type: deployment
-deployment:
-  replicass: 3  # Typo: should be 'replicas'
-  containers:
-    app:
-      enabled: true
-      image:
-        repository: nginx
-        tag: "1.25"
+  spec:
+    replicass: 3  # Typo: should be 'replicas'
+    containers:
+      app:
+        enabled: true
+        image:
+          repository: nginx
+          tag: "1.25"

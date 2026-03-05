@@ -84,7 +84,7 @@ helm unittest test-chart --update-snapshot
 
 1. **Add a new test case** in an existing file (e.g. `test-chart/tests/deployment_test.yaml`):
    - Add a new `- it: <description>` under `tests:`.
-   - Use `set:` to override values (e.g. `global.name`, `deployment.containers`).
+   - Use `set:` to override values (e.g. `global.name`, `workload.spec.containers`).
    - Use `asserts:` with `documentIndex` (0 = first rendered doc, 1 = Deployment, etc.) and `equal`, `matchSnapshot`, or other [helm-unittest assertions](https://github.com/helm-unittest/helm-unittest/blob/master/docs/assertions.md).
 
 2. **Add a new test file** for another resource (e.g. Service, HTTPRoute):
@@ -101,13 +101,15 @@ helm unittest test-chart --update-snapshot
        global:
          name: ""
          namespace: default
-       deployment:
-         containers:
-           app:
-             enabled: true
-             image:
-               repository: nginx
-               tag: "1.0"
+       workload:
+         type: deployment
+         spec:
+           containers:
+             app:
+               enabled: true
+               image:
+                 repository: nginx
+                 tag: "1.0"
      asserts:
        - failedTemplate:
            errorMessage: "global.name"
