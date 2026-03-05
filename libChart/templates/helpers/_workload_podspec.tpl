@@ -3,64 +3,78 @@ Workload strategy dispatcher.
 Concrete rendering stays in classes/_deployment.tpl and classes/_cronjob.tpl.
 */ -}}
 {{- define "libChart.workload.render" -}}
-{{- if eq .Values.workload.type "deployment" }}
-{{ include "libChart.classes.deployment" . }}
-{{- else if eq .Values.workload.type "cronJob" }}
-{{ include "libChart.classes.cronjob" . }}
+{{- $ctx := include "libChart.workload.buildContext" . | fromYaml -}}
+{{- $strategies := dict
+      "deployment" "libChart.classes.deployment"
+      "cronJob" "libChart.classes.cronjob"
+-}}
+{{- $renderer := index $strategies $ctx.type -}}
+{{- if not $renderer }}
+  {{- fail (printf "workload.type %q is not supported by renderer registry" $ctx.type) -}}
 {{- end }}
+{{ include $renderer (dict "root" . "ctx" $ctx) }}
+{{- end -}}
+
+{{- define "libChart.workload.buildContext" -}}
+{{- $workload := .Values.workload | default dict -}}
+{{- $ctx := dict
+      "type" ($workload.type | default "")
+      "spec" ($workload.spec | default dict)
+-}}
+{{- toYaml $ctx -}}
 {{- end -}}
 
 {{/*
 Render shared pod spec fields for deployment/cronjob workloads.
-Call with: include "libChart.workload.podSpecCommon" (dict "root" $ "cfg" .Values.deployment)
+Call with: include "libChart.workload.podSpecCommon" (dict "root" $ "spec" .ctx.spec)
 */}}
 {{- define "libChart.workload.podSpecCommon" -}}
 {{- $root := .root -}}
-{{- $cfg := .cfg | default dict -}}
-{{- if $cfg.imagePullSecrets }}
+{{- $spec := .spec | default dict -}}
+{{- if $spec.imagePullSecrets }}
 imagePullSecrets:
-  {{- toYaml $cfg.imagePullSecrets | nindent 2 }}
+  {{- toYaml $spec.imagePullSecrets | nindent 2 }}
 {{- end }}
-{{- if ne (index $cfg "terminationGracePeriodSeconds") nil }}
-terminationGracePeriodSeconds: {{ index $cfg "terminationGracePeriodSeconds" }}
+{{- if ne (index $spec "terminationGracePeriodSeconds") nil }}
+terminationGracePeriodSeconds: {{ index $spec "terminationGracePeriodSeconds" }}
 {{- end }}
-{{- if $cfg.podSecurityContext }}
+{{- if $spec.podSecurityContext }}
 securityContext:
-  {{- toYaml $cfg.podSecurityContext | nindent 2 }}
+  {{- toYaml $spec.podSecurityContext | nindent 2 }}
 {{- end }}
 {{- if and $root.Values.serviceAccount $root.Values.serviceAccount.name }}
 serviceAccountName: {{ $root.Values.serviceAccount.name }}
 {{- else if and $root.Values.serviceAccount $root.Values.serviceAccount.create }}
 serviceAccountName: {{ include "libChart.name" $root }}
 {{- end }}
-{{- if $cfg.affinity }}
+{{- if $spec.affinity }}
 affinity:
-  {{- toYaml $cfg.affinity | nindent 2 }}
+  {{- toYaml $spec.affinity | nindent 2 }}
 {{- end }}
-{{- if $cfg.tolerations }}
+{{- if $spec.tolerations }}
 tolerations:
-  {{- toYaml $cfg.tolerations | nindent 2 }}
+  {{- toYaml $spec.tolerations | nindent 2 }}
 {{- end }}
-{{- if $cfg.nodeSelector }}
+{{- if $spec.nodeSelector }}
 nodeSelector:
-  {{- toYaml $cfg.nodeSelector | nindent 2 }}
+  {{- toYaml $spec.nodeSelector | nindent 2 }}
 {{- end }}
-{{- if $cfg.topologySpreadConstraints }}
+{{- if $spec.topologySpreadConstraints }}
 topologySpreadConstraints:
-  {{- toYaml $cfg.topologySpreadConstraints | nindent 2 }}
+  {{- toYaml $spec.topologySpreadConstraints | nindent 2 }}
 {{- end }}
-{{- if ne $cfg.hostNetwork nil }}
-hostNetwork: {{ $cfg.hostNetwork }}
+{{- if ne $spec.hostNetwork nil }}
+hostNetwork: {{ $spec.hostNetwork }}
 {{- end }}
-{{- if $cfg.dnsPolicy }}
-dnsPolicy: {{ $cfg.dnsPolicy }}
-{{- else if $cfg.hostNetwork }}
+{{- if $spec.dnsPolicy }}
+dnsPolicy: {{ $spec.dnsPolicy }}
+{{- else if $spec.hostNetwork }}
 dnsPolicy: ClusterFirstWithHostNet
 {{- end }}
-{{- if ne $cfg.automountServiceAccountToken nil }}
-automountServiceAccountToken: {{ $cfg.automountServiceAccountToken }}
+{{- if ne $spec.automountServiceAccountToken nil }}
+automountServiceAccountToken: {{ $spec.automountServiceAccountToken }}
 {{- end }}
-{{- if ne $cfg.enableServiceLinks nil }}
-enableServiceLinks: {{ $cfg.enableServiceLinks }}
+{{- if ne $spec.enableServiceLinks nil }}
+enableServiceLinks: {{ $spec.enableServiceLinks }}
 {{- end }}
 {{- end -}}

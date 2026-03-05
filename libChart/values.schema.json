@@ -83,6 +83,10 @@
           "type": "string",
           "enum": ["deployment", "cronJob"],
           "description": "Workload type to render"
+        },
+        "spec": {
+          "type": "object",
+          "description": "Workload specification for selected workload.type"
         }
       }
     },
@@ -1424,7 +1428,16 @@
         "required": ["workload"]
       },
       "then": {
-        "required": ["deployment"]
+        "properties": {
+          "workload": {
+            "required": ["spec"],
+            "properties": {
+              "spec": {
+                "$ref": "#/properties/deployment"
+              }
+            }
+          }
+        }
       }
     },
     {
@@ -1440,12 +1453,31 @@
         "required": ["workload"]
       },
       "then": {
-        "required": ["cronJob"],
         "properties": {
-          "cronJob": {
-            "required": ["schedule", "containers"]
+          "workload": {
+            "required": ["spec"],
+            "properties": {
+              "spec": {
+                "allOf": [
+                  {
+                    "$ref": "#/properties/cronJob"
+                  },
+                  {
+                    "required": ["schedule", "containers"]
+                  }
+                ]
+              }
+            }
           }
         }
+      }
+    },
+    {
+      "not": {
+        "anyOf": [
+          { "required": ["deployment"] },
+          { "required": ["cronJob"] }
+        ]
       }
     }
   ]

@@ -5,11 +5,11 @@ global:
 
 workload:
   type: deployment
-deployment:
-  containers:
-    app:
-      enabled: true
-      image:
-        repository: nginx
-        tag: "1.25"
-      imagPullPolicy: Always
+  spec:
+    containers:
+      app:
+        enabled: true
+        image:
+          repository: nginx
+          tag: "1.25"
+        imagPullPolicy: Always

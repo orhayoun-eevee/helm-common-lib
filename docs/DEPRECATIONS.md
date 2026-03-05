@@ -103,14 +103,14 @@ network:
 **What changed**: The JSON Schema (`values.schema.json`) now enforces stricter validation:
 - Added `additionalProperties: false` to all objects with known keys (deployment, network, metrics, etc.) to catch typos
 - Added `additionalProperties: false` to deployment/cronjob container and initContainer objects to catch typo keys
-- Added `minProperties: 1` to `deployment.containers` to enforce at least one container is defined
+- Added `minProperties: 1` to `workload.spec.containers` to enforce at least one container is defined
 - Added `resources` sub-schema requiring `requests` and `limits` to be objects (type-only validation)
 
 **Why**: Prevents silent typos like `destinationrule` vs `destinationRule` (correct camelCase). Catches structural errors earlier with clear messages.
 
 **Breaking**: Values files with typos in property names will now fail schema validation. Common errors:
-- `deploymentt` instead of `deployment` → `additional properties 'deploymentt' not allowed`
-- `replicass` instead of `replicas` → `additional properties 'replicass' not allowed`
+- `worklod` instead of `workload` → `additional properties 'worklod' not allowed`
+- `workload.spec.replicass` instead of `workload.spec.replicas` → `additional properties 'replicass' not allowed`
 - `destinationrule` instead of `destinationRule` → `additional properties 'destinationrule' not allowed`
 - Empty `containers: {}` → `minProperties: got 0, want 1`
 

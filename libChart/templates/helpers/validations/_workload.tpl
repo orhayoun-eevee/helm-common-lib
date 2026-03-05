@@ -14,26 +14,26 @@
 {{- end }}
 
 {{- if eq $kind "cronJob" }}
-  {{- $cron := .Values.cronJob | default dict -}}
-  {{- $schedule := $cron.schedule | default "" -}}
+  {{- $spec := .Values.workload.spec | default dict -}}
+  {{- $schedule := $spec.schedule | default "" -}}
   {{- if not $schedule }}
-    {{- $errors = append $errors "cronJob.schedule is required when workload.type=cronJob" -}}
+    {{- $errors = append $errors "workload.spec.schedule is required when workload.type=cronJob" -}}
   {{- end }}
   {{- if regexMatch "(^|\\s)(TZ|CRON_TZ)=" $schedule }}
-    {{- $errors = append $errors "cronJob.schedule must not use TZ/CRON_TZ; use cronJob.timeZone instead" -}}
+    {{- $errors = append $errors "workload.spec.schedule must not use TZ/CRON_TZ; use workload.spec.timeZone instead" -}}
   {{- end }}
-  {{- if and $cron.timeZone (not (semverCompare ">=1.27.0-0" .Capabilities.KubeVersion.Version)) }}
-    {{- $errors = append $errors (printf "cronJob.timeZone requires Kubernetes >= 1.27 (detected %s)" .Capabilities.KubeVersion.Version) -}}
+  {{- if and $spec.timeZone (not (semverCompare ">=1.27.0-0" .Capabilities.KubeVersion.Version)) }}
+    {{- $errors = append $errors (printf "workload.spec.timeZone requires Kubernetes >= 1.27 (detected %s)" .Capabilities.KubeVersion.Version) -}}
   {{- end }}
 
-  {{- $containers := $cron.containers | default dict -}}
+  {{- $containers := $spec.containers | default dict -}}
   {{- $hasEnabled := false -}}
   {{- range $name := (keys $containers | sortAlpha) }}
     {{- $container := index $containers $name }}
     {{- if $container.enabled }}{{- $hasEnabled = true }}{{- end }}
   {{- end }}
   {{- if not $hasEnabled }}
-    {{- $errors = append $errors "cronJob.containers must have at least one enabled container when workload.type=cronJob" -}}
+    {{- $errors = append $errors "workload.spec.containers must have at least one enabled container when workload.type=cronJob" -}}
   {{- end }}
 
   {{- if and .Values.podDisruptionBudget .Values.podDisruptionBudget.enabled }}

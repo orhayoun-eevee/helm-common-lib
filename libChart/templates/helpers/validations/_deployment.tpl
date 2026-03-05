@@ -12,15 +12,15 @@
 {{- if ne .Values.workload.type "deployment" }}
   {{- join "\n" $errors -}}
 {{- else -}}
-{{- $dep := .Values.deployment | default dict }}
-{{- $containers := $dep.containers | default dict }}
+{{- $spec := .Values.workload.spec | default dict }}
+{{- $containers := $spec.containers | default dict }}
 {{- $hasEnabled := false }}
 {{- range $name := (keys $containers | sortAlpha) }}
   {{- $container := index $containers $name }}
   {{- if $container.enabled }}{{- $hasEnabled = true }}{{- end }}
 {{- end }}
 {{- if not $hasEnabled }}
-  {{- $errors = append $errors "deployment.containers must have at least one enabled container" -}}
+  {{- $errors = append $errors "workload.spec.containers must have at least one enabled container for workload.type=deployment" -}}
 {{- end }}
 {{- join "\n" $errors -}}
 {{- end -}}

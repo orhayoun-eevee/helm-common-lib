@@ -1,33 +1,36 @@
 {{- define "libChart.classes.deployment" -}}
-{{- if .Values.deployment.containers }}
+{{- $root := .root | default . -}}
+{{- $ctx := .ctx | default dict -}}
+{{- $spec := $ctx.spec | default $root.Values.workload.spec | default dict -}}
+{{- if $spec.containers }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "libChart.name" . }}
-  namespace: {{ .Values.global.namespace | default "default" }}
+  name: {{ include "libChart.name" $root }}
+  namespace: {{ $root.Values.global.namespace | default "default" }}
   labels:
-    {{- include "libChart.labelsWithComponent" (dict "root" . "component" "deployment") | nindent 4 }}
+    {{- include "libChart.labelsWithComponent" (dict "root" $root "component" "deployment") | nindent 4 }}
 spec:
-  replicas: {{ .Values.deployment.replicas | default 1 }}
-  revisionHistoryLimit: {{ .Values.deployment.revisionHistoryLimit | default 3 }}
+  replicas: {{ $spec.replicas | default 1 }}
+  revisionHistoryLimit: {{ $spec.revisionHistoryLimit | default 3 }}
   strategy:
-    type: {{ .Values.deployment.strategy.type | default "Recreate" }}
+    type: {{ $spec.strategy.type | default "Recreate" }}
   selector:
     matchLabels:
-      {{- include "libChart.selectorLabels" . | nindent 6 }}
+      {{- include "libChart.selectorLabels" $root | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "libChart.labelsWithComponent" (dict "root" . "component" "deployment") | nindent 8 }}
-        {{- if .Values.deployment.podLabels }}
-        {{- toYaml .Values.deployment.podLabels | nindent 8 }}
+        {{- include "libChart.labelsWithComponent" (dict "root" $root "component" "deployment") | nindent 8 }}
+        {{- if $spec.podLabels }}
+        {{- toYaml $spec.podLabels | nindent 8 }}
         {{- end }}
     spec:
-      {{- include "libChart.workload.podSpecCommon" (dict "root" . "cfg" .Values.deployment) | nindent 6 }}
-      {{- if .Values.deployment.initContainers }}
+      {{- include "libChart.workload.podSpecCommon" (dict "root" $root "spec" $spec) | nindent 6 }}
+      {{- if $spec.initContainers }}
       initContainers:
-        {{- $initContainers := .Values.deployment.initContainers -}}
+        {{- $initContainers := $spec.initContainers -}}
         {{- range $name := (keys $initContainers | sortAlpha) }}
         {{- $container := index $initContainers $name }}
         - name: {{ $name }}
@@ -60,14 +63,14 @@ spec:
           {{- if $container.securityContext }}
           securityContext:
             {{- toYaml $container.securityContext | nindent 12 }}
-          {{- else if $.Values.deployment.defaultContainerSecurityContext }}
+          {{- else if $spec.defaultContainerSecurityContext }}
           securityContext:
-            {{- toYaml $.Values.deployment.defaultContainerSecurityContext | nindent 12 }}
+            {{- toYaml $spec.defaultContainerSecurityContext | nindent 12 }}
           {{- end }}
         {{- end }}
       {{- end }}
       containers:
-        {{- $containers := .Values.deployment.containers -}}
+        {{- $containers := $spec.containers -}}
         {{- range $name := (keys $containers | sortAlpha) }}
         {{- $container := index $containers $name }}
         {{- if $container.enabled }}
@@ -131,15 +134,15 @@ spec:
           {{- if $container.securityContext }}
           securityContext:
             {{- toYaml $container.securityContext | nindent 12 }}
-          {{- else if $.Values.deployment.defaultContainerSecurityContext }}
+          {{- else if $spec.defaultContainerSecurityContext }}
           securityContext:
-            {{- toYaml $.Values.deployment.defaultContainerSecurityContext | nindent 12 }}
+            {{- toYaml $spec.defaultContainerSecurityContext | nindent 12 }}
           {{- end }}
         {{- end }}
         {{- end }}
-      {{- if .Values.persistence.volumes }}
+      {{- if $root.Values.persistence.volumes }}
       volumes:
-        {{- toYaml .Values.persistence.volumes | nindent 8 }}
+        {{- toYaml $root.Values.persistence.volumes | nindent 8 }}
       {{- end }}
 {{- end }}
 {{- end -}}

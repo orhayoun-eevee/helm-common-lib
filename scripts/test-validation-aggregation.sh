@@ -24,7 +24,7 @@ if [ "$STATUS" -eq 0 ]; then
   exit 1
 fi
 
-echo "$OUTPUT" | grep -F "deployment.containers must have at least one enabled container" >/dev/null || {
+echo "$OUTPUT" | grep -F "workload.spec.containers must have at least one enabled container for workload.type=deployment" >/dev/null || {
   echo "Missing aggregated deployment validation error"
   exit 1
 }

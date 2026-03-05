@@ -10,9 +10,21 @@ CronJob names are limited to 52 chars because the controller appends 11 chars
 when creating Job names, and Jobs are capped at 63 chars.
 */}}
 {{- define "libChart.cronjobName" -}}
-  {{- $base := include "libChart.name" . -}}
-  {{- if and .Values.cronJob .Values.cronJob.nameOverride }}
-    {{- $base = .Values.cronJob.nameOverride -}}
+  {{- $root := . -}}
+  {{- $spec := dict -}}
+  {{- if kindIs "map" . }}
+    {{- if hasKey . "root" }}
+      {{- $root = .root -}}
+    {{- end }}
+    {{- if hasKey . "spec" }}
+      {{- $spec = .spec -}}
+    {{- end }}
+  {{- end }}
+  {{- $base := include "libChart.name" $root -}}
+  {{- if and $spec $spec.nameOverride }}
+    {{- $base = $spec.nameOverride -}}
+  {{- else if and $root.Values.workload $root.Values.workload.spec $root.Values.workload.spec.nameOverride }}
+    {{- $base = $root.Values.workload.spec.nameOverride -}}
   {{- end -}}
   {{- $base | toString | trunc 52 | trimSuffix "-" -}}
 {{- end -}}

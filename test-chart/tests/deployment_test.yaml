@@ -9,14 +9,16 @@ tests:
       global:
         name: test-app
         namespace: test-namespace
-      deployment:
-        replicas: 1
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
+      workload:
+        type: deployment
+        spec:
+          replicas: 1
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
     asserts:
       - documentIndex: 1
         equal:
@@ -40,14 +42,16 @@ tests:
       global:
         name: test-app
         namespace: default
-      deployment:
-        replicas: 3
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: latest
+      workload:
+        type: deployment
+        spec:
+          replicas: 3
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: latest
     asserts:
       - documentIndex: 1
         equal:
@@ -59,21 +63,23 @@ tests:
       global:
         name: snapshot-app
         namespace: snapshot-ns
-      deployment:
-        replicas: 2
-        strategy:
-          type: RollingUpdate
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
-              pullPolicy: IfNotPresent
-            ports:
-              - name: http
-                containerPort: 8080
-                protocol: TCP
+      workload:
+        type: deployment
+        spec:
+          replicas: 2
+          strategy:
+            type: RollingUpdate
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
+                pullPolicy: IfNotPresent
+              ports:
+                - name: http
+                  containerPort: 8080
+                  protocol: TCP
     asserts:
       - documentIndex: 1
         equal:
@@ -93,14 +99,16 @@ tests:
       global:
         name: host-net-app
         namespace: default
-      deployment:
-        hostNetwork: true
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: latest
+      workload:
+        type: deployment
+        spec:
+          hostNetwork: true
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: latest
     asserts:
       - documentIndex: 1
         equal:
@@ -116,15 +124,17 @@ tests:
       global:
         name: host-net-custom-dns-app
         namespace: default
-      deployment:
-        hostNetwork: true
-        dnsPolicy: None
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: latest
+      workload:
+        type: deployment
+        spec:
+          hostNetwork: true
+          dnsPolicy: None
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: latest
     asserts:
       - documentIndex: 1
         equal:
@@ -143,13 +153,15 @@ tests:
       serviceAccount:
         create: false
         name: precreated-service-account
-      deployment:
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: latest
+      workload:
+        type: deployment
+        spec:
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: latest
     asserts:
       - documentIndex: 0
         equal:
@@ -165,14 +177,16 @@ tests:
       global:
         name: zero-grace-app
         namespace: default
-      deployment:
-        terminationGracePeriodSeconds: 0
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: latest
+      workload:
+        type: deployment
+        spec:
+          terminationGracePeriodSeconds: 0
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: latest
     asserts:
       - documentIndex: 1
         equal:

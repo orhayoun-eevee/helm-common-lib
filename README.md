@@ -120,15 +120,15 @@ Workload selection:
 - Kubernetes compatibility target is `>=1.30`.
 
 Notable deployment networking option:
-- `deployment.hostNetwork` is supported.
-- If `deployment.hostNetwork: true` and `deployment.dnsPolicy` is not set, the chart renders `dnsPolicy: ClusterFirstWithHostNet`.
+- `workload.spec.hostNetwork` is supported.
+- If `workload.spec.hostNetwork: true` and `workload.spec.dnsPolicy` is not set, the chart renders `dnsPolicy: ClusterFirstWithHostNet`.
 - `network.services.items.<name>.ports.<port>.targetPort` is optional; if omitted, Kubernetes defaults it to `port`.
 
 Notable CronJob options:
-- `cronJob.schedule` is required when `workload.type=cronJob`.
-- `cronJob.timeZone` is supported on Kubernetes 1.27+.
-- `cronJob.nameOverride` must be DNS-1123 compliant and <= 52 characters (Kubernetes CronJob/Job naming rule).
-- Do not use `TZ=`/`CRON_TZ=` inside `cronJob.schedule`; use `cronJob.timeZone`.
+- `workload.spec.schedule` is required when `workload.type=cronJob`.
+- `workload.spec.timeZone` is supported on Kubernetes 1.27+.
+- `workload.spec.nameOverride` must be DNS-1123 compliant and <= 52 characters (Kubernetes CronJob/Job naming rule).
+- Do not use `TZ=`/`CRON_TZ=` inside `workload.spec.schedule`; use `workload.spec.timeZone`.
 - In `workload.type=cronJob` mode, deployment-oriented features fail validation (`podDisruptionBudget`, service/httpRoute routing, ServiceMonitor, Istio routing resources).
 
 Service account behavior:
@@ -157,18 +157,17 @@ global:
 
 workload:
   type: deployment
-
-deployment:
-  replicas: 2
-  containers:
-    app:
-      enabled: true
-      image:
-        repository: my-service
-        tag: "v1.2.3"
-      ports:
-        - name: http
-          containerPort: 8080
+  spec:
+    replicas: 2
+    containers:
+      app:
+        enabled: true
+        image:
+          repository: my-service
+          tag: "v1.2.3"
+        ports:
+          - name: http
+            containerPort: 8080
 
 network:
   services:
@@ -191,20 +190,19 @@ global:
 
 workload:
   type: cronJob
-
-cronJob:
-  schedule: "0 * * * *"
-  timeZone: "Etc/UTC"
-  concurrencyPolicy: Forbid
-  restartPolicy: OnFailure
-  containers:
-    app:
-      enabled: true
-      image:
-        repository: busybox
-        tag: "1.36"
-      command: ["/bin/sh", "-c"]
-      args: ["date; echo run"]
+  spec:
+    schedule: "0 * * * *"
+    timeZone: "Etc/UTC"
+    concurrencyPolicy: Forbid
+    restartPolicy: OnFailure
+    containers:
+      app:
+        enabled: true
+        image:
+          repository: busybox
+          tag: "1.36"
+        command: ["/bin/sh", "-c"]
+        args: ["date; echo run"]
 ```
 
 ### Using Individual Templates
