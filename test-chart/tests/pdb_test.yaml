@@ -8,13 +8,15 @@ tests:
       global:
         name: pdb-app
         namespace: pdb-ns
-      deployment:
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
+      workload:
+        type: deployment
+        spec:
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
       podDisruptionBudget:
         enabled: true
         minAvailable: 0
@@ -43,13 +45,15 @@ tests:
       global:
         name: pdb-app
         namespace: pdb-ns
-      deployment:
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
+      workload:
+        type: deployment
+        spec:
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
       podDisruptionBudget:
         enabled: true
         minAvailable: null

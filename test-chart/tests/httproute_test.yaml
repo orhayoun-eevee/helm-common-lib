@@ -9,14 +9,16 @@ tests:
       global:
         name: test-app
         namespace: test-namespace
-      deployment:
-        replicas: 1
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
+      workload:
+        type: deployment
+        spec:
+          replicas: 1
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
       network:
         httpRoute:
           enabled: true
@@ -84,14 +86,16 @@ tests:
       global:
         name: multi-host-app
         namespace: test-namespace
-      deployment:
-        replicas: 1
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
+      workload:
+        type: deployment
+        spec:
+          replicas: 1
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
       network:
         httpRoute:
           enabled: true
@@ -134,14 +138,16 @@ tests:
       global:
         name: route-host-app
         namespace: test-namespace
-      deployment:
-        replicas: 1
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
+      workload:
+        type: deployment
+        spec:
+          replicas: 1
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
       network:
         httpRoute:
           enabled: true

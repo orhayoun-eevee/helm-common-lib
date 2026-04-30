@@ -8,13 +8,15 @@ tests:
       global:
         name: grafana-app
         namespace: monitor-ns
-      deployment:
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
+      workload:
+        type: deployment
+        spec:
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
       metrics:
         enabled: true
         serviceMonitor:
