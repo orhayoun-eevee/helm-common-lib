@@ -30,6 +30,8 @@ workload:
   # Supported values: deployment, cronJob
   type: deployment
   # spec contains workload-type-specific settings.
+  # All workload-specific settings belong under workload.spec.
+  # Top-level deployment/cronJob blocks are not part of the supported values contract.
   # For workload.type=deployment use Deployment keys (replicas/strategy/containers/...).
   # For workload.type=cronJob use CronJob keys (schedule/concurrencyPolicy/restartPolicy/containers/...).
   # CronJob-specific examples:

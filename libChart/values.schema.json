@@ -86,7 +86,7 @@
         },
         "spec": {
           "type": "object",
-          "description": "Workload specification for selected workload.type"
+          "description": "Workload specification for selected workload.type; all workload-specific settings live here and top-level deployment/cronJob blocks are rejected"
         }
       }
     },
@@ -94,7 +94,7 @@
     "deployment": {
       "title": "Deployment",
       "type": "object",
-      "description": "Deployment configuration",
+      "description": "Internal schema definition for workload.spec when workload.type=deployment; not a supported top-level values key",
       "additionalProperties": false,
       "properties": {
         "replicas": {
@@ -374,7 +374,7 @@
     "cronJob": {
       "title": "CronJob",
       "type": "object",
-      "description": "CronJob configuration for batch workloads",
+      "description": "Internal schema definition for workload.spec when workload.type=cronJob; not a supported top-level values key",
       "additionalProperties": false,
       "properties": {
         "nameOverride": {

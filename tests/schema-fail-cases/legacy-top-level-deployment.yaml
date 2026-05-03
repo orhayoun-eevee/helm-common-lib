@@ -1,0 +1,17 @@
+# Test: legacy top-level deployment block must be rejected
+global:
+  name: test-app
+  namespace: test-namespace
+
+workload:
+  type: deployment
+  spec:
+    containers:
+      app:
+        enabled: true
+        image:
+          repository: nginx
+          tag: "1.25"
+
+deployment:
+  replicas: 2
