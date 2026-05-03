@@ -9,14 +9,16 @@ tests:
       global:
         name: test-app
         namespace: test-namespace
-      deployment:
-        replicas: 1
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
+      workload:
+        type: deployment
+        spec:
+          replicas: 1
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
       persistence:
         enabled: true
         claims:
@@ -55,14 +57,16 @@ tests:
       global:
         name: pvc-app
         namespace: default
-      deployment:
-        replicas: 1
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: latest
+      workload:
+        type: deployment
+        spec:
+          replicas: 1
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: latest
       persistence:
         enabled: true
         claims:

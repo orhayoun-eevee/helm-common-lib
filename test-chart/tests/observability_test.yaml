@@ -9,14 +9,16 @@ tests:
       global:
         name: sm-app
         namespace: monitor-ns
-      deployment:
-        replicas: 1
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
+      workload:
+        type: deployment
+        spec:
+          replicas: 1
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
       metrics:
         enabled: true
         serviceMonitor:
@@ -78,14 +80,16 @@ tests:
       global:
         name: port-app
         namespace: default
-      deployment:
-        replicas: 1
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
+      workload:
+        type: deployment
+        spec:
+          replicas: 1
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
       metrics:
         enabled: true
         serviceMonitor:
@@ -107,14 +111,16 @@ tests:
       global:
         name: auth-app
         namespace: default
-      deployment:
-        replicas: 1
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
+      workload:
+        type: deployment
+        spec:
+          replicas: 1
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
       metrics:
         enabled: true
         serviceMonitor:
@@ -161,14 +167,16 @@ tests:
       global:
         name: selector-app
         namespace: default
-      deployment:
-        replicas: 1
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: latest
+      workload:
+        type: deployment
+        spec:
+          replicas: 1
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: latest
       metrics:
         enabled: true
         serviceMonitor:
@@ -192,14 +200,16 @@ tests:
       global:
         name: rule-app
         namespace: rule-ns
-      deployment:
-        replicas: 1
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
+      workload:
+        type: deployment
+        spec:
+          replicas: 1
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
       metrics:
         enabled: true
         serviceMonitor:

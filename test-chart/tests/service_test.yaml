@@ -9,14 +9,16 @@ tests:
       global:
         name: test-app
         namespace: test-namespace
-      deployment:
-        replicas: 1
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
+      workload:
+        type: deployment
+        spec:
+          replicas: 1
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
       network:
         services:
           items:
@@ -63,14 +65,16 @@ tests:
       global:
         name: svc-app
         namespace: default
-      deployment:
-        replicas: 1
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: latest
+      workload:
+        type: deployment
+        spec:
+          replicas: 1
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: latest
       network:
         services:
           items:
@@ -103,13 +107,15 @@ tests:
       global:
         name: no-target-port-app
         namespace: default
-      deployment:
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
+      workload:
+        type: deployment
+        spec:
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
       network:
         services:
           items:

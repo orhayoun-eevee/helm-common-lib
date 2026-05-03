@@ -23,6 +23,8 @@ global:
 workload:
   # Supported values: deployment, cronJob
   type: deployment
+  # Keep workload-specific settings under workload.spec.
+  # Top-level deployment/cronJob blocks are rejected by the library schema.
   spec:
     replicas: 1
     strategy:

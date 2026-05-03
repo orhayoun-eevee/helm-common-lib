@@ -9,14 +9,16 @@ tests:
       global:
         name: test-app
         namespace: test-namespace
-      deployment:
-        replicas: 1
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
+      workload:
+        type: deployment
+        spec:
+          replicas: 1
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
       serviceAccount:
         create: true
         name: custom-sa
@@ -44,14 +46,16 @@ tests:
       global:
         name: default-app
         namespace: default
-      deployment:
-        replicas: 1
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: latest
+      workload:
+        type: deployment
+        spec:
+          replicas: 1
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: latest
       serviceAccount:
         create: true
     asserts:
@@ -69,14 +73,16 @@ tests:
       global:
         name: np-app
         namespace: np-ns
-      deployment:
-        replicas: 1
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
+      workload:
+        type: deployment
+        spec:
+          replicas: 1
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
       network:
         services:
           items:
@@ -144,14 +150,16 @@ tests:
       global:
         name: secret-app
         namespace: secret-ns
-      deployment:
-        replicas: 1
-        containers:
-          app:
-            enabled: true
-            image:
-              repository: nginx
-              tag: "1.25"
+      workload:
+        type: deployment
+        spec:
+          replicas: 1
+          containers:
+            app:
+              enabled: true
+              image:
+                repository: nginx
+                tag: "1.25"
       secrets:
         enabled: true
         sealedSecret:

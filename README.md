@@ -117,6 +117,8 @@ Configure your chart via `values.yaml`. See [libChart/values.yaml](libChart/valu
 Workload selection:
 - `workload.type` is required.
 - Supported values are `deployment` and `cronJob`.
+- All workload-specific settings live under `workload.spec`.
+- Top-level `deployment` / `cronJob` values blocks are not part of the supported contract and are rejected by schema validation.
 - Kubernetes compatibility target is `>=1.30`.
 
 Notable deployment networking option:
